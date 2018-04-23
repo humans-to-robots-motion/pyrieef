@@ -1,0 +1,27 @@
+bin/
+build/
+Debug
+Release
+RelWithDebInfo
+lib/
+*.swp
+*.swo
+attic/
+.ycm_extra_conf.py
+.ycm_extra_conf.pyc
+amd_robotics_ros_pkgs/scripts/saved_trajectories/*
+*.pyc
+*~
+ellipsoid_msgs/Makefile
+geodesic_flow/Makefile
+rieef_data/
+.idea/
+
+# test data files
+*.txt
+*.csv
+*.h5
+
+# MacOS X
+.DS_Store
+._.DS_Store
