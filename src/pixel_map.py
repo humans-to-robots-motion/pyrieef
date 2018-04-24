@@ -29,9 +29,9 @@ class Extends:
     def y(self):
         return self.y_max - self.y_min
 
-# Implements an axis aligned regular pixel-grid map. It follows the convention 
-# that we use on the C++ version of the class. which means that the min and max 
-# extends are the origin of the world coordinates.
+# Implements an axis aligned regular pixel-grid map. It follows the 
+# convention  that we use on the C++ version of the class. which means 
+# that the min and max extends are the origin of the world coordinates.
 class PixelMap:
     def __init__(self, resolution, extends=Extends()):
         self.extends = extends
