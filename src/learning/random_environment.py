@@ -2,6 +2,7 @@ import common_imports
 from workspace import *
 from math import *
 from math.random import *
+import optparse
 
 # Sample a random point within limits
 def samplerandpt(lims):
@@ -37,13 +38,25 @@ def Grids(workspace, resolution, epsilon):
             costs[i, j] = ChompObstacleCost(min_dist, epsilon)
     return [occupancy, costs]
 
-def RandomEnvironments():
+def RandomEnvironments(opt):
+
+    ndim        = 2
+    lims        = np.array([[0., 1.], [0., 1.]])
+    # size        = torch.LongStorage({opt.xsize, opt.ysize}) # col x row
+    numdatasets = opt.numdatasets
+    maxnobjs    = opt.maxnumobjs
+    minrad      = opt.minobjrad
+    maxrad      = opt.maxobjrad
+    epsilon     = opt.epsilon
+    padding     = 3
+
     # Create a bunch of datasets
     maxnobjs = 3
     datasets = {}
-    k = 1;
+    k = 1
+    
     # Try for this many time to do any one single thing before restarting
-    maxnumtries = 100; 
+    maxnumtries = 100
     for k in range(numdatasets):
 
         # Create obstacles
@@ -54,32 +67,77 @@ def RandomEnvironments():
         nobj = ceil(random() * maxnobjs)
         objs = []
         while len(objs) < nobj and numtries < maxnumtries:
-        r = minrad + random() * (maxrad - minrad)
-        c = samplerandpt(lims)
-        # If this object is reasonably far away from other objects
-        if (mincircobjdist(c, objs) >= (r + 0.1)):
-            objs.append(Circle(c,r))
-        numtries = numtries + 1; # Increment num tries
+            r = minrad + random() * (maxrad - minrad)
+            c = samplerandpt(lims)
+            # If this object is reasonably far away from other objects
+            if (mincircobjdist(c, objs) >= (r + 0.1)):
+                workspace.AddCircle(c, r)
+            numtries = numtries + 1  # Increment num tries
 
-        # Go further only if we have not exceeded all tries
-        if numtries < maxnumtries: 
-            # Compute the occupancy grid and the cost
-            # Needs states in Nx2 format
-            cost, occ, mindist, minid = Grids(workspace, resolution, epsilon) 
-            # Save dataset
-            # dataset = {objs = objs, target = cost:view(size):float(), 
-            # 	input = occ:view(size):byte(), mindist = mindist:view(size):float(),
-            # minid = minid:view(size):byte()}
-            datasets[k] = dataset
+            # Go further only if we have not exceeded all tries
+            if numtries < maxnumtries: 
+                # Compute the occupancy grid and the cost
+                # Needs states in Nx2 format
+                [occ, cost] = Grids(workspace, resolution, epsilon) 
+                # Save dataset
+                # dataset = {objs = objs, target = cost:view(size):float(), 
+                # input = occ:view(size):byte(), mindist = mindist:view(size):float(),
+                # minid = minid:view(size):byte()}
+                datasets[k] = dataset
 
-            # Display the cost, occ grid, min dist, min id
-            # if opt.display and (k%10 == 0) then
-            #   local catimgs = torch.cat({cost:view(1,size[1], size[2]):float(), 
-            #   	occ:view(1,size[1], size[2]):float(), 
-            #   	mindist:view(1,size[1], size[2]):float(), 
-            #   	minid:view(1,size[1], size[2]):float()}, 1);
-            #   local temp = image.toDisplayTensor{input=catimgs, 
-            #   	padding=padding, nrow=4, scaleeach = true} 
-            #   image.display{image = temp, win = qtwindow, x = 0, y = 20}
+                # Display the cost, occ grid, min dist, min id
+                # if opt.display and (k%10 == 0) then
+                #   local catimgs = torch.cat({cost:view(1,size[1], size[2]):float(), 
+                #   	occ:view(1,size[1], size[2]):float(), 
+                #   	mindist:view(1,size[1], size[2]):float(), 
+                #   	minid:view(1,size[1], size[2]):float()}, 1);
+                #   local temp = image.toDisplayTensor{input=catimgs, 
+                #   	padding=padding, nrow=4, scaleeach = true} 
+                #   image.display{image = temp, win = qtwindow, x = 0, y = 20}
         else:
             print('[OBJS] Reached max number of tries. Restarting run...')
+
+
+if __name__ == '__main__':
+
+    parser = optparse.OptionParser("usage: %prog [options] arg1 arg2")
+
+    parser.add_option('-numdatasets', 
+        default=100, type="int", dest='numdatasets',
+        help='Number of datasets to generate')
+    parser.add_option('-savefilename', 
+        default='2dcostdata.t7', type="string", dest='savefilename',
+        help='Filename to save results in (in local directory)')
+    parser.add_option('-savematlabfile', 
+        default=false, type="bool", dest='savematlabfile',
+        help='Save results in .mat format')
+    parser.add_option('-xsize',
+        default=100, type="int", dest='xsize',
+        help='Size of the x-dimension (in pixels). X values go from 0-1')
+    parser.add_option('-ysize', 
+        default=100, type="int", dest='ysize',
+        help='Size of the y-dimension (in pixels). Y values go from 0-1')
+    parser.add_option('-maxnumobjs', 
+        default=4, type="int", dest='maxnumobjs',
+        help='Maximum number of obst. per scene (ranges from 1-this number)')
+    parser.add_option('-minobjrad', 
+        default=0.1, type="float", dest='minobjrad',
+        help='Minimum radius of any obstacle (in m)')
+    parser.add_option('-maxobjrad', 
+        default=0.25, type="float", dest='maxobjrad', 
+        help='Maximum radius of any obstacle (in m)')
+    parser.add_option('-epsilon', 
+        default=0.1, type="float", dest='epsilon',
+        help='Distance from obstacle at which obstacle cost zeroes out (in m)')
+    parser.add_option('-display', 
+        default=false, type="bool", dest='display',
+        help='If set, displays the obstacle costs/occ grids in 2D')
+    parser.add_option('-seed', 
+        default=-1, type="int", dest='seed',
+        help='Random number seed. -ve values mean random seed')
+
+    (options, args) = parser.parse_args()
+    if len(args) != 2:
+        parser.error("incorrect number of arguments")
+
+    RandomEnvironments(options)
