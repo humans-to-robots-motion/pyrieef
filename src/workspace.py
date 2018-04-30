@@ -43,9 +43,13 @@ class Circle(Shape):
         self.radius = r
 
     # Signed distance 
+    # 
     def DistFromBorder(self, x):
         x_center = x - self.origin
-        d = np.linalg.norm(x_center)
+        # Oddly the norm of matlab is slower than the standard library here...
+        # d1 = np.linalg.norm(x_center)
+        d = math.sqrt(x_center[0]**2 + x_center[1]**2)
+        # print "d1 : {}, d : {}".format(d1, d)
         return d - self.radius
 
     def SampledPoints(self):
@@ -111,6 +115,8 @@ class Segment(Shape):
             points.append((1. - alpha) * p_1 + alpha * p_2 )
         return points
 
+# A box is defined by an origin, which is its center.
+# and dimension which are it's size in axis aligned coordinates
 class Box:
     def __init__(self, 
             origin=np.array([0., 0.]), 
@@ -118,12 +124,21 @@ class Box:
         self.origin = origin
         self.dim = dim
 
-    def Extends(self):
+    def box_extends(self):
         return np.array([self.origin[0] - self.dim[0]/2.,
                          self.origin[0] + self.dim[0]/2.,
                          self.origin[1] - self.dim[1]/2.,
                          self.origin[1] + self.dim[1]/2.,
                          ])
+
+    def extends(self):
+        box_extends=self.box_extends()
+        extends=Extends()
+        extends.x_min = box_extends[0]
+        extends.x_max = box_extends[1]
+        extends.y_min = box_extends[2]
+        extends.y_max = box_extends[3]
+        return extends
 
 
 class Workspace:
