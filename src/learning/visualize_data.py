@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+from itertools import izip
 
 def LoadData():
     import h5py
@@ -6,15 +7,13 @@ def LoadData():
         datasets = f['mydataset'][:]
     return datasets
 
-# This function draws two images next to each other.    
-def DrawGrids(occ, sdf, cost):
-    fig = plt.figure(figsize=(5, 2))
+def DrawOneDataPoint(occ, sdf, cost, numb_rows=1, row=0):
 
-    ax0 = fig.add_subplot(1, 3, 1)
+    ax0 = fig.add_subplot(numb_rows, 3, 1 + 3 * row)
     image_0 = plt.imshow(occ)
-    ax1 = fig.add_subplot(1, 3, 2)
+    ax1 = fig.add_subplot(numb_rows, 3, 2 + 3 * row)
     image_1 = plt.imshow(sdf)
-    ax2 = fig.add_subplot(1, 3, 3)
+    ax2 = fig.add_subplot(numb_rows, 3, 3 + 3 * row)
     image_2 = plt.imshow(cost)
 
     draw_fontsize=5
@@ -23,10 +22,15 @@ def DrawGrids(occ, sdf, cost):
     ax1.tick_params(labelsize=draw_fontsize)
     ax2.tick_params(labelsize=draw_fontsize)
 
-    ax0.set_title('Occupancy', fontsize=draw_fontsize)
-    ax1.set_title('Signed Distance Field', fontsize=draw_fontsize)
-    ax2.set_title('Chomp Cost', fontsize=draw_fontsize)
+    if row == 0:
+        ax0.set_title('Occupancy', fontsize=draw_fontsize)
+        ax1.set_title('Signed Distance Field', fontsize=draw_fontsize)
+        ax2.set_title('Chomp Cost', fontsize=draw_fontsize)
 
+# This function draws two images next to each other.    
+def DrawGrids(data):
+    fig = plt.figure(figsize=(5, 2))
+    DrawOneDataPoint(data[0], data[1], data[2])
     plt.show(block=False)
     plt.draw()
     plt.pause(0.0001)
@@ -37,5 +41,18 @@ def DrawGrids(occ, sdf, cost):
 if __name__ == '__main__':
 
     datasets = LoadData()
-    for data in datasets:
-        DrawGrids(data[0], data[1], data[2])
+    print "Data is now loaded !!!"
+    print " -- datasets.shape : ", datasets.shape
+    print " -- displaying with matplotlib..."
+    for data1, data2, data3, data4 in izip(*[iter(datasets)]*4):
+        fig = plt.figure(figsize=(5, 6))
+        DrawOneDataPoint(data1[0], data1[1], data1[2], 4, 0)
+        DrawOneDataPoint(data2[0], data2[1], data2[2], 4, 1)
+        DrawOneDataPoint(data3[0], data3[1], data3[2], 4, 2)
+        DrawOneDataPoint(data4[0], data4[1], data4[2], 4, 3)
+        plt.show(block=False)
+        plt.draw()
+        plt.pause(0.0001)
+        
+        # raw_input("Press [enter] to continue.")
+        plt.close(fig)
