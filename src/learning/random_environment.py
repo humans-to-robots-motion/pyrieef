@@ -1,8 +1,20 @@
 import common_imports
 from workspace import *
 from math import *
-from math.random import *
+from random import *
 import optparse
+import matplotlib.pyplot as plt
+
+def DrawGrids(occ, cost):
+    fig = plt.figure(figsize=(4, 2))
+    fig.add_subplot(1, 2, 1)
+    image_0 = plt.imshow(occ)
+    fig.add_subplot(1, 2, 2)
+    image_1 = plt.imshow(cost)
+    plt.show(block=False)
+    plt.draw()
+    plt.pause(0.0001)
+    plt.close(fig)
 
 # Sample a random point within limits
 def samplerandpt(lims):
@@ -29,13 +41,15 @@ def ChompObstacleCost(min_dist, epsilon):
 # matrix.astype(float)
 def Grids(workspace, resolution, epsilon):
     grid = PixelMap(resolution, Extends(workspace.box.dim[0]/2.))
-    occupancy = np.zeros((grid.nb_cells_x, grid.nb_cells_y))
+    occupancy   = np.zeros((grid.nb_cells_x, grid.nb_cells_y))
+    costs       = np.zeros((grid.nb_cells_x, grid.nb_cells_y))
     for i in range(grid.nb_cells_x):
         for j in range(grid.nb_cells_y):
             pt = grid.grid_to_world(np.array([i, j]))
             min_dist = workspace.MinDist(pt)
-            occupancy[i, j] = min_dist =< 0.
-            costs[i, j] = ChompObstacleCost(min_dist, epsilon)
+            occupancy[i, j] = min_dist <= 0.
+            costs[i, j] = min_dist
+            # costs[i, j] = ChompObstacleCost(min_dist, epsilon)
     return [occupancy, costs]
 
 def RandomEnvironments(opt):
@@ -49,95 +63,116 @@ def RandomEnvironments(opt):
     maxrad      = opt.maxobjrad
     epsilon     = opt.epsilon
     padding     = 3
+    resolution_x = 1./opt.xsize
+    resolution_y = 1./opt.ysize
+
+    if resolution_x != resolution_y:
+        print "Warning : resolution_x != resolution_y"
+    else:
+        resolution = resolution_x
 
     # Create a bunch of datasets
     maxnobjs = 3
-    datasets = {}
+    datasets = [None] * numdatasets
     k = 1
     
+
+    # Drawing
+    # plt.ion() # enables interactive mode
+    # fig = plt.figure(figsize=(1, 2))
+    # fig.add_subplot(1, 2, 1)
+    # image_0 = plt.imshow(np.zeros((opt.xsize, opt.ysize)))
+    # fig.add_subplot(1, 2, 2)
+    # image_1 = plt.imshow(np.zeros((opt.xsize, opt.ysize))) 
+    # plt.show(block=False)
+    
+
     # Try for this many time to do any one single thing before restarting
     maxnumtries = 100
-    for k in range(numdatasets):
+    while k < numdatasets:
 
-        # Create obstacles
-        workspace=Workspace()
+        # Create structure that contains grids and obstacles
+        workspace=Workspace(Box(
+            np.array([lims[0][0], lims[1][0]]), 
+            np.array([lims[0][1]-lims[0][0], lims[1][1]-lims[1][0]])))
 
-        if k%10 == 0 : print('Dataset: ' + k + '/' + numdatasets)
-        numtries = 0; # Initialize num tries
-        nobj = ceil(random() * maxnobjs)
-        objs = []
-        while len(objs) < nobj and numtries < maxnumtries:
+        if k%10 == 0 : print('Dataset: ' + str(k) + '/' + str(numdatasets))
+        numtries = 0 # Initialize num tries
+        nobj = int(ceil(random() * maxnobjs))
+        while len(workspace.obstacles) < nobj and numtries < maxnumtries :
             r = minrad + random() * (maxrad - minrad)
             c = samplerandpt(lims)
             # If this object is reasonably far away from other objects
-            if (mincircobjdist(c, objs) >= (r + 0.1)):
+            min_dist = workspace.MinDist(c)
+            # print "numtries : {}, nobj : {},\
+            #  c : {}, r : {}, min_dist : {}".format(
+            #     numtries, nobj, c, r, min_dist)
+            if min_dist >= (r + 0.1):
                 workspace.AddCircle(c, r)
-            numtries = numtries + 1  # Increment num tries
+            numtries = numtries+1  # Increment num tries
 
             # Go further only if we have not exceeded all tries
             if numtries < maxnumtries: 
                 # Compute the occupancy grid and the cost
                 # Needs states in Nx2 format
                 [occ, cost] = Grids(workspace, resolution, epsilon) 
-                # Save dataset
-                # dataset = {objs = objs, target = cost:view(size):float(), 
-                # input = occ:view(size):byte(), mindist = mindist:view(size):float(),
-                # minid = minid:view(size):byte()}
-                datasets[k] = dataset
+                datasets[k] = [occ, cost]
 
-                # Display the cost, occ grid, min dist, min id
-                # if opt.display and (k%10 == 0) then
-                #   local catimgs = torch.cat({cost:view(1,size[1], size[2]):float(), 
-                #   	occ:view(1,size[1], size[2]):float(), 
-                #   	mindist:view(1,size[1], size[2]):float(), 
-                #   	minid:view(1,size[1], size[2]):float()}, 1);
-                #   local temp = image.toDisplayTensor{input=catimgs, 
-                #   	padding=padding, nrow=4, scaleeach = true} 
-                #   image.display{image = temp, win = qtwindow, x = 0, y = 20}
+                # print "cost : "
+                # print  cost
+
+                print "nobj : {}, obstacles : {} ".format(
+                    nobj, len(workspace.obstacles))
+
+                DrawGrids(occ, cost)
+                # raw_input("Press [enter] to continue.")
+                k = k+1
+                break
         else:
             print('[OBJS] Reached max number of tries. Restarting run...')
 
+    plt.show()
 
 if __name__ == '__main__':
 
     parser = optparse.OptionParser("usage: %prog [options] arg1 arg2")
 
-    parser.add_option('-numdatasets', 
+    parser.add_option('--numdatasets', 
         default=100, type="int", dest='numdatasets',
         help='Number of datasets to generate')
-    parser.add_option('-savefilename', 
+    parser.add_option('--savefilename', 
         default='2dcostdata.t7', type="string", dest='savefilename',
         help='Filename to save results in (in local directory)')
-    parser.add_option('-savematlabfile', 
-        default=false, type="bool", dest='savematlabfile',
+    parser.add_option('--savematlabfile', 
+        default=False, type="int", dest='savematlabfile',
         help='Save results in .mat format')
-    parser.add_option('-xsize',
+    parser.add_option('--xsize',
         default=100, type="int", dest='xsize',
         help='Size of the x-dimension (in pixels). X values go from 0-1')
-    parser.add_option('-ysize', 
+    parser.add_option('--ysize', 
         default=100, type="int", dest='ysize',
         help='Size of the y-dimension (in pixels). Y values go from 0-1')
-    parser.add_option('-maxnumobjs', 
+    parser.add_option('--maxnumobjs', 
         default=4, type="int", dest='maxnumobjs',
         help='Maximum number of obst. per scene (ranges from 1-this number)')
-    parser.add_option('-minobjrad', 
+    parser.add_option('--minobjrad',
         default=0.1, type="float", dest='minobjrad',
         help='Minimum radius of any obstacle (in m)')
-    parser.add_option('-maxobjrad', 
+    parser.add_option('--maxobjrad', 
         default=0.25, type="float", dest='maxobjrad', 
         help='Maximum radius of any obstacle (in m)')
-    parser.add_option('-epsilon', 
+    parser.add_option('--epsilon', 
         default=0.1, type="float", dest='epsilon',
         help='Distance from obstacle at which obstacle cost zeroes out (in m)')
-    parser.add_option('-display', 
-        default=false, type="bool", dest='display',
+    parser.add_option('--display', 
+        default=False, type="int", dest='display',
         help='If set, displays the obstacle costs/occ grids in 2D')
-    parser.add_option('-seed', 
+    parser.add_option('--seed', 
         default=-1, type="int", dest='seed',
         help='Random number seed. -ve values mean random seed')
 
     (options, args) = parser.parse_args()
-    if len(args) != 2:
-        parser.error("incorrect number of arguments")
+    # if len(args) != 2:
+    #     parser.error("incorrect number of arguments")
 
     RandomEnvironments(options)

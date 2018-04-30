@@ -35,13 +35,9 @@ class Shape:
     def SampledPoints(self):
         return self.nb_points*[np.array(2*[0.])]
 
-class Circle(Shape):
-    def __init__(self):
-        Shape.__init__(self)
-        self.origin = np.array([0., 0.])
-        self.radius = 0.2
 
-    def __init__(self, c, r):
+class Circle(Shape):
+    def __init__(self, c=np.array([0., 0.]), r=0.2):
         Shape.__init__(self)
         self.origin = c
         self.radius = r
@@ -59,6 +55,7 @@ class Circle(Shape):
             y = self.origin[1] + self.radius * np.sin(theta)
             points.append(np.array([x, y]))
         return points
+
 
 # Define a ellipse shape. This is performed using 
 # a and b parameters. (a, b) are the size of the great and small radii.
@@ -94,11 +91,14 @@ class Ellipse(Shape):
                           (y_abs - self.b * math.sin(phi))**2 )
 
 class Segment(Shape):
-    def __init__(self):
+    def __init__(self, 
+            origin=np.array([0., 0.]), 
+            orientation=0.,
+            length=0.8):
         Shape.__init__(self)
-        self.origin = np.array([0., 0.])
-        self.orientation = 0.
-        self.length = 0.8
+        self.origin = origin
+        self.orientation = orientation
+        self.length = length
 
     def SampledPoints(self):
         points = []
@@ -112,9 +112,11 @@ class Segment(Shape):
         return points
 
 class Box:
-    def __init__(self):
-        self.origin = np.array([0., 0.])
-        self.dim = np.array([1., 1.])
+    def __init__(self, 
+            origin=np.array([0., 0.]), 
+            dim=np.array([1., 1.])):
+        self.origin = origin
+        self.dim = dim
 
     def Extends(self):
         return np.array([self.origin[0] - self.dim[0]/2.,
@@ -125,8 +127,8 @@ class Box:
 
 
 class Workspace:
-    def __init__(self):
-        self.box = Box()
+    def __init__(self, box=Box()):
+        self.box = box
         self.obstacles = []
 
     def InCollision(self, pt):
@@ -149,19 +151,13 @@ class Workspace:
         if origin is None and radius is None:
             self.obstacles.append(Circle())
         else:
-            circle = Circle()
-            circle.origin = origin
-            circle.radius = radius
-            self.obstacles.append(circle)
+            self.obstacles.append(Circle(origin, radius))
 
     def AddSegment(self, origin=None, length=None):
         if origin is None and length is None:
             self.obstacles.append(Segment())
         else:
-            segment = Segment()
-            segment.origin = origin
-            segment.radius = length
-            self.obstacles.append(segment)
+            self.obstacles.append(Segment(origin, length))
 
     def AllPoints(self):
         points = []
