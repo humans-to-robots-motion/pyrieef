@@ -7,7 +7,7 @@ import os
 from visualize_data import *
 
 
-def WriteDataToFile(data_out):
+def write_data_to_file(data_out):
     directory=os.path.abspath(os.path.dirname(__file__)) + "/data"
     if not os.path.exists(directory):
         os.makedirs(directory)
@@ -23,11 +23,14 @@ def samplerandpt(lims):
         pt[j] = lims[j][0] + random() * (lims[j][1] - lims[j][0])
     return pt
 
-# Compute the cost function now (From CHOMP paper)
-# If min_dist < 0, cost = -min_dist + epsilon/2
-# If min_dist >= 0 && min_dist < epsilon, have a different cost 
-# If min_dist >= epsilon, cost = 0
-def ChompObstacleCost(min_dist, epsilon):
+
+def chomp_obstacle_cost(min_dist, epsilon):
+    """ 
+    Compute the cost function now (From CHOMP paper)
+    If min_dist < 0, cost = -min_dist + epsilon/2
+    If min_dist >= 0 && min_dist < epsilon, have a different cost 
+    If min_dist >= epsilon, cost = 0
+    """
     cost = 0.
     if min_dist < 0 : 
         cost = - min_dist + 0.5 * epsilon
@@ -35,12 +38,15 @@ def ChompObstacleCost(min_dist, epsilon):
         cost = (1./(2*epsilon))*((min_dist - epsilon) ** 2)
     return cost
 
-# Creates a boolean matrix of occupancies
-# To convert it to int or floats, use the following
-# matrix.astype(int)
-# matrix.astype(float)
-def Grids(workspace, grid_to_world, epsilon):
-    # print "grid_to_world.shape : ", grid_to_world.shape
+
+def grids(workspace, grid_to_world, epsilon):
+    """
+    Creates a boolean matrix of occupancies
+        To convert it to int or floats, use the following
+        matrix.astype(int)
+        matrix.astype(float)
+    """
+    #print "grid_to_world.shape : ", grid_to_world.shape
     occupancy   = np.zeros((grid_to_world.shape[0], grid_to_world.shape[1]))
     sdf         = np.zeros((grid_to_world.shape[0], grid_to_world.shape[1]))
     costs       = np.zeros((grid_to_world.shape[0], grid_to_world.shape[1]))
@@ -50,10 +56,10 @@ def Grids(workspace, grid_to_world, epsilon):
             min_dist = workspace.MinDist(grid_to_world[i, j])
             sdf[i, j] = min_dist
             occupancy[i, j] = min_dist <= 0.
-            costs[i, j] = ChompObstacleCost(min_dist, epsilon)
+            costs[i, j] = chomp_obstacle_cost(min_dist, epsilon)
     return [occupancy, sdf, costs]
 
-def RandomEnvironments(opt):
+def random_environments(opt):
 
     ndim        = 2
     lims        = np.array([[0., 1.], [0., 1.]])
@@ -117,7 +123,7 @@ def RandomEnvironments(opt):
             if len(workspace.obstacles) >= nobj or numtries >= maxnumtries: 
                 # Compute the occupancy grid and the cost
                 # Needs states in Nx2 format
-                [occ, sdf, cost] = Grids(workspace, grid_to_world, epsilon) 
+                [occ, sdf, cost] = grids(workspace, grid_to_world, epsilon) 
                 datasets[k] = np.array([occ, sdf, cost])
                 # print "k : {}, shape : {}".format(k, datasets[k].shape)
                 # print "shape : ", datasets[k].shape
@@ -125,7 +131,7 @@ def RandomEnvironments(opt):
                 #     nobj, len(workspace.obstacles))
 
                 if opt.display:
-                    DrawGrids(occ, sdf, cost)
+                    draw_grids([occ, sdf, cost])
 
                 k = k+1
                 break
@@ -181,6 +187,6 @@ if __name__ == '__main__':
     # if len(args) != 2:
     #     parser.error("incorrect number of arguments")
 
-    datasets = RandomEnvironments(options)
+    datasets = random_environments(options)
     print "shape of dataset : ", datasets.shape
-    WriteDataToFile(datasets)
+    write_data_to_file(datasets)
