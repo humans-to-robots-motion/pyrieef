@@ -1,9 +1,29 @@
+#!/usr/bin/env python
+
+# Copyright (c) 2015 Max Planck Institute
+# All rights reserved.
+#
+# Permission to use, copy, modify, and distribute this software for any purpose
+# with or without   fee is hereby granted, provided   that the above  copyright
+# notice and this permission notice appear in all copies.
+#
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+# REGARD TO THIS  SOFTWARE INCLUDING ALL  IMPLIED WARRANTIES OF MERCHANTABILITY
+# AND FITNESS. IN NO EVENT SHALL THE AUTHOR  BE LIABLE FOR ANY SPECIAL, DIRECT,
+# INDIRECT, OR CONSEQUENTIAL DAMAGES OR  ANY DAMAGES WHATSOEVER RESULTING  FROM
+# LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+# OTHER TORTIOUS ACTION,   ARISING OUT OF OR IN    CONNECTION WITH THE USE   OR
+# PERFORMANCE OF THIS SOFTWARE.
+#
+#                                        Jim Mainprice on Sunday June 17 2017
+
+
 import test_common_imports
 from test_differentiable_geometry import *
 from geometry.diffeomorphisms import *
 
 
-def CheckBeta(alpha, beta, beta_inv):
+def check_beta(alpha, beta, beta_inv):
     success = False
     for i in range(1000):
         eta = .001
@@ -28,7 +48,7 @@ def CheckBeta(alpha, beta, beta_inv):
     return success
 
 
-def CheckInverse(obstacle):
+def check_inverse(obstacle):
     success = True
     o = obstacle.object()
     print "center : ", o.origin
@@ -58,31 +78,31 @@ def CheckInverse(obstacle):
 
 def test_inverse_functions():
 
-    assert CheckBeta(alpha_f, beta_f, beta_inv_f)
-    assert CheckBeta(alpha2_f, beta2_f, beta2_inv_f)
+    assert check_beta(alpha_f, beta_f, beta_inv_f)
+    assert check_beta(alpha2_f, beta2_f, beta2_inv_f)
 
     # TODO look why this one fails...
-    # assert CheckBeta(alpha3_f, beta3_f, beta3_inv_f)
+    # assert check_beta(alpha3_f, beta3_f, beta3_inv_f)
 
     print "Test PolarCoordinateSystem"
     obstacle = PolarCoordinateSystem()
-    assert CheckJacobianAgainstFiniteDifference(obstacle)
-    assert CheckInverse(obstacle)
+    assert check_jacobian_against_finite_difference(obstacle)
+    assert check_inverse(obstacle)
 
     print "Test ElectricCircle"
     obstacle = ElectricCircle()
-    assert CheckJacobianAgainstFiniteDifference(obstacle)
-    assert CheckInverse(obstacle)
+    assert check_jacobian_against_finite_difference(obstacle)
+    assert check_inverse(obstacle)
 
     print "Test AnalyticCircle"
     obstacle = AnalyticCircle()
     obstacle.set_alpha(alpha_f, beta_inv_f)
-    assert CheckJacobianAgainstFiniteDifference(obstacle)
-    assert CheckInverse(obstacle)
+    assert check_jacobian_against_finite_difference(obstacle)
+    assert check_inverse(obstacle)
 
     # obstacle = AnalyticEllipse()
     # obstacle.set_alpha(alpha_f, beta_inv_f)
-    # if CheckInverse(obstacle):
+    # if check_inverse(obstacle):
     #     print "Analytic Ellipse OK !!!"
     # else:
     #     print "Analytic Ellipse Error !!!"
