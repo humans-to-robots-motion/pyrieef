@@ -1,19 +1,19 @@
 import test_common_imports
 from test_differentiable_geometry import *
-from diffeomorphisms import *
+from geometry.diffeomorphisms import *
 
 
 def CheckBeta(alpha, beta, beta_inv):
     success = False
     for i in range(1000):
-        eta=.001
-        r=.2
-        gamma=3.
+        eta = .001
+        r = .2
+        gamma = 3.
         dx = np.random.rand(1)[0]
         # print dx
         dy = beta(eta, r, gamma, dx)
         dx_new = beta_inv(eta, r, gamma, dy)
-        if np.fabs( dx - dx_new ) > 1.e-12 :
+        if np.fabs(dx - dx_new) > 1.e-12:
             print "test beta (", i, ")"
             print " -- value : ", dx
             print " -- forward : ", dy
@@ -21,23 +21,24 @@ def CheckBeta(alpha, beta, beta_inv):
             print "Error."
             success = False
             break
-        
+
         # print "x = ", x, " , y = ", y , " , x_new = ", x_new
         # print "Ok."
         success = True
     return success
 
+
 def CheckInverse(obstacle):
-    success = True 
+    success = True
     o = obstacle.object()
     print "center : ", o.origin
-    print  "radius : ", o.radius
+    print "radius : ", o.radius
     # np.random.seed(0)
     if success:
         success = False
         for i in range(1000):
             x = 1. * np.random.rand(2) + o.origin
-            if np.linalg.norm(x - o.origin) < o.radius :
+            if np.linalg.norm(x - o.origin) < o.radius:
                 continue
             p = obstacle.Forward(x)
             x_new = obstacle.Inverse(p)
@@ -53,6 +54,7 @@ def CheckInverse(obstacle):
                 break
             success = True
     return success
+
 
 def test_inverse_functions():
 

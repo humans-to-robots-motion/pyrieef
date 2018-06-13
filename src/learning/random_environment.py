@@ -19,7 +19,7 @@
 
 
 import common_imports
-from workspace import *
+from geometry.workspace import *
 from math import *
 from random import *
 import optparse

@@ -15,12 +15,13 @@
 # OTHER TORTIOUS ACTION,   ARISING OUT OF OR IN    CONNECTION WITH THE USE   OR
 # PERFORMANCE OF THIS SOFTWARE.
 #
-#                                           Jim Mainprice on Sunday June 17 2017
+# Jim Mainprice on Sunday June 17 2017
 
 from test_common_imports import *
-from differentiable_geometry import *
+from geometry.differentiable_geometry import *
 
-def CheckJacobianAgainstFiniteDifference(phi):
+
+def check_jacobian_against_finite_difference(phi):
     q = np.random.rand(phi.input_dimension())
     J = phi.Jacobian(q)
     J_diff = GetFiniteDifferenceJacobian(phi, q)
@@ -29,6 +30,7 @@ def CheckJacobianAgainstFiniteDifference(phi):
     print "J_diff : "
     print J_diff
     return check_is_close(J, J_diff, 1e-4)
+
 
 def test_finite_difference():
     dim = 3
@@ -46,6 +48,7 @@ def test_finite_difference():
 
     print "Check identity (J) 2 : "
     assert check_is_close(J, J_eye)
+
 
 def test_square_norm():
     x_0 = np.array([1., 2.])

@@ -15,12 +15,12 @@
 # OTHER TORTIOUS ACTION,   ARISING OUT OF OR IN    CONNECTION WITH THE USE   OR
 # PERFORMANCE OF THIS SOFTWARE.
 #
-#                                           Jim Mainprice on Sunday June 17 2017
+#                                        Jim Mainprice on Sunday June 17 2017
 
 from test_common_imports import *
-from attractors import *
-from differentiable_geometry import *
-from diffeomorphisms import *
+from geometry.attractors import *
+from geometry.differentiable_geometry import *
+from geometry.diffeomorphisms import *
 
 
 # Makes sure the attractor evaluates to 0 at the goal point.
@@ -28,13 +28,15 @@ def test_attractor(phi):
     x_goal = np.random.rand(2)
     attractor = MakeAttractor(phi, x_goal)
     v = attractor.Forward(x_goal)
-    assert np.fabs( v ) < 1.e-12
+    assert np.fabs(v) < 1.e-12
     return v
+
 
 def test_attractor_identity():
     phi = IdentityMap(2)
     v = test_attractor(phi)
     print "v (identity) : ", v
+
 
 def test_attractor_polar():
     phi = PolarCoordinateSystem()
