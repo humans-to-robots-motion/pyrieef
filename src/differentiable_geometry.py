@@ -15,11 +15,12 @@
 # OTHER TORTIOUS ACTION,   ARISING OUT OF OR IN    CONNECTION WITH THE USE   OR
 # PERFORMANCE OF THIS SOFTWARE.
 #
-#                                           Jim Mainprice on Sunday June 17 2017
+# Jim Mainprice on Sunday June 17 2017
 
 import numpy as np
 import copy
 from abc import abstractmethod
+
 
 class DifferentiableMap:
 
@@ -64,6 +65,7 @@ class DifferentiableMap:
         J = self.Jacobian(q)
         return np.dot(J.transpose(), g)
 
+
 class PullbackFunction(DifferentiableMap):
 
     def __init__(self, phi, f):
@@ -81,11 +83,13 @@ class PullbackFunction(DifferentiableMap):
 
     def Evaluate(self, q):
         x = self.phi(q)
-        [x, f_g] = self.f.Evaluate(x);
-        g = self.phi.PullbackGradient(q, f_g);
+        [x, f_g] = self.f.Evaluate(x)
+        g = self.phi.PullbackGradient(q, f_g)
         return [x, g]
 
 # Simple squared norm.
+
+
 class SquaredNorm(DifferentiableMap):
 
     def __init__(self, x_0):
@@ -128,17 +132,16 @@ class IdentityMap(DifferentiableMap):
 # Takes an object f that has a Foward method returning
 # a numpy array when querried.
 def GetFiniteDifferenceJacobian(f, q):
-  dt = 1e-4
-  dt_half = dt / 2.
-  J = np.zeros((
-    f.output_dimension(), f.input_dimension()))
-  for j in range(q.size):
-    q_up = copy.deepcopy(q)
-    q_up[j] += dt_half
-    x_up = f.Forward(q_up)
-    q_down = copy.deepcopy(q)
-    q_down[j] -= dt_half
-    x_down = f.Forward(q_down)
-    J[:,j] = (x_up - x_down) / dt
-  return np.matrix(J)
-  
+    dt = 1e-4
+    dt_half = dt / 2.
+    J = np.zeros((
+        f.output_dimension(), f.input_dimension()))
+    for j in range(q.size):
+        q_up = copy.deepcopy(q)
+        q_up[j] += dt_half
+        x_up = f.Forward(q_up)
+        q_down = copy.deepcopy(q)
+        q_down[j] -= dt_half
+        x_down = f.Forward(q_down)
+        J[:, j] = (x_up - x_down) / dt
+    return np.matrix(J)

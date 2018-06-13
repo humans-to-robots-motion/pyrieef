@@ -18,18 +18,20 @@
 #                                        Jim Mainprice on Sunday June 13 2018
 
 
-import sys
+import h5py
 import os
-import numpy as np
-
-driectory = os.path.abspath(os.path.dirname(__file__))
-sys.path.insert(0, driectory + os.sep + "..")
 
 
-# Returns True of all variable are close.
-def check_is_close(a, b, tolerance=1e-10):
-    results = np.isclose(
-        np.array(a),
-        np.array(b),
-        atol=tolerance)
-    return results.all()
+def load_data_from_file(filename='costdata2d_10k.hdf5'):
+    with h5py.File('./data/' + filename, 'r') as f:
+        datasets = f['mydataset'][:]
+    return datasets
+
+
+def write_data_to_file(data_out, filename='costdata2d_10k.hdf5'):
+    directory = os.path.abspath(os.path.dirname(__file__)) + "/data"
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    f = h5py.File(directory + os.sep + filename, 'w')
+    f.create_dataset("mydataset", data=data_out)
+    f.close()

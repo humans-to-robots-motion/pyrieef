@@ -18,21 +18,30 @@
 #                                           Jim Mainprice on Sunday May 17 2015
 import numpy as np
 
+
 class Extends:
+
     def __init__(self, sides=.5):
         self.x_min = -sides
         self.x_max = sides
         self.y_min = -sides
         self.y_max = sides
+
     def x(self):
         return self.x_max - self.x_min
+
     def y(self):
         return self.y_max - self.y_min
 
-# Implements an axis aligned regular pixel-grid map. It follows the 
-# convention  that we use on the C++ version of the class. which means 
-# that the min and max extends are the origin of the world coordinates.
+
 class PixelMap:
+
+    """
+    Implements an axis aligned regular pixel-grid map. It follows the
+    convention  that we use on the C++ version of the class. which means
+    that the min and max extends are the origin of the world coordinates.
+    """
+
     def __init__(self, resolution, extends=Extends()):
         self.extends = extends
         self.resolution = resolution
@@ -41,16 +50,18 @@ class PixelMap:
         self.nb_cells_x = int(self.extends.x() / self.resolution)
         self.nb_cells_y = int(self.extends.y() / self.resolution)
 
-    # matrix coordinates allow to visualy compare with world on a flat screen
-    # these are the coordinates used for representing 2D environments
     def world_to_matrix(self, x):
+        """
+        matrix coordinates allow to visualy compare with world on a flat screen
+        these are the coordinates used for representing 2D environments
+        """
         grid_coord = self.world_to_grid(x)
         return np.array([grid_coord[1], grid_coord[0]])
 
-    # grid coordinates of a point in world coordinates.
     def world_to_grid(self, x):
+        """ grid coordinates of a point in world coordinates."""
         return np.floor((x - self.origin_minus) / self.resolution)
 
-    # world coorindates of the center of a grid cell
     def grid_to_world(self, p):
+        """world coorindates of the center of a grid cell"""
         return self.resolution * p.astype(float) + self.origin

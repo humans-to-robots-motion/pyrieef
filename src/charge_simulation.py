@@ -15,12 +15,14 @@
 # OTHER TORTIOUS ACTION,   ARISING OUT OF OR IN    CONNECTION WITH THE USE   OR
 # PERFORMANCE OF THIS SOFTWARE.
 #
-#                                           Jim Mainprice on Sunday June 17 2017
+# Jim Mainprice on Sunday June 17 2017
 
 import numpy as np
 from workspace import *
 
+
 class ChargeSimulation:
+
     def __init__(self):
         self.charged_points_ = []
         self.q = None
@@ -29,17 +31,17 @@ class ChargeSimulation:
         k = 1
         # The distance offset depends on the discretization of the mesh
         # in 2d add 1 cm
-        return k * charge / ( np.linalg.norm(p1 - p2) + 0.001)
+        return k * charge / (np.linalg.norm(p1 - p2) + 0.001)
 
     def PotentialCausedByObject(self, p):
-      potential = 0.
-      if self.q_ is None:
-        print "charges not initialized"
+        potential = 0.
+        if self.q_ is None:
+            print "charges not initialized"
+            return potential
+        for i in range(len(self.charged_points_)):
+            potential += self.PotentialDueToAPoint(
+                p, self.charged_points_[i], self.q_[i])
         return potential
-      for i in range(len(self.charged_points_)):
-        potential += self.PotentialDueToAPoint(
-            p, self.charged_points_[i], self.q_[i])
-      return potential
 
     def ChargeMatrix(self, charged_points):
         nb_charges = len(charged_points)
@@ -60,7 +62,7 @@ class ChargeSimulation:
     def Run(self):
         A = self.ChargeMatrix(self.charged_points_)
         B = np.array(np.ones(A.shape[0]))
-        #print "A : ", A
+        # print "A : ", A
         print "Solve linear system..."
         self.q_ = np.linalg.solve(A, B)
         # print "q : ", self.q_

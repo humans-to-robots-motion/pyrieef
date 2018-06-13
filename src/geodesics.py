@@ -20,17 +20,18 @@ import numpy as np
 from charge_simulation import *
 from utils import *
 
+
 def ComputeTensor(simulation, p, delta=0.001):
     # print "p : ", p
     p_0 = p.item(0)
     p_1 = p.item(1)
     # print "p_0 : ", p_0
     # print "p_1 : ", p_1
-    gamma = 10. # 30.
+    gamma = 10.  # 30.
     rho = simulation.PotentialCausedByObject(np.array([p_0, p_1]))
-    rho_x = simulation.PotentialCausedByObject(np.array([p_0+delta, p_1]))
-    rho_y = simulation.PotentialCausedByObject(np.array([p_0, p_1+delta]))
-    J = np.matrix(np.zeros((3,2)))
+    rho_x = simulation.PotentialCausedByObject(np.array([p_0 + delta, p_1]))
+    rho_y = simulation.PotentialCausedByObject(np.array([p_0, p_1 + delta]))
+    J = np.matrix(np.zeros((3, 2)))
     J[0, 0] = gamma * (rho_x - rho) / delta
     J[0, 1] = gamma * (rho_y - rho) / delta
     J[1, 0] = 1.
@@ -38,6 +39,7 @@ def ComputeTensor(simulation, p, delta=0.001):
     # print "J : "
     # print J
     return J.transpose() * J
+
 
 def ComputeNaturalGradient(simulation, x_1, x_2):
     # print "x_init : "
@@ -61,6 +63,7 @@ def ComputeNaturalGradient(simulation, x_1, x_2):
         x_tmp = x_new
     return np.array(line)
 
+
 def ComputeInterpolationGeodescis(simulation, x_1, x_2):
     x_init = np.matrix(x_1).transpose()
     x_goal = np.matrix(x_2).transpose()
@@ -71,8 +74,8 @@ def ComputeInterpolationGeodescis(simulation, x_1, x_2):
     eta = 0.005
     for alpha in np.linspace(0., 1., 1000):
         p_new = ((1. - alpha) * np.array(
-            [x_init.item(0), x_init.item(1), rho_init]) + 
-                        alpha * np.array(
+            [x_init.item(0), x_init.item(1), rho_init]) +
+            alpha * np.array(
             [x_goal.item(0), x_goal.item(1), rho_goal]))
         print p_new
         x_new = np.matrix([p_new.item(0), p_new.item(1)]).transpose()
@@ -82,6 +85,7 @@ def ComputeInterpolationGeodescis(simulation, x_1, x_2):
             break
         x_tmp = x_new
     return np.array(line)
+
 
 def ComputeInitialVelocityGeodescis(simulation, x, x_dot):
     x_init = np.matrix(x).transpose()
@@ -97,6 +101,7 @@ def ComputeInitialVelocityGeodescis(simulation, x, x_dot):
         d_x = x_new - x_tmp
         x_tmp = x_new
     return np.array(line)
+
 
 def ComputeGeodesic(simulation, x_1, x_2):
     return ComputeNaturalGradient(simulation, x_1, x_2)
