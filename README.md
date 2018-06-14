@@ -4,4 +4,4 @@
 Pure python project to generate and learn collision free movement s
 in real environments using a Riemannian geometric approach.
 
-![alt text](http://url/to/img.png)
+[!EF](https://postimg.cc/image/6o6s5jc6z/)
