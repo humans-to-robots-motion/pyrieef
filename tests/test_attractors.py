@@ -24,7 +24,7 @@ from geometry.diffeomorphisms import *
 
 
 # Makes sure the attractor evaluates to 0 at the goal point.
-def test_attractor(phi):
+def eval_attractor(phi):
     x_goal = np.random.rand(2)
     attractor = MakeAttractor(phi, x_goal)
     v = attractor.Forward(x_goal)
@@ -34,14 +34,16 @@ def test_attractor(phi):
 
 def test_attractor_identity():
     phi = IdentityMap(2)
-    v = test_attractor(phi)
+    v = eval_attractor(phi)
     print "v (identity) : ", v
 
 
 def test_attractor_polar():
     phi = PolarCoordinateSystem()
-    v = test_attractor(phi)
+    v = eval_attractor(phi)
     print "v (polar) : ", v
 
-test_attractor_identity()
-test_attractor_polar()
+
+if __name__ == "__main__":
+    test_attractor_identity()
+    test_attractor_polar()

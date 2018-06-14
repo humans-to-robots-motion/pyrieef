@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Copyright (c) 2018 University of Stuttgart
+# Copyright (c) 2015 Max Planck Institute
 # All rights reserved.
 #
 # Permission to use, copy, modify, and distribute this software for any purpose
@@ -15,28 +15,16 @@
 # OTHER TORTIOUS ACTION,   ARISING OUT OF OR IN    CONNECTION WITH THE USE   OR
 # PERFORMANCE OF THIS SOFTWARE.
 #
-#                                        Jim Mainprice on Sunday June 13 2018
+#                                        Jim Mainprice on Sunday June 17 2017
+
+from test_common_imports import *
+from learning.dataset import *
+import numpy as np
 
 
-import h5py
-import os
-
-
-def learning_data_dir():
-    return os.path.abspath(os.path.dirname(__file__)) + os.sep + "data"
-
-
-def write_data_to_file(data_out, filename='costdata2d_10k.hdf5'):
-    directory = learning_data_dir()
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-    f = h5py.File(directory + os.sep + filename, 'w')
-    f.create_dataset("mydataset", data=data_out)
-    f.close()
-
-
-def load_data_from_file(filename='costdata2d_10k.hdf5'):
-    directory = learning_data_dir()
-    with h5py.File(directory + os.sep + filename, 'r') as f:
-        datasets = f['mydataset'][:]
-    return datasets
+def test_hdf5_io():
+    filename="test_file.hdf5"
+    A = np.random.random((1000, 1000))
+    write_data_to_file(A, filename)
+    B = load_data_from_file(filename)
+    assert check_is_close(A, B)

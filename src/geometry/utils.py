@@ -18,26 +18,27 @@
 #                                           Jim Mainprice on Sunday May 17 2015
 import numpy as np
 from scipy.optimize import fsolve
-import matplotlib.pyplot as plt
+
 
 def plot_line(line, color, width=2.):
-    X = np.array(line)[:,0]
-    Y = np.array(line)[:,1]
-    plt.plot( X, Y, color, linewidth=1. )
-    plt.plot( X, Y, color + 'o', linewidth=1.)
+    X = np.array(line)[:, 0]
+    Y = np.array(line)[:, 1]
+    plt.plot(X, Y, color, linewidth=1.)
+    plt.plot(X, Y, color + 'o', linewidth=1.)
     # plt.plot( x_init[0], x_init[1], color + 'o' )
+
 
 def normalize(v):
     # norm=np.linalg.norm(v, ord=1)
-    norm=np.linalg.norm(v)
-    if norm==0:
+    norm = np.linalg.norm(v)
+    if norm == 0:
         print "norm is 0"
-        norm=np.finfo(v.dtype).eps
-    return v/norm
+        norm = np.finfo(v.dtype).eps
+    return v / norm
+
 
 def lw(x):
     """Lambert W function, for real x >= 0."""
-
     def func(w, x):
         return np.log(x) - np.log(w) - w
 

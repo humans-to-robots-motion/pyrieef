@@ -18,9 +18,6 @@
 #                                        Jim Mainprice on Sunday June 17 2017
 
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib as mpl
-from matplotlib.pyplot import cm
 import sys
 import math
 from workspace import *
