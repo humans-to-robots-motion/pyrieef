@@ -15,17 +15,17 @@
 # OTHER TORTIOUS ACTION,   ARISING OUT OF OR IN    CONNECTION WITH THE USE   OR
 # PERFORMANCE OF THIS SOFTWARE.
 #
-#                                           Jim Mainprice on Sunday June 17 2017
+# Jim Mainprice on Sunday June 17 2017
 
-import demos_common_imports
+from demos_common_imports import *
 import numpy as np
 import matplotlib.pyplot as plt
-from workspace import *
-from charge_simulation import *
-from pixel_map import *
-from geodesics import *
-from diffeomorphisms import *
-from utils import *
+from geometry.workspace import *
+from geometry.charge_simulation import *
+from geometry.pixel_map import *
+from geometry.geodesics import *
+from geometry.diffeomorphisms import *
+from geometry.utils import *
 import itertools
 
 # circle = ElectricCircle()
@@ -66,18 +66,18 @@ for circle in analytical_circles:
     workspace.obstacles.append(circle.object())
 for obstacles in workspace.obstacles:
     points = obstacles.SampledPoints()
-    X = np.array(points)[:,0]
-    Y = np.array(points)[:,1]
-    plt.plot( X, Y, "b", linewidth=2.0 )
+    X = np.array(points)[:, 0]
+    Y = np.array(points)[:, 1]
+    plt.plot(X, Y, "b", linewidth=2.0)
 
-extends = Extends(workspace.box.dim[0]/2.)
+extends = Extends(workspace.box.dim[0] / 2.)
 grid = PixelMap(0.01, extends)
 matrix = np.zeros((grid.nb_cells_x, grid.nb_cells_y))
 for i in range(grid.nb_cells_x):
     for j in range(grid.nb_cells_y):
         p = grid.grid_to_world(np.array([i, j]))
 plt.axis('equal')
-plt.axis(workspace.box.Extends())
+plt.axis(workspace.box.box_extends())
 
 x_goal = np.array([0.4, 0.4])
 nx, ny = (3, 3)
@@ -87,7 +87,7 @@ y = np.linspace(-.5, -.1, ny)
 # x = np.linspace(-.2, -.1, nx)
 # y = np.linspace(-.2, -.2, ny)
 # nx, ny = (1, 1)
-# x = [-0.2] 
+# x = [-0.2]
 # y = [-0.2]
 
 circles = AnalyticMultiCircle(analytical_circles)
@@ -107,7 +107,6 @@ for i, j in itertools.product(range(nx), range(ny)):
     # plot_line(line_inter, 'g')
 
 for obst in workspace.obstacles:
-    plt.plot( obst.origin[0], obst.origin[1], 'kx' )
-plt.plot( x_goal[0], x_goal[1], 'ko' )
-plt.show()  
-
+    plt.plot(obst.origin[0], obst.origin[1], 'kx')
+plt.plot(x_goal[0], x_goal[1], 'ko')
+plt.show()

@@ -20,30 +20,36 @@
 import numpy as np
 # import matplotlib.pyplot as plt
 # import matplotlib as mpl
-# from matplotlib.pyplot import cm 
+# from matplotlib.pyplot import cm
 import sys
 import math
 from pixel_map import *
 
-# This class of Shape represent two dimensional Shapes that can 
-# be represented as analytical or other type of functions. The implementations
-# should return a set of points on the perimeter of the Shapes.
+
 class Shape:
+    """ 
+    This class of Shape represent two dimensional Shapes that can
+    be represented as analytical or other type of functions. 
+    The implementations
+    should return a set of points on the perimeter of the Shapes.
+    """
+
     def __init__(self):
         self.nb_points = 50
 
     def SampledPoints(self):
-        return self.nb_points*[np.array(2*[0.])]
+        return self.nb_points * [np.array(2 * [0.])]
 
 
 class Circle(Shape):
+
     def __init__(self, c=np.array([0., 0.]), r=0.2):
         Shape.__init__(self)
         self.origin = c
         self.radius = r
 
-    # Signed distance 
-    # 
+    # Signed distance
+    #
     def DistFromBorder(self, x):
         x_center = x - self.origin
         # Oddly the norm of matlab is slower than the standard library here...
@@ -54,16 +60,17 @@ class Circle(Shape):
 
     def SampledPoints(self):
         points = []
-        for theta in np.linspace(0, 2*math.pi, self.nb_points):
+        for theta in np.linspace(0, 2 * math.pi, self.nb_points):
             x = self.origin[0] + self.radius * np.cos(theta)
             y = self.origin[1] + self.radius * np.sin(theta)
             points.append(np.array([x, y]))
         return points
 
 
-# Define a ellipse shape. This is performed using 
+# Define a ellipse shape. This is performed using
 # a and b parameters. (a, b) are the size of the great and small radii.
 class Ellipse(Shape):
+
     def __init__(self):
         Shape.__init__(self)
         self.origin = np.array([0., 0.])
@@ -72,13 +79,13 @@ class Ellipse(Shape):
 
     def SampledPoints(self):
         points = []
-        for theta in np.linspace(0, 2*math.pi, self.nb_points):
+        for theta in np.linspace(0, 2 * math.pi, self.nb_points):
             x = self.origin[0] + self.a * np.cos(theta)
             y = self.origin[1] + self.b * np.sin(theta)
             points.append(np.array([x, y]))
         return points
 
-    # Iterative method described, Signed distance 
+    # Iterative method described, Signed distance
     # http://www.am.ub.edu/~robert/Documents/ellipse.pdf
     def DistFromBorder(self, x):
         x_abs = math.fabs(x[0])
@@ -86,19 +93,21 @@ class Ellipse(Shape):
         a_m_b = self.a**2 - self.b**2
         phi = 0.
         for i in range(100):
-            phi = math.atan2( a_m_b * math.sin(phi) + y_abs * self.b,
-                                x_abs * self.a )
+            phi = math.atan2(a_m_b * math.sin(phi) + y_abs * self.b,
+                             x_abs * self.a)
             # print "phi : ", phi
-            if phi > math.pi/2:
+            if phi > math.pi / 2:
                 break
-        return math.sqrt( (x_abs - self.a * math.cos(phi))**2 + 
-                          (y_abs - self.b * math.sin(phi))**2 )
+        return math.sqrt((x_abs - self.a * math.cos(phi))**2 +
+                         (y_abs - self.b * math.sin(phi))**2)
+
 
 class Segment(Shape):
-    def __init__(self, 
-            origin=np.array([0., 0.]), 
-            orientation=0.,
-            length=0.8):
+
+    def __init__(self,
+                 origin=np.array([0., 0.]),
+                 orientation=0.,
+                 length=0.8):
         Shape.__init__(self)
         self.origin = origin
         self.orientation = orientation
@@ -109,31 +118,35 @@ class Segment(Shape):
         p_0 = 0.5 * self.length * np.array([
             np.cos(self.orientation), np.sin(self.orientation)])
         p_1 = self.origin + p_0
-        p_2 = self.origin + -1. * p_0 
+        p_2 = self.origin + -1. * p_0
         for alpha in np.linspace(0., 1., self.nb_points):
             # Linear interpolation
-            points.append((1. - alpha) * p_1 + alpha * p_2 )
+            points.append((1. - alpha) * p_1 + alpha * p_2)
         return points
 
-# A box is defined by an origin, which is its center.
-# and dimension which are it's size in axis aligned coordinates
+
 class Box:
-    def __init__(self, 
-            origin=np.array([0., 0.]), 
-            dim=np.array([1., 1.])):
+    """
+    A box is defined by an origin, which is its center.
+    and dimension which are it's size in axis aligned coordinates
+    """
+
+    def __init__(self,
+                 origin=np.array([0., 0.]),
+                 dim=np.array([1., 1.])):
         self.origin = origin
         self.dim = dim
 
     def box_extends(self):
-        return np.array([self.origin[0] - self.dim[0]/2.,
-                         self.origin[0] + self.dim[0]/2.,
-                         self.origin[1] - self.dim[1]/2.,
-                         self.origin[1] + self.dim[1]/2.,
+        return np.array([self.origin[0] - self.dim[0] / 2.,
+                         self.origin[0] + self.dim[0] / 2.,
+                         self.origin[1] - self.dim[1] / 2.,
+                         self.origin[1] + self.dim[1] / 2.,
                          ])
 
     def extends(self):
-        box_extends=self.box_extends()
-        extends=Extends()
+        box_extends = self.box_extends()
+        extends = Extends()
         extends.x_min = box_extends[0]
         extends.x_max = box_extends[1]
         extends.y_min = box_extends[2]
@@ -142,6 +155,7 @@ class Box:
 
 
 class Workspace:
+
     def __init__(self, box=Box()):
         self.box = box
         self.obstacles = []
@@ -156,10 +170,10 @@ class Workspace:
         mindist = float("inf")
         minid = -1
         for k, obst in enumerate(self.obstacles):
-            dist = obst.DistFromBorder(pt) # Signed distance 
+            dist = obst.DistFromBorder(pt)  # Signed distance
             if dist < mindist:
-              mindist = dist
-              minid   = k
+                mindist = dist
+                minid = k
         return mindist
 
     def AddCircle(self, origin=None, radius=None):

@@ -15,29 +15,29 @@
 # OTHER TORTIOUS ACTION,   ARISING OUT OF OR IN    CONNECTION WITH THE USE   OR
 # PERFORMANCE OF THIS SOFTWARE.
 #
-#                                           Jim Mainprice on Sunday June 17 2017
+# Jim Mainprice on Sunday June 17 2017
 
-import demos_common_imports
+from demos_common_imports import *
 import numpy as np
 import matplotlib.pyplot as plt
-from workspace import *
-from charge_simulation import *
-from pixel_map import *
-from geodesics import *
+from geometry.workspace import *
+from geometry.charge_simulation import *
+from geometry.pixel_map import *
+from geometry.geodesics import *
 import itertools
 
 workspace = Workspace()
 workspace.AddCircle(np.array([0.1, .3]), .1)
 workspace.AddCircle(np.array([0., -.3]), .1)
 points = workspace.AllPoints()
-X = np.array(points)[:,0]
-Y = np.array(points)[:,1]
+X = np.array(points)[:, 0]
+Y = np.array(points)[:, 1]
 
 simulation = ChargeSimulation()
 simulation.charged_points_ = points
 simulation.Run()
 
-extends = Extends(workspace.box.dim[0]/2.)
+extends = Extends(workspace.box.dim[0] / 2.)
 grid = PixelMap(0.01, extends)
 matrix = np.zeros((grid.nb_cells_x, grid.nb_cells_y))
 for i in range(grid.nb_cells_x):
@@ -46,11 +46,11 @@ for i in range(grid.nb_cells_x):
         # TODO why is it this way... (j before i)
         # these are matrix coordinates...
         matrix[j, i] = simulation.PotentialCausedByObject(p)
-plt.imshow(matrix, origin='lower',extent=workspace.box.Extends())
-plt.scatter( X, Y )
+plt.imshow(matrix, origin='lower', extent=workspace.box.box_extends())
+plt.scatter(X, Y)
 plt.ylabel('some points')
 plt.axis('equal')
-plt.axis(workspace.box.Extends())
+plt.axis(workspace.box.box_extends())
 
 x_goal = np.array([0.4, 0.2])
 nx, ny = (10, 5)
@@ -59,10 +59,9 @@ y = np.linspace(-.5, -.2, ny)
 for i, j in itertools.product(range(nx), range(ny)):
     x_init = np.array([x[i], y[j]])
     line = ComputeGeodesic(simulation, x_init, x_goal)
-    X = np.array(line)[:,0]
-    Y = np.array(line)[:,1]
-    plt.plot( X, Y, color="r", linewidth=2.0 )
-    plt.plot( x_init[0], x_init[1], 'ro' )
-plt.plot( x_goal[0], x_goal[1], 'ko' )
-plt.show()  
-
+    X = np.array(line)[:, 0]
+    Y = np.array(line)[:, 1]
+    plt.plot(X, Y, color="r", linewidth=2.0)
+    plt.plot(x_init[0], x_init[1], 'ro')
+plt.plot(x_goal[0], x_goal[1], 'ko')
+plt.show()

@@ -20,14 +20,6 @@ import numpy as np
 from scipy.optimize import fsolve
 
 
-def plot_line(line, color, width=2.):
-    X = np.array(line)[:, 0]
-    Y = np.array(line)[:, 1]
-    plt.plot(X, Y, color, linewidth=1.)
-    plt.plot(X, Y, color + 'o', linewidth=1.)
-    # plt.plot( x_init[0], x_init[1], color + 'o' )
-
-
 def normalize(v):
     # norm=np.linalg.norm(v, ord=1)
     norm = np.linalg.norm(v)
