@@ -130,7 +130,6 @@ class IdentityMap(DifferentiableMap):
         return np.matrix(np.eye(self.dim))
 
 
-
 def finite_difference_jacobian(f, q):
     """ Takes an object f that has a forward method returning
     a numpy array when querried. """

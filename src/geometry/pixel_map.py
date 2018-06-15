@@ -35,7 +35,6 @@ class Extends:
 
 
 class PixelMap:
-
     """
     Implements an axis aligned regular pixel-grid map. It follows the
     convention  that we use on the C++ version of the class. which means
