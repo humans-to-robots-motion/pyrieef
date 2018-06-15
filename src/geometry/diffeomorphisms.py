@@ -95,7 +95,7 @@ class PlaneDiffeomoprhism(DifferentiableMap):
         return 2
 
     @abstractmethod
-    def Inverse(self, y):
+    def inverse(self, y):
         raise NotImplementedError()
 
 
@@ -124,7 +124,7 @@ class PolarCoordinateSystem(AnalyticPlaneDiffeomoprhism):
     # Converts from Euclidean to Polar
     # p[0] : x
     # p[1] : y
-    def Forward(self, p):
+    def forward(self, p):
         p_0 = p - self.circle.origin
         r = np.linalg.norm(p_0)
         phi = math.atan2(p_0[1], p_0[0])
@@ -133,7 +133,7 @@ class PolarCoordinateSystem(AnalyticPlaneDiffeomoprhism):
     # Converts from Polar to Euclidean
     # p[0] : r
     # p[1] : phi
-    def Inverse(self, p):
+    def inverse(self, p):
         x = p[0] * math.cos(p[1]) + self.circle.origin[0]
         y = p[0] * math.sin(p[1]) + self.circle.origin[1]
         return np.array([x, y])
@@ -152,7 +152,7 @@ class ElectricCircle(AnalyticPlaneDiffeomoprhism):
         return self.circle
 
     # squishes points inside the circle
-    def Forward(self, x):
+    def forward(self, x):
         # print "origin : ", self.origin
         x_center = x - self.circle.origin
         d_1 = np.linalg.norm(x_center)
@@ -162,7 +162,7 @@ class ElectricCircle(AnalyticPlaneDiffeomoprhism):
         return y
 
     # maps them back outside of the circle
-    def Inverse(self, y):
+    def inverse(self, y):
         # print "origin : ", self.origin
         x = np.array([0., 0.])
         x_center = np.array([0., 0.])
@@ -194,14 +194,14 @@ class AnalyticEllipse(AnalyticPlaneDiffeomoprhism):
         self.beta_inv_ = b
 
     # squishes points inside the circle
-    def DeformationFoward(self, x):
+    def Deformationforward(self, x):
         x_center = x - self.origin
         d_1 = np.linalg.norm(x_center)
         alpha = self.alpha_(self.eta, self.radius, self.gamma, d_1)
         return alpha * normalize(x_center)
 
     # maps them back outside of the circle
-    def DeformationInverse(self, y):
+    def Deformationinverse(self, y):
         # print "origin : ", self.origin
         y_center = y - self.origin
         d_2 = np.linalg.norm(y_center)
@@ -210,13 +210,13 @@ class AnalyticEllipse(AnalyticPlaneDiffeomoprhism):
         return alpha * normalize(y_center)
 
     # squishes points inside the circle
-    def Forward(self, x):
-        y = x - self.DeformationFoward(x)
+    def forward(self, x):
+        y = x - self.Deformationforward(x)
         return y
 
     # maps them back outside of the circle
-    def Inverse(self, y):
-        x = y + self.DeformationInverse(y)
+    def inverse(self, y):
+        x = y + self.Deformationinverse(y)
         return x
 
 
@@ -242,7 +242,7 @@ class AnalyticCircle(AnalyticPlaneDiffeomoprhism):
         self.beta_inv_ = b
 
     # squishes points inside the circle
-    def DeformationFoward(self, x):
+    def Deformationforward(self, x):
         # print "origin : ", self.origin
         x_center = x - self.circle.origin
         # Retrieve radius when using beta exponential
@@ -262,7 +262,7 @@ class AnalyticCircle(AnalyticPlaneDiffeomoprhism):
         return alpha * normalize(x_center)
 
     # maps them back outside of the circle
-    def DeformationInverse(self, y):
+    def Deformationinverse(self, y):
         # print "origin : ", self.origin
         y_center = y - self.circle.origin
         d_2 = np.linalg.norm(y_center)
@@ -274,13 +274,13 @@ class AnalyticCircle(AnalyticPlaneDiffeomoprhism):
         return alpha * normalize(y_center)
 
     # squishes points inside the circle
-    def Forward(self, x):
-        y = x - self.DeformationFoward(x)
+    def forward(self, x):
+        y = x - self.Deformationforward(x)
         return y
 
     # maps them back outside of the circle
-    def Inverse(self, y):
-        x = y + self.DeformationInverse(y)
+    def inverse(self, y):
+        x = y + self.Deformationinverse(y)
         return x
 
 
@@ -293,16 +293,16 @@ class AnalyticMultiCircle(AnalyticPlaneDiffeomoprhism):
     def object(self):
         self.circles_
 
-    def AdditiveForward(self, x):
+    def Additiveforward(self, x):
         dx = np.array([0., 0.])
         for i, obj in enumerate(self.circles_):
-            dx += obj.DeformationFoward(x)
+            dx += obj.Deformationforward(x)
         return x - dx
 
-    def AdditiveInverse(self, y):
+    def Additiveinverse(self, y):
         dy = np.array([0., 0.])
         for i, obj in enumerate(self.circles_):
-            dy += obj.DeformationInverse(y)
+            dy += obj.Deformationinverse(y)
         return y + dy
 
     # This activation function is implemented through
@@ -324,7 +324,7 @@ class AnalyticMultiCircle(AnalyticPlaneDiffeomoprhism):
                         (-d_1 + self.circles_[i].circle.radius)))
         return alpha * normalize(x_center)
 
-    def Forward(self, x):
+    def forward(self, x):
         dx = np.array([0., 0.])
         for i, obj in enumerate(self.circles_):
             dx += self.OneCircle(i, x)
@@ -338,11 +338,11 @@ def InterpolationGeodescis(obj, x_1, x_2):
     line = []
     line_inter = []
     line.append(x_1)
-    p_init = obj.Forward(np.array(x_1))
-    p_goal = obj.Forward(np.array(x_2))
+    p_init = obj.forward(np.array(x_1))
+    p_goal = obj.forward(np.array(x_2))
     for s in np.linspace(0., 1., 100):
         p = (1. - s) * p_init + s * p_goal
-        x_new = obj.Inverse(p)
+        x_new = obj.inverse(p)
         line.append(x_new)
         line_inter.append(p)
         if np.linalg.norm(x_new - x_2) <= 0.001:
@@ -358,7 +358,7 @@ def NaturalGradientGeodescis(obj, x_1, x_2):
     line = []
     for i in range(1000):
         # Compute tensor.
-        J = obj.Jacobian(np.array(x_tmp.T)[0])
+        J = obj.jacobian(np.array(x_tmp.T)[0])
         g = J.transpose() * J
         # Implement the attractor derivative here directly
         # suposes that it's of the form |phi(q) - phi(q_goal)|^2

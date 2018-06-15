@@ -42,8 +42,8 @@ def check_inverse(obstacle):
             x = 1. * np.random.rand(2) + o.origin
             if np.linalg.norm(x - o.origin) < o.radius:
                 continue
-            p = obstacle.Forward(x)
-            x_new = obstacle.Inverse(p)
+            p = obstacle.forward(x)
+            x_new = obstacle.inverse(p)
             dist = np.linalg.norm(x - x_new)
             if dist > 1.e-12:
                 print "test (", i, ")"

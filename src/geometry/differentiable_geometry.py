@@ -33,36 +33,38 @@ class DifferentiableMap:
         raise NotImplementedError()
 
     @abstractmethod
-    def Forward(self, q):
+    def forward(self, q):
         raise NotImplementedError()
 
-    # Method called wehn call object
     def __call__(self, q):
-        return self.Forward(q)
+        """ Method called wehn call object """
+        return self.forward(q)
 
-    # by default the method returns the finite difference Jacobian.
-    # WARNING the object returned by this function is a numpy matrix.
-    def Jacobian(self, q):
-        return GetFiniteDifferenceJacobian(self, q)
+    def jacobian(self, q):
+        """ by default the method returns the finite difference jacobian.
+            WARNING the object returned by this function is a numpy matrix."""
+        return finite_difference_jacobian(self, q)
 
-    # Evaluate the map and Jacobian simultaneously. The default
-    # implementation simply calls both Forward and GetJacobian()
-    # separately but overriding this method can make the evaluation more
-    # efficient
-    def Evaluate(self, q):
-        x = self.Forward(q)
-        J = self.Jacobian(q)
+    def evaluate(self, q):
+        """.evaluate the map and jacobian simultaneously. The default
+            implementation simply calls both forward and Getjacobian()
+            separately but overriding this method can make the evaluation 
+            more efficient """
+        x = self.forward(q)
+        J = self.jacobian(q)
         return [x, J]
 
-    # If g is the gradient of a function c(x) defined on the range space
-    # of this map so that g = d/dx c(x)), then the gradient of the "pullback"
-    # function c(phi(q)) is d/dq c(phi(q)) = J'g. This method computes and
-    # returns this "pullback gradient" J'g.
-    # WARNING: The return is will be of the same type as g:
-    # - if g is an array then the function returns an array
-    # - if g is a signe collumn matrix then it returns a numpy matrix object
-    def PullbackGradient(self, q, g):
-        J = self.Jacobian(q)
+    def pullback_gradient(self, q, g):
+        """ If g is the gradient of a function c(x) defined on the range space
+        of this map so that g = d/dx c(x)), then the gradient of the "pullback"
+        function c(phi(q)) is d/dq c(phi(q)) = J'g. This method computes and
+        returns this "pullback gradient" J'g.
+        WARNING: The return is will be of the same type as g:
+            - if g is an array then the function returns an array
+            - if g is a signe collumn matrix then it returns a 
+                numpy matrix object
+        """
+        J = self.jacobian(q)
         return np.dot(J.transpose(), g)
 
 
@@ -78,19 +80,18 @@ class PullbackFunction(DifferentiableMap):
     def input_dimension(self):
         return self.phi.input_dimension()
 
-    def Forward(self, q):
+    def forward(self, q):
         return self.f(self.phi(q))
 
-    def Evaluate(self, q):
+    def evaluate(self, q):
         x = self.phi(q)
-        [x, f_g] = self.f.Evaluate(x)
-        g = self.phi.PullbackGradient(q, f_g)
+        [x, f_g] = self.f.evaluate(x)
+        g = self.phi.pullback_gradient(q, f_g)
         return [x, g]
-
-# Simple squared norm.
 
 
 class SquaredNorm(DifferentiableMap):
+    """ Simple squared norm : f(x) = |x|^2 """
 
     def __init__(self, x_0):
         self.x_0 = x_0
@@ -101,17 +102,17 @@ class SquaredNorm(DifferentiableMap):
     def input_dimension(self):
         return self.x_0.size
 
-    def Forward(self, x):
+    def forward(self, x):
         delta_x = x - self.x_0
         return 0.5 * np.dot(delta_x, delta_x)
 
-    def Jacobian(self, x):
+    def jacobian(self, x):
         delta_x = x - self.x_0
         return np.matrix(delta_x)
 
 
-# Simple squared norm.
 class IdentityMap(DifferentiableMap):
+    """Simple identity map : f(x) = x"""
 
     def __init__(self, n):
         self.dim = n
@@ -122,16 +123,17 @@ class IdentityMap(DifferentiableMap):
     def input_dimension(self):
         return self.dim
 
-    def Forward(self, x):
+    def forward(self, x):
         return x
 
-    def Jacobian(self, q):
+    def jacobian(self, q):
         return np.matrix(np.eye(self.dim))
 
 
-# Takes an object f that has a Foward method returning
-# a numpy array when querried.
-def GetFiniteDifferenceJacobian(f, q):
+
+def finite_difference_jacobian(f, q):
+    """ Takes an object f that has a forward method returning
+    a numpy array when querried. """
     dt = 1e-4
     dt_half = dt / 2.
     J = np.zeros((
@@ -139,9 +141,9 @@ def GetFiniteDifferenceJacobian(f, q):
     for j in range(q.size):
         q_up = copy.deepcopy(q)
         q_up[j] += dt_half
-        x_up = f.Forward(q_up)
+        x_up = f.forward(q_up)
         q_down = copy.deepcopy(q)
         q_down[j] -= dt_half
-        x_down = f.Forward(q_down)
+        x_down = f.forward(q_down)
         J[:, j] = (x_up - x_down) / dt
     return np.matrix(J)

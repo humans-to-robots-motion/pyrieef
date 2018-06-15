@@ -23,8 +23,8 @@ from geometry.differentiable_geometry import *
 
 def check_jacobian_against_finite_difference(phi):
     q = np.random.rand(phi.input_dimension())
-    J = phi.Jacobian(q)
-    J_diff = GetFiniteDifferenceJacobian(phi, q)
+    J = phi.jacobian(q)
+    J_diff = finite_difference_jacobian(phi, q)
     print "J : "
     print J
     print "J_diff : "
@@ -36,7 +36,7 @@ def test_finite_difference():
     dim = 3
     identity = IdentityMap(dim)
     q = np.random.rand(dim)
-    [x, J] = identity.Evaluate(q)
+    [x, J] = identity.evaluate(q)
     J_eye = np.eye(dim)
 
     print "----------------------"
@@ -54,7 +54,7 @@ def test_square_norm():
     x_0 = np.array([1., 2.])
     x_1 = np.array([3., 4.])
     norm = SquaredNorm(x_0)
-    [v, J] = norm.Evaluate(x_1)
+    [v, J] = norm.evaluate(x_1)
 
     print "----------------------"
     print "Check square_norm (J implementation) : "

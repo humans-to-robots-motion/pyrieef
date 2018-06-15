@@ -15,14 +15,15 @@
 # OTHER TORTIOUS ACTION,   ARISING OUT OF OR IN    CONNECTION WITH THE USE   OR
 # PERFORMANCE OF THIS SOFTWARE.
 #
-#                                           Jim Mainprice on Sunday June 17 2017
+# Jim Mainprice on Sunday June 17 2017
 
 from differentiable_geometry import *
 
-# Implements |phi(x) - phi(x_g)|, where phi is a DifferentiableMap
-# Note that this is an absolute distance, not the squared distance.
-# Squaring this function (e.g. as part of a penalty function) gives a
-# squared potential.
-def MakeAttractor( phi, x_goal ):
-  return PullbackFunction(
-      phi, SquaredNorm(phi.Forward(x_goal)))
+
+def MakeAttractor(phi, x_goal):
+    """ Implements |phi(x) - phi(x_g)|, where phi is a DifferentiableMap
+        Note that this is an absolute distance, not the squared distance.
+        Squaring this function (e.g. as part of a penalty function) gives a
+        squared potential. """
+    return PullbackFunction(
+        phi, SquaredNorm(phi.forward(x_goal)))

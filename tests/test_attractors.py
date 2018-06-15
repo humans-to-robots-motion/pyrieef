@@ -23,11 +23,11 @@ from geometry.differentiable_geometry import *
 from geometry.diffeomorphisms import *
 
 
-# Makes sure the attractor evaluates to 0 at the goal point.
+# Makes sure the attractor.evaluates to 0 at the goal point.
 def eval_attractor(phi):
     x_goal = np.random.rand(2)
     attractor = MakeAttractor(phi, x_goal)
-    v = attractor.Forward(x_goal)
+    v = attractor.forward(x_goal)
     assert np.fabs(v) < 1.e-12
     return v
 
