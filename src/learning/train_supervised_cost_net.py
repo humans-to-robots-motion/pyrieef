@@ -21,6 +21,7 @@
 import optparse
 from utils import *
 import dataset
+from collections import namedtuple
 
 
 def parse_options():

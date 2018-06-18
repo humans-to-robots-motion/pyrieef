@@ -21,6 +21,7 @@
 import matplotlib.pyplot as plt
 from itertools import izip
 from dataset import *
+from utils import *
 
 # if running in the
 # The default python provided in (Ana)Conda is not a framework build. However,
@@ -64,11 +65,14 @@ def draw_grids(data):
 
 if __name__ == '__main__':
 
-    datasets = load_data_from_file()
+    data = dict_to_object(load_dictionary_from_file())
     print "Data is now loaded !!!"
-    print " -- datasets.shape : ", datasets.shape
+    print " -- size : ", data.size
+    print " -- lims : ", data.lims
+    print " -- datasets.shape : ", data.datasets.shape
+
     print " -- displaying with matplotlib..."
-    for data1, data2, data3, data4 in izip(*[iter(datasets)] * 4):
+    for data1, data2, data3, data4 in izip(*[iter(data.datasets)] * 4):
         fig = plt.figure(figsize=(5, 6))
         draw_one_data_point(fig, data1[0], data1[1], data1[2], 4, 0)
         draw_one_data_point(fig, data2[0], data2[1], data2[2], 4, 1)

@@ -24,7 +24,6 @@ from math import *
 from random import *
 import optparse
 import os
-from visualize_data import *
 from dataset import *
 
 
@@ -79,6 +78,7 @@ def random_environments(opt):
     ndim = 2
     lims = np.array([[0., 1.], [0., 1.]])
     # size        = torch.LongStorage({opt.xsize, opt.ysize}) # col x row
+    size = np.array([opt.xsize, opt.ysize])
     numdatasets = opt.numdatasets
     maxnobjs = opt.maxnumobjs
     minrad = opt.minobjrad
@@ -209,5 +209,4 @@ if __name__ == '__main__':
     #     parser.error("incorrect number of arguments")
 
     datasets = random_environments(options)
-    print "shape of dataset : ", datasets.shape
-    write_data_to_file(datasets)
+    write_dictionary_to_file(datasets)
