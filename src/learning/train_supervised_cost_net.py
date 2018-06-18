@@ -106,8 +106,44 @@ def parse_options():
 
 def load_data_from_hdf5(opt):
     print('==> Loading dataset from: ' + opt.dataset)
-    data = dataset.load_data_from_file(opt.dataset)
+    data = dict_to_object(dataset.load_dictionary_from_file(opt.dataset))
     print('==> Finished loading data')
+    imageHeight = data.size[0]
+    imageWidth = data.size[1]
+    trainDataFiles = {}
+    testDataFiles = {}
+    opt.trainDataIDs = {}
+    opt.testDataIDs = {}
+    if opt.trainDataIDs and opt.testDataIDs:
+        print "We have some data ids"
+        numTrain = len(opt.trainDataIDs)
+        numTest = len(opt.testDataIDs)
+        numData = numTrain + numTest
+        for k in range(numTrain):
+            trainDataFiles[len(
+                trainDataFiles)] = data.datasets[opt.trainDataIDs[k]]
+        for k in range(numTrain):
+            testDataFiles[len(
+                testDataFiles)] = data.datasets[opt.testDataIDs[k]]
+    else:
+        # Load datasets afresh
+        numData = len(data.datasets)  # Total number of datasets
+        numTrain = int(round(opt.trainPer * numData))
+        numTest = numData - numTrain
+        for k in range(numData):
+            if k < numTrain:
+                trainDataFiles[len(trainDataFiles)] = data.datasets[k]
+                opt.trainDataIDs[len(opt.trainDataIDs)] = k
+            else:
+                testDataFiles[len(testDataFiles)] = data.datasets[k]
+                opt.testDataIDs[len(opt.testDataIDs)] = k
+
+        assert (len(trainDataFiles) == numTrain
+                and len(testDataFiles) == numTest)
+
+    print('Num. total: {}, Num. train: {}; Num. test: {}'.format(
+        numData, numTrain, numTest))
+
 
 if __name__ == '__main__':
 
