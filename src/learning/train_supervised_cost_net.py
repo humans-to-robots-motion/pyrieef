@@ -108,23 +108,21 @@ def load_data_from_hdf5(opt):
     print('==> Loading dataset from: ' + opt.dataset)
     data = dict_to_object(dataset.load_dictionary_from_file(opt.dataset))
     print('==> Finished loading data')
-    imageHeight = data.size[0]
-    imageWidth = data.size[1]
-    trainDataFiles = {}
-    testDataFiles = {}
-    opt.trainDataIDs = {}
-    opt.testDataIDs = {}
-    if opt.trainDataIDs and opt.testDataIDs:
+    image_height = data.size[0]
+    image_width = data.size[1]
+    train_data = {}
+    test_data = {}
+    opt.train_data_ids = {}
+    opt.test_data_ids = {}
+    if opt.train_data_ids and opt.test_data_ids:
         print "We have some data ids"
         numTrain = len(opt.trainDataIDs)
-        numTest = len(opt.testDataIDs)
+        numTest = len(opt.test_data_ids)
         numData = numTrain + numTest
         for k in range(numTrain):
-            trainDataFiles[len(
-                trainDataFiles)] = data.datasets[opt.trainDataIDs[k]]
+            train_data[len(train_data)] = data.datasets[opt.train_data_ids[k]]
         for k in range(numTrain):
-            testDataFiles[len(
-                testDataFiles)] = data.datasets[opt.testDataIDs[k]]
+            test_data[len(test_data)] = data.datasets[opt.test_data_ids[k]]
     else:
         # Load datasets afresh
         numData = len(data.datasets)  # Total number of datasets
@@ -132,14 +130,13 @@ def load_data_from_hdf5(opt):
         numTest = numData - numTrain
         for k in range(numData):
             if k < numTrain:
-                trainDataFiles[len(trainDataFiles)] = data.datasets[k]
-                opt.trainDataIDs[len(opt.trainDataIDs)] = k
+                train_data[len(train_data)] = data.datasets[k]
+                opt.train_data_ids[len(opt.train_data_ids)] = k
             else:
-                testDataFiles[len(testDataFiles)] = data.datasets[k]
-                opt.testDataIDs[len(opt.testDataIDs)] = k
+                test_data[len(test_data)] = data.datasets[k]
+                opt.test_data_ids[len(opt.test_data_ids)] = k
 
-        assert (len(trainDataFiles) == numTrain
-                and len(testDataFiles) == numTest)
+        assert len(train_data) == numTrain and len(test_data) == numTest
 
     print('Num. total: {}, Num. train: {}; Num. test: {}'.format(
         numData, numTrain, numTest))
