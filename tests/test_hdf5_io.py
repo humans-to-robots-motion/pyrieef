@@ -23,8 +23,26 @@ import numpy as np
 
 
 def test_hdf5_io():
-    filename="test_file.hdf5"
+    filename = "test_file.hdf5"
     A = np.random.random((1000, 1000))
     write_data_to_file(A, filename)
     B = load_data_from_file(filename)
     assert check_is_close(A, B)
+
+
+def test_hdf5_dictionary_io():
+    filename = "test_file.hdf5"
+    dic_A = {}
+    dic_A["first"] = np.random.random((2, 3))
+    dic_A["second"] = np.random.random((4, 10))
+    dic_A["third"] = np.random.random((10, 10))
+    dic_A["forth"] = np.random.random((10, 10, 200))
+    write_dictionary_to_file(dic_A, filename)
+    dic_B = load_dictionary_from_file(filename)
+    print dic_B
+    for key, value in dic_A.items():
+        assert check_is_close(dic_A[key], dic_B[key])
+
+if __name__ == "__main__":
+    test_hdf5_io()
+    test_hdf5_dictionary_io()

@@ -36,7 +36,26 @@ def write_data_to_file(data_out, filename='costdata2d_10k.hdf5'):
 
 
 def load_data_from_file(filename='costdata2d_10k.hdf5'):
-    directory = learning_data_dir()
-    with h5py.File(directory + os.sep + filename, 'r') as f:
+    with h5py.File(learning_data_dir() + os.sep + filename, 'r') as f:
         datasets = f['mydataset'][:]
+    return datasets
+
+
+def write_dictionary_to_file(data_out, filename='costdata2d_10k.hdf5'):
+    directory = learning_data_dir()
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    f = h5py.File(directory + os.sep + filename, 'w')
+    for key, value in data_out.items():
+        f.create_dataset(key, data=value)
+    f.close()
+
+
+def load_dictionary_from_file(filename='costdata2d_10k.hdf5'):
+    datasets = {}
+    with h5py.File(learning_data_dir() + os.sep + filename, 'r') as f:
+        for d in f:
+            # print("d : " + d)
+            # print ("f[d] : " + str(f[d][:]))
+            datasets[str(d)] = f[d][:]
     return datasets

@@ -156,9 +156,14 @@ def random_environments(opt):
 
     # for k, a in enumerate(datasets):
     #     print "[{}] shape : {}".format(k, a.shape)
-    data_tensor = np.stack(datasets)
-    print "data_tensor.shape : ", data_tensor.shape
-    return data_tensor
+    # data_tensor = np.stack(datasets)
+    # print "data_tensor.shape : ", data_tensor.shape
+    data = {}
+    data["lims"] = lims
+    data["size"] = size
+    data["datasets"] = np.stack(datasets)
+    # data["states"] = states
+    return data
 
 
 if __name__ == '__main__':

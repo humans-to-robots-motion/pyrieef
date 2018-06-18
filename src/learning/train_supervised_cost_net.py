@@ -19,13 +19,16 @@
 
 
 import optparse
+from utils import *
+import dataset
 
-if __name__ == '__main__':
+
+def parse_options():
 
     parser = optparse.OptionParser("Supervised Cost Prediction")
 
-    parser.add_option('--numdatasets', default=10000, type="int",
-                      help='path to training/test dataset')
+    parser.add_option('--dataset', default="costdata2d_10k.hdf5",
+                      type="string", help='path to training/test dataset')
     parser.add_option('--matlabdataset', action='store_true', default=False,
                       help='dataset is generated using MATLAB if this is set. Use MATIO to load it.')
     parser.add_option('--usecpu', action='store_true', default=False,
@@ -93,11 +96,21 @@ if __name__ == '__main__':
     parser.add_option('--batchNormalize', default=False, action='store_true',
                       help='Enable batch normalization across mini-batches')
 
-    (options, args) = parser.parse_args()
-    print options
-
+    (opt, args) = parser.parse_args()
+    print opt
     # if len(args) != 2:
     #     parser.error("incorrect number of arguments")
+    return (opt, args)
 
 
-def load_data_from_hdf5():
+def load_data_from_hdf5(opt):
+    print('==> Loading dataset from: ' + opt.dataset)
+    data = dataset.load_data_from_file(opt.dataset)
+    print('==> Finished loading data')
+
+if __name__ == '__main__':
+
+    (opt, args) = parse_options()
+    print opt.preTrained
+    print opt.dataset
+    load_data_from_hdf5(opt)
