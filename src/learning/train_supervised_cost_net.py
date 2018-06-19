@@ -22,6 +22,7 @@ import optparse
 from utils import *
 import dataset
 from collections import namedtuple
+from networks import *
 
 
 def parse_options():
@@ -105,24 +106,25 @@ def parse_options():
 
 
 def load_data_from_hdf5(opt):
+    """ Setup training / test data  """
     print('==> Loading dataset from: ' + opt.dataset)
     data = dict_to_object(dataset.load_dictionary_from_file(opt.dataset))
     print('==> Finished loading data')
     image_height = data.size[0]
     image_width = data.size[1]
-    train_data = {}
-    test_data = {}
-    opt.train_data_ids = {}
-    opt.test_data_ids = {}
+    train_data = []
+    test_data = []
+    opt.train_data_ids = []
+    opt.test_data_ids = []
     if opt.train_data_ids and opt.test_data_ids:
         print "We have some data ids"
         numTrain = len(opt.trainDataIDs)
         numTest = len(opt.test_data_ids)
         numData = numTrain + numTest
         for k in range(numTrain):
-            train_data[len(train_data)] = data.datasets[opt.train_data_ids[k]]
+            train_data.append(data.datasets[opt.train_data_ids[k]])
         for k in range(numTrain):
-            test_data[len(test_data)] = data.datasets[opt.test_data_ids[k]]
+            test_data.append(data.datasets[opt.test_data_ids[k]])
     else:
         # Load datasets afresh
         numData = len(data.datasets)  # Total number of datasets
@@ -130,11 +132,11 @@ def load_data_from_hdf5(opt):
         numTest = numData - numTrain
         for k in range(numData):
             if k < numTrain:
-                train_data[len(train_data)] = data.datasets[k]
-                opt.train_data_ids[len(opt.train_data_ids)] = k
+                train_data.append(data.datasets[k])
+                opt.train_data_ids.append(k)
             else:
-                test_data[len(test_data)] = data.datasets[k]
-                opt.test_data_ids[len(opt.test_data_ids)] = k
+                test_data.append(data.datasets[k])
+                opt.test_data_ids.append(k)
 
         assert len(train_data) == numTrain and len(test_data) == numTest
 
@@ -142,9 +144,34 @@ def load_data_from_hdf5(opt):
         numData, numTrain, numTest))
 
 
+def create_loss_function(opt):
+    """
+     b1) Setup progress/loss logging (Do not overwrite existing files if pre-training an existing network)
+        Setup loggers to save the training and test losses
+    """
+    if opt.model == 'pred2dcost':
+        model = supervised2dcostprednet(
+            opt.batchNormalize,
+            opt.nonlinearity, opt.usecudnn)
+    elif opt.model == 'pred2dcostconv':
+        model = supervised2dcostprednet_onlyconv(
+            opt.batchNormalize,
+            opt.nonlinearity, opt.usecudnn)
+    elif opt.model == 'pred2dcostfcn':
+        model = supervised2dcostprednet_fcn(
+            opt.batchNormalize,
+            opt.nonlinearity,
+            opt.usecudnn,
+            opt.numskipadd)
+    else:
+        print('Unknown model type input: ' + opt.model)
+    print('model : ' + str(model))
+    return model
+
 if __name__ == '__main__':
 
     (opt, args) = parse_options()
     print opt.preTrained
     print opt.dataset
     load_data_from_hdf5(opt)
+    model = create_loss_function(opt)
