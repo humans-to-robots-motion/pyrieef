@@ -20,6 +20,21 @@
 import torch
 
 
+def load_criterion(criType, averageLoss):
+    """  Code to load a criterion """
+    criterion
+    if criType == 'mse':
+        criterion = nn.MSECriterion(averageLoss)
+    elif criType == 'wtmse':
+        # Empty weight tensor
+        criterion = nn.ScaledMSECriterion(torch.Tensor(), averageLoss) 
+    elif criType == 'abs':
+        criterion = nn.AbsCriterion(averageLoss)
+    else:
+        print('Unknown criterion type input: ' + criType)
+    return criterion
+
+
 def supervised2dcostprednet(
         _batchNormalize, _nonlinearity, _usecudnn):
     model = None
