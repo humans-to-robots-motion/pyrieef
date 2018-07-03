@@ -18,6 +18,8 @@
 #                                        Jim Mainprice on Sunday June 13 2018
 
 from collections import namedtuple
+import sys
+from time import sleep
 
 
 def dict_to_object(d):
@@ -25,6 +27,16 @@ def dict_to_object(d):
         if isinstance(v, dict):
             d[k] = dict_to_object(v)
     return namedtuple('object', d.keys())(*d.values())
+
+
+def show_progress(idx, idx_max):
+    sys.stdout.flush()
+    msg = "progress %i %%" % (100. * float(idx) / float(idx_max))
+    sys.stdout.write(msg + chr(8) * len(msg))
+    if idx >= idx_max:
+        sys.stdout.flush()
+        sys.stdout.write("DONE" + " " * len(msg) + "\n")
+    sleep(0.0001)
 
 
 def load_saved_network(savedFile, loadOnlyModel):

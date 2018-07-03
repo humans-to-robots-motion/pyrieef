@@ -20,9 +20,10 @@
 
 import optparse
 from utils import *
-import dataset
+from dataset import *
 from collections import namedtuple
 from networks import *
+import time
 
 
 def parse_options():
@@ -105,48 +106,10 @@ def parse_options():
     return (opt, args)
 
 
-def load_data_from_hdf5(opt):
-    """ Setup training / test data  """
-    print('==> Loading dataset from: ' + opt.dataset)
-    data = dict_to_object(dataset.load_dictionary_from_file(opt.dataset))
-    print('==> Finished loading data')
-    image_height = data.size[0]
-    image_width = data.size[1]
-    train_data = []
-    test_data = []
-    opt.train_data_ids = []
-    opt.test_data_ids = []
-    if opt.train_data_ids and opt.test_data_ids:
-        print "We have some data ids"
-        numTrain = len(opt.trainDataIDs)
-        numTest = len(opt.test_data_ids)
-        numData = numTrain + numTest
-        for k in range(numTrain):
-            train_data.append(data.datasets[opt.train_data_ids[k]])
-        for k in range(numTrain):
-            test_data.append(data.datasets[opt.test_data_ids[k]])
-    else:
-        # Load datasets afresh
-        numData = len(data.datasets)  # Total number of datasets
-        numTrain = int(round(opt.trainPer * numData))
-        numTest = numData - numTrain
-        for k in range(numData):
-            if k < numTrain:
-                train_data.append(data.datasets[k])
-                opt.train_data_ids.append(k)
-            else:
-                test_data.append(data.datasets[k])
-                opt.test_data_ids.append(k)
-
-        assert len(train_data) == numTrain and len(test_data) == numTest
-
-    print('Num. total: {}, Num. train: {}; Num. test: {}'.format(
-        numData, numTrain, numTest))
-
-
 def create_loss_function(opt):
     """
-     b1) Setup progress/loss logging (Do not overwrite existing files if pre-training an existing network)
+     b1) Setup progress/loss logging (Do not overwrite existing
+     files if pre-training an existing network)
         Setup loggers to save the training and test losses
     """
     if opt.model == 'pred2dcost':
@@ -168,10 +131,31 @@ def create_loss_function(opt):
     print('model : ' + str(model))
     return model
 
+
+def iterate(opt, dataset, num_iter, mode, total_iter):
+    # Setup some vars
+    loss_arr = None
+    logger = None
+    iter_counter = None
+    if mode == 'Train':
+        training()
+        loss_arr = train_loss
+        logger = train_loss_logger
+        iter_counter = opt.trainIter
+        totalIter = opt.numEpochs * opt.trainBPE
+    elif mode == 'Test':
+        # model:evaluate()
+        loss_arr = test_loss
+        logger = test_loss_logger
+        iter_counter = opt.testIter
+        totalIter = opt.numEpochs * opt.testBPE
+    else:
+        print('Unknown mode: ' + mode)
+
 if __name__ == '__main__':
 
     (opt, args) = parse_options()
     print opt.preTrained
     print opt.dataset
-    load_data_from_hdf5(opt)
+    data = CostmapDataset(opt.dataset)
     model = create_loss_function(opt)

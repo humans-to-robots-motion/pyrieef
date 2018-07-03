@@ -18,6 +18,7 @@
 #                                        Jim Mainprice on Sunday June 13 2018
 
 import torch
+import tensorflow
 
 
 def load_criterion(criType, averageLoss):
@@ -27,12 +28,31 @@ def load_criterion(criType, averageLoss):
         criterion = nn.MSECriterion(averageLoss)
     elif criType == 'wtmse':
         # Empty weight tensor
-        criterion = nn.ScaledMSECriterion(torch.Tensor(), averageLoss) 
+        criterion = nn.ScaledMSECriterion(torch.Tensor(), averageLoss)
     elif criType == 'abs':
         criterion = nn.AbsCriterion(averageLoss)
     else:
         print('Unknown criterion type input: ' + criType)
     return criterion
+
+
+def autoencoder(inputs):
+    # encoder
+    # 32 x 32 x 1   ->  16 x 16 x 32
+    # 16 x 16 x 32  ->  8 x 8 x 16
+    # 8 x 8 x 16    ->  2 x 2 x 8
+    net = lays.conv2d(inputs, 32, [5, 5], stride=2, padding='SAME')
+    net = lays.conv2d(net, 16, [5, 5], stride=2, padding='SAME')
+    net = lays.conv2d(net, 8, [5, 5], stride=4, padding='SAME')
+    # decoder
+    # 2 x 2 x 8    ->  8 x 8 x 16
+    # 8 x 8 x 16   ->  16 x 16 x 32
+    # 16 x 16 x 32  ->  32 x 32 x 1
+    net = lays.conv2d_transpose(net, 16, [5, 5], stride=4, padding='SAME')
+    net = lays.conv2d_transpose(net, 32, [5, 5], stride=2, padding='SAME')
+    net = lays.conv2d_transpose(
+        net, 1, [5, 5], stride=2, padding='SAME', activation_fn=tf.nn.tanh)
+    return net
 
 
 def supervised2dcostprednet(
