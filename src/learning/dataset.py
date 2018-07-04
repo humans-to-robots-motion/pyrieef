@@ -31,7 +31,7 @@ class CostmapDataset:
         print('==> Loading dataset from: ' + filename)
         data = dict_to_object(load_dictionary_from_file(filename))
         self._size_limit = True
-        self._max_index = 500
+        self._max_index = 1000
         self.inputs = []
         self.targets = []
         print('Sorting out inputs and targets...')
