@@ -120,7 +120,14 @@ def random_environments(opt):
         workspace = Workspace(box)
 
         if k % 10 == 0:
-            print('Dataset: ' + str(k) + '/' + str(numdatasets))
+            sys.stdout.flush()
+            percentage = float(k) / float(numdatasets)
+            msg = 'Dataset: ' + str(k) + '/' + str(numdatasets)
+            msg += ", progress %.1f %%" % (100. * percentage)
+            sys.stdout.write(msg + chr(8) * len(msg))
+            if k >= numdatasets:
+                sys.stdout.flush()
+                sys.stdout.write("DONE" + " " * len(msg) + "\n")
         numtries = 0  # Initialize num tries
         nobj = int(ceil(random() * maxnobjs))
         while True:
