@@ -25,6 +25,7 @@ from random import *
 import optparse
 import os
 from dataset import *
+from tqdm import tqdm
 
 
 def samplerandpt(lims):
@@ -114,20 +115,11 @@ def random_environments(opt):
 
     # Try for this many time to do any one single thing before restarting
     maxnumtries = 100
-    while k < numdatasets:
+    print("Num datasets : " + str(numdatasets))
+    for k in tqdm(range(numdatasets)):
 
         # Create empty workspace.
         workspace = Workspace(box)
-
-        if k % 10 == 0:
-            sys.stdout.flush()
-            percentage = float(k) / float(numdatasets)
-            msg = 'Dataset: ' + str(k) + '/' + str(numdatasets)
-            msg += ", progress %.1f %%" % (100. * percentage)
-            sys.stdout.write(msg + chr(8) * len(msg))
-            if k >= numdatasets:
-                sys.stdout.flush()
-                sys.stdout.write("DONE" + " " * len(msg) + "\n")
         numtries = 0  # Initialize num tries
         nobj = int(ceil(random() * maxnobjs))
         while True:
