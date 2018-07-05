@@ -7,12 +7,33 @@ import tensorflow.contrib.layers as lays
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
+from visualize_data import *
 from dataset import *
 
 num_epochs = 100   # Number of epochs to train the network
 batch_size = 100   # Number of samples in each batch
 batch_per_ep = 20
 lr = 0.0001        # Learning rate
+
+
+def _draw_row(fig, img1, img2, img3, i):
+    draw_one_data_point(fig,
+                        np.reshape(img1, (100, 100)),
+                        np.reshape(img2, (100, 100)),
+                        np.reshape(img3, (100, 100)),
+                        4, i)
+
+
+def _plot(occ, cost_true, cost_pred):
+    fig = plt.figure(figsize=(5, 6))
+    _draw_row(fig, occ[0], cost_true[0], cost_pred[0], 0)
+    _draw_row(fig, occ[1], cost_true[1], cost_pred[1], 1)
+    _draw_row(fig, occ[2], cost_true[2], cost_pred[2], 2)
+    _draw_row(fig, occ[3], cost_true[3], cost_pred[3], 3)
+    plt.show(block=False)
+    plt.draw()
+    plt.pause(0.0001)
+    plt.close(fig)
 
 
 def _preprocess(x, y):
@@ -64,6 +85,7 @@ test_init_op = iterator.make_initializer(test_ds)
 # claculate the mean square error loss
 loss = tf.losses.mean_squared_error(_autoencoder(x), y)
 train_op = tf.train.AdamOptimizer(learning_rate=lr).minimize(loss)
+prediction = _autoencoder(x)
 
 # initialize the network
 init = tf.global_variables_initializer()
@@ -77,6 +99,9 @@ with tf.Session() as sess:
             _, train_loss_v = sess.run([train_op, loss])
             # print('Epoch: {}, Training Loss= {}'.format((ep + 1), loss_value))
         sess.run(test_init_op)
-        test_loss_v = sess.run(loss)
+        test_loss_v, occ, cost_true, cost_pred = sess.run([
+            loss, x, y, prediction])
         print('Epoch: {}, Training Loss= {}, Test Loss= {}'.format(
             (ep + 1), train_loss_v, test_loss_v))
+        if ep % 10 == 0:
+            _plot(occ, cost_true, cost_pred)
