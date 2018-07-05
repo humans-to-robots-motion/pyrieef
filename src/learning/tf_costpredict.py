@@ -6,6 +6,8 @@ import tensorflow.contrib.layers as lays
 
 import tensorflow as tf
 import numpy as np
+import matplotlib
+matplotlib.use('PDF')   # generate postscript output by default
 import matplotlib.pyplot as plt
 from visualize_data import *
 from dataset import *
@@ -24,16 +26,17 @@ def _draw_row(fig, img1, img2, img3, i):
                         4, i)
 
 
-def _plot(occ, cost_true, cost_pred):
+def _plot(ep, occ, cost_true, cost_pred):
     fig = plt.figure(figsize=(5, 6))
     _draw_row(fig, occ[0], cost_true[0], cost_pred[0], 0)
     _draw_row(fig, occ[1], cost_true[1], cost_pred[1], 1)
     _draw_row(fig, occ[2], cost_true[2], cost_pred[2], 2)
     _draw_row(fig, occ[3], cost_true[3], cost_pred[3], 3)
-    plt.show(block=False)
-    plt.draw()
-    plt.pause(0.0001)
-    plt.close(fig)
+
+    directory = "results"
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    fig.savefig(directory + os.sep + 'images_{:03}.pdf'.format(ep))
 
 
 def _preprocess(x, y):
@@ -104,4 +107,4 @@ with tf.Session() as sess:
         print('Epoch: {}, Training Loss= {}, Test Loss= {}'.format(
             (ep + 1), train_loss_v, test_loss_v))
         if ep % 10 == 0:
-            _plot(occ, cost_true, cost_pred)
+            _plot(ep, occ, cost_true, cost_pred)
