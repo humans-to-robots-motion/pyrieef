@@ -10,9 +10,9 @@ import matplotlib.pyplot as plt
 from dataset import *
 
 num_epochs = 100   # Number of epochs to train the network
-batch_size = 100  # Number of samples in each batch
+batch_size = 100   # Number of samples in each batch
 batch_per_ep = 20
-lr = 0.001        # Learning rate
+lr = 0.0001        # Learning rate
 
 
 def _preprocess(x, y):
@@ -74,8 +74,9 @@ with tf.Session() as sess:
     for ep in range(num_epochs):
         sess.run(train_init_op)
         for i in range(batch_per_ep):
-            _, loss_value = sess.run([train_op, loss])
+            _, train_loss_v = sess.run([train_op, loss])
             # print('Epoch: {}, Training Loss= {}'.format((ep + 1), loss_value))
         sess.run(test_init_op)
-        loss_value = sess.run(loss)
-        print('Epoch: {}, Test Loss= {}'.format((ep + 1), loss_value))
+        test_loss_v = sess.run(loss)
+        print('Epoch: {}, Training Loss= {}, Test Loss= {}'.format(
+            (ep + 1), train_loss_v, test_loss_v))
