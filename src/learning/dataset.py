@@ -34,7 +34,7 @@ class CostmapDataset:
         self._size_limit = True
         if not self._size_limit:
             self._max_index = len(data)
-        self._train_per = 0.80
+        self.train_per = 0.80
         print('Sorting out inputs and targets...')
         self.split_data(data)
         print(' - num. inputs : {}, shape : {}'.format(
@@ -46,9 +46,9 @@ class CostmapDataset:
 
     def split_data(self, data):
         """Load datasets afresh, train_per should be between 0 and 1"""
-        assert self._train_per >= 0. and self._train_per < 1.
+        assert self.train_per >= 0. and self.train_per < 1.
         num_data = min(self._max_index, len(data.datasets))
-        num_train = int(round(self._train_per * num_data))
+        num_train = int(round(self.train_per * num_data))
         num_test = num_data - num_train
         print(" num_train : {}, num_test : {}".format(num_train, num_test))
         self.train_inputs = []
@@ -69,12 +69,10 @@ class CostmapDataset:
         self.train_inputs = np.array(self.train_inputs)
         self.train_targets = np.array(self.train_targets)
         if num_test > 0:
-            self.test_targets = np.array(self.test_inputs)
+            self.test_inputs = np.array(self.test_inputs)
             self.test_targets = np.array(self.test_targets)
-        print len(self.test_inputs)
         assert len(self.train_inputs) == num_train
         assert len(self.test_inputs) == num_test
-        
 
 
 def learning_data_dir():
@@ -157,7 +155,7 @@ def load_data_from_hdf5(filename, train_per):
     return train_data, test_data
 
 
-def import_tf_data(filename='costdata2d_10k.hdf5', train_per=0.):
+def import_tf_data(filename='costdata2d_10k.hdf5'):
     import tensorflow as tf
     rawdata = CostmapDataset(filename)
     # Assume that each row of
@@ -169,7 +167,7 @@ def import_tf_data(filename='costdata2d_10k.hdf5', train_per=0.):
     print(dataset_train.output_types)
     print(dataset_train.output_shapes)
     dataset_test = None
-    if train_per > 0.:
+    if rawdata.train_per < 1.:
         assert rawdata.test_inputs.shape[0] == rawdata.test_targets.shape[0]
         dataset_test = tf.data.Dataset.from_tensor_slices((
             rawdata.test_inputs,

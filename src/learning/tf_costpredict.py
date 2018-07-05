@@ -9,12 +9,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from dataset import *
 
-batch_size = 100  # Number of samples in each batch
 num_epochs = 100   # Number of epochs to train the network
+batch_size = 100  # Number of samples in each batch
+batch_per_ep = 20
 lr = 0.001        # Learning rate
 
 
-def _process(x, y):
+def _preprocess(x, y):
     x = tf.reshape(x, [100, 100, 1])
     y = tf.reshape(y, [100, 100, 1])
     return x, y
@@ -46,14 +47,18 @@ def _autoencoder(inputs):
 
 
 # read costmap dataset
-dataset, test = import_tf_data()
-dataset = dataset.map(_process)
-dataset = dataset.shuffle(buffer_size=1000)
-dataset = dataset.batch(batch_size)
-dataset = dataset.repeat(num_epochs)
-iterator = dataset.make_initializable_iterator()
+train_ds, test_ds = import_tf_data()
+test_ds = test_ds.map(_preprocess)
+test_ds = test_ds.batch(batch_size)
+train_ds = train_ds.map(_preprocess)
+train_ds = train_ds.shuffle(buffer_size=1000)
+train_ds = train_ds.batch(batch_size)
+train_ds = train_ds.repeat(num_epochs)
+iterator = tf.data.Iterator.from_structure(train_ds.output_types,
+                                           train_ds.output_shapes)
 x, y = iterator.get_next()
-batch_per_ep = int(10000 / batch_size)
+train_init_op = iterator.make_initializer(train_ds)
+test_init_op = iterator.make_initializer(test_ds)
 
 # calculate the loss and optimize the network
 # claculate the mean square error loss
@@ -62,11 +67,15 @@ train_op = tf.train.AdamOptimizer(learning_rate=lr).minimize(loss)
 
 # initialize the network
 init = tf.global_variables_initializer()
+
 with tf.Session() as sess:
     sess.run(init)
     # Compute for 100 epochs.
     for ep in range(num_epochs):
-        sess.run(iterator.initializer)
+        sess.run(train_init_op)
         for i in range(batch_per_ep):
             _, loss_value = sess.run([train_op, loss])
-            print('Epoch: {}, Loss= {}'.format((ep + 1), loss_value))
+            # print('Epoch: {}, Training Loss= {}'.format((ep + 1), loss_value))
+        sess.run(test_init_op)
+        loss_value = sess.run(loss)
+        print('Epoch: {}, Test Loss= {}'.format((ep + 1), loss_value))
