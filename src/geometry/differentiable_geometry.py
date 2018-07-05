@@ -40,13 +40,21 @@ class DifferentiableMap:
         """ Method called wehn call object """
         return self.forward(q)
 
+    def gradient(self, q):
+        """ Convienience function to get numpy 
+            gradients in the same shape as the input vector
+            for addition and substraction, of course gradients are
+            only availables if the output dimension is one."""
+        assert self.output_dimension() == 1
+        return self.jacobian(q).reshape(self.input_dimension())
+
     def jacobian(self, q):
         """ by default the method returns the finite difference jacobian.
             WARNING the object returned by this function is a numpy matrix."""
         return finite_difference_jacobian(self, q)
 
     def evaluate(self, q):
-        """.evaluate the map and jacobian simultaneously. The default
+        """ Evaluates the map and jacobian simultaneously. The default
             implementation simply calls both forward and Getjacobian()
             separately but overriding this method can make the evaluation 
             more efficient """

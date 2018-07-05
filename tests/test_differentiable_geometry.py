@@ -55,6 +55,8 @@ def test_square_norm():
     x_1 = np.array([3., 4.])
     norm = SquaredNorm(x_0)
     [v, J] = norm.evaluate(x_1)
+    g = norm.gradient(x_1)
+    x_2 = np.zeros(x_1.shape) + g
 
     print "----------------------"
     print "Check square_norm (J implementation) : "
@@ -63,6 +65,13 @@ def test_square_norm():
     print "v : ", v
     print "x_0 : ", x_0
     print "x_1 : ", x_1
+    print "x_1.shape", x_1.shape
+    print "x_2.shape : ", x_2.shape 
+    print "x_2 : ", x_2
+    print "J.shape", J.shape
+    print "g.shape", g.shape
+    print "zero : ", np.zeros(x_1.shape).shape
+    assert np.array_equal(x_2, g)
     print "J : "
     print J
     print "Check square_norm (x) 1 : "
