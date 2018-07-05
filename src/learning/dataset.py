@@ -30,25 +30,51 @@ class CostmapDataset:
     def __init__(self, filename):
         print('==> Loading dataset from: ' + filename)
         data = dict_to_object(load_dictionary_from_file(filename))
-        self._size_limit = True
         self._max_index = 1000
-        self.inputs = []
-        self.targets = []
+        self._size_limit = True
+        if not self._size_limit:
+            self._max_index = len(data)
+        self._train_per = 0.80
         print('Sorting out inputs and targets...')
+        self.split_data(data)
+        print(' - num. inputs : {}, shape : {}'.format(
+            len(self.train_inputs),
+            self.train_inputs.shape))
+        print(' - num. targets : {}, shape : {}'.format(
+            len(self.train_targets),
+            self.train_targets.shape))
+
+    def split_data(self, data):
+        """Load datasets afresh, train_per should be between 0 and 1"""
+        assert self._train_per >= 0. and self._train_per < 1.
+        num_data = min(self._max_index, len(data.datasets))
+        num_train = int(round(self._train_per * num_data))
+        num_test = num_data - num_train
+        print(" num_train : {}, num_test : {}".format(num_train, num_test))
+        self.train_inputs = []
+        self.train_targets = []
+        self.test_inputs = []
+        self.test_targets = []
         for i, d in enumerate(data.datasets):
-            self.inputs.append(d[0])  # Occupancy maps
-            self.targets.append(d[2])  # Costmaps
-            # show_progress(i, len(data.datasets))
+            occupancy = d[0]
+            costmap = d[2]
+            if i < num_train:
+                self.train_inputs.append(occupancy)
+                self.train_targets.append(costmap)
+            else:
+                self.test_inputs.append(occupancy)
+                self.test_targets.append(costmap)
             if i == self._max_index - 1 and self._size_limit:
                 break
-        self.inputs = np.array(self.inputs)
-        self.targets = np.array(self.targets)
-        print(' - num. inputs : {}, shape : {}'.format(
-            len(self.inputs),
-            self.inputs.shape))
-        print(' - num. targets : {}, shape : {}'.format(
-            len(self.targets),
-            self.targets.shape))
+        self.train_inputs = np.array(self.train_inputs)
+        self.train_targets = np.array(self.train_targets)
+        if num_test > 0:
+            self.test_targets = np.array(self.test_inputs)
+            self.test_targets = np.array(self.test_targets)
+        print len(self.test_inputs)
+        assert len(self.train_inputs) == num_train
+        assert len(self.test_inputs) == num_test
+        
 
 
 def learning_data_dir():
@@ -131,15 +157,21 @@ def load_data_from_hdf5(filename, train_per):
     return train_data, test_data
 
 
-def import_tf_data(filename='costdata2d_10k.hdf5'):
+def import_tf_data(filename='costdata2d_10k.hdf5', train_per=0.):
     import tensorflow as tf
     rawdata = CostmapDataset(filename)
     # Assume that each row of
     # `inputs` corresponds to the same row as `targets`.
-    assert rawdata.inputs.shape[0] == rawdata.targets.shape[0]
-    dataset = tf.data.Dataset.from_tensor_slices((
-        rawdata.inputs,
-        rawdata.targets))
-    print(dataset.output_types)  # ==> (tf.float32, (tf.float32, tf.int32))
-    print(dataset.output_shapes)  # ==> "(10, ((), (100,)))"
-    return dataset
+    assert rawdata.train_inputs.shape[0] == rawdata.train_targets.shape[0]
+    dataset_train = tf.data.Dataset.from_tensor_slices((
+        rawdata.train_inputs,
+        rawdata.train_targets))
+    print(dataset_train.output_types)
+    print(dataset_train.output_shapes)
+    dataset_test = None
+    if train_per > 0.:
+        assert rawdata.test_inputs.shape[0] == rawdata.test_targets.shape[0]
+        dataset_test = tf.data.Dataset.from_tensor_slices((
+            rawdata.test_inputs,
+            rawdata.test_targets))
+    return dataset_train, dataset_test

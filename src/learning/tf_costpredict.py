@@ -46,7 +46,7 @@ def _autoencoder(inputs):
 
 
 # read costmap dataset
-dataset = import_tf_data()
+dataset, test = import_tf_data()
 dataset = dataset.map(_process)
 dataset = dataset.shuffle(buffer_size=1000)
 dataset = dataset.batch(batch_size)
