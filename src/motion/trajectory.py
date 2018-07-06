@@ -36,11 +36,22 @@ class Trajectory:
         ss += " - x : " + str(self._x)
         return ss
 
+    def final_configuration(self):
+        return self.configuration(self._T)
+
     def configuration(self, i):
-        return self._x[i::self._n]
+        """ To get a mutable part : 
+            traj.configuration(3)[:] = np.ones(2)
+        """
+        beg_idx = self._n * i
+        end_idx = self._n * (i + 1)
+        return self._x[beg_idx:end_idx]
 
     def clique(self, i):
-        return self._x[i::3 * self._n]
+        assert i > 0
+        beg_idx = self._n * (i - 1)
+        end_idx = self._n * (i + 2)
+        return self._x[beg_idx:end_idx]
 
     def set(self, x):
         assert x.shape[0] == self._n * (2 + self._T)

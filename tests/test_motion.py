@@ -20,14 +20,40 @@
 import test_common_imports
 from motion.trajectory import *
 
+
 def test_trajectory():
-    traj = Trajectory(10)
+    T = 10
+
+    traj = Trajectory(T)
     print type(traj)
     print traj
 
-    traj.set(np.ones(2 * (10 + 2)))
+    size = 2 * (T + 2)  # This is the formula for n = 2
+
+    traj.set(np.ones(size))
     print type(traj)
     print str(traj)
+
+    traj.set(np.random.rand(size))
+    print type(traj)
+    print str(traj)
+
+    print "final configuration : "
+    print traj.final_configuration()
+
+    print "config 3 : "
+    print traj.configuration(3)
+
+    print "clique 3 : "
+    print traj.clique(3)
+
+    print "config 3 (ones) : "
+    traj.configuration(3)[:] = np.ones(2)
+    print traj.configuration(3)
+
+    print "final configuration (ones) : "
+    traj.final_configuration()[:] = np.ones(2)
+    print traj.final_configuration()
 
 
 if __name__ == "__main__":
