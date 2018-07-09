@@ -50,7 +50,8 @@ class DifferentiableMap:
 
     def jacobian(self, q):
         """ by default the method returns the finite difference jacobian.
-            WARNING the object returned by this function is a numpy matrix."""
+            WARNING the object returned by this function is a numpy matrix.
+            Thhe Jacobian matrix is allways a numpy matrix object."""
         return finite_difference_jacobian(self, q)
 
     def evaluate(self, q):

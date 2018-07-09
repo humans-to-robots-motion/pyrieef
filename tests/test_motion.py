@@ -19,6 +19,14 @@
 
 import test_common_imports
 from motion.trajectory import *
+from motion.cost_terms import *
+
+
+def test_finite_differences():
+
+    dim = 4
+    acceleration = FiniteDiferencesAcceleration(dim, 1)
+    print acceleration.jacobian(np.zeros(dim * 3))
 
 
 def test_cliques():
@@ -76,3 +84,4 @@ def test_trajectory():
 if __name__ == "__main__":
     test_trajectory()
     test_cliques()
+    test_finite_differences()
