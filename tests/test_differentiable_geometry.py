@@ -66,7 +66,7 @@ def test_square_norm():
     print "x_0 : ", x_0
     print "x_1 : ", x_1
     print "x_1.shape", x_1.shape
-    print "x_2.shape : ", x_2.shape 
+    print "x_2.shape : ", x_2.shape
     print "x_2 : ", x_2
     print "J.shape", J.shape
     print "g.shape", g.shape
@@ -79,6 +79,18 @@ def test_square_norm():
     # success = check_is_close(J, J_zero)
     # print "Check square_norm (J) 2 : ", success
 
+
+def test_affine():
+    dim = 3
+    a = np.random.rand(dim, dim)
+    b = np.random.rand(3)
+    f = AffineMap(a, b)
+
+    print "Check AffineMap (J implementation) : "
+    assert check_jacobian_against_finite_difference(f)
+
+
 if __name__ == "__main__":
     test_finite_difference()
     test_square_norm()
+    test_affine()

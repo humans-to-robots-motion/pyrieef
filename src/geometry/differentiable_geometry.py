@@ -138,6 +138,28 @@ class IdentityMap(DifferentiableMap):
         return np.matrix(np.eye(self.dim))
 
 
+class AffineMap(DifferentiableMap):
+    """Simple map of the form: f(x) = ax + b"""
+
+    def __init__(self, a, b):
+        self.a_ = np.matrix(a)  # Make sure that a is matrix
+        self.b_ = np.matrix(b).transpose()
+
+    def output_dimension(self):
+        return self.b_.shape[0]
+
+    def input_dimension(self):
+        return self.b_.shape[0]
+
+    def forward(self, x):
+        x_tmp = x.reshape(self.b_.shape)
+        y = self.a_ * x_tmp + self.b_
+        return y.reshape(self.output_dimension())
+
+    def jacobian(self, x):
+        return self.a_
+
+
 def finite_difference_jacobian(f, q):
     """ Takes an object f that has a forward method returning
     a numpy array when querried. """
