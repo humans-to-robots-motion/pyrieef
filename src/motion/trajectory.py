@@ -30,7 +30,7 @@ class FunctionNetwork(DifferentiableMap):
         """
 
     def __init__(self):
-        self.functions_ = []
+        self._functions = []
 
     def output_dimension(self):
         return 1
@@ -40,12 +40,12 @@ class FunctionNetwork(DifferentiableMap):
 
     def forward(self, x):
         value = 0.
-        for f in range(self.functions_):
+        for f in range(self._functions):
             value += f.forward(x)
         return value
 
     def add_function(self, f):
-        self.functions_.append(f)
+        self._functions.append(f)
 
 
 class CliquesFunctionNetwork(FunctionNetwork):
@@ -56,31 +56,48 @@ class CliquesFunctionNetwork(FunctionNetwork):
 
     def __init__(self, dim):
         FunctionNetwork.__init__(self)
-        self.input_size_ = dim
-        self.clique_size_ = 3
+        self._input_size = dim
+        self._clique_size = 3
+        self._nb_cliques = self._input_size - self._clique_size + 1
+        self._functions = self._nb_cliques * [None]
+        for i in range(self._nb_cliques):
+            self._functions[i] = []
 
     def input_dimension(self):
         raise input_size_
 
     def nb_cliques(self):
-        return self.input_size_ - self.clique_size_ + 1
+        return self._nb_cliques
 
     def foward(self, x):
-        value = 0.
+
         cliques = self.all_cliques(x)
         assert len(cliques) == len(x)
-        assert len(cliques) == self.nb_cliques()
+        assert len(cliques) == self._nb_cliques
+
+        # We call over all subfunctions in each clique
+        value = 0.
         for i, c in enumerate(cliques):
-            value += functions_[i].forward(c)
+            for f in self._functions[i]:
+                value += f.forward(c)
         return value
 
     def all_cliques(self, x):
         """returns a dictionary of cliques """
         print("x : ", len(x))
-        print("clique size : ", self.clique_size_)
-        cliques = [x[i:self.clique_size_ + i]
-                   for i in range(self.nb_cliques())]
+        print("clique size : ", self._clique_size)
+        cliques = [x[i:self._clique_size + i]
+                   for i in range(self._nb_cliques)]
         return cliques
+
+    def register_function_for_clique(self, i, f):
+        """ Register function f for clique i """
+        self._functions[i].append(f)
+
+    def register_function_for_all_cliques(self, f):
+        """ Register function f """
+        for i in range(self._nb_cliques):
+            self._functions[i].append(f)
 
 
 class Trajectory:
@@ -89,7 +106,7 @@ class Trajectory:
         assert T > 0 and n > 0
         self._n = n
         self._T = T
-        self._x = np.zeros(n * (2 + T))
+        self._x = np.zeros(n * (T + 2))
 
     def __str__(self):
         ss = ""

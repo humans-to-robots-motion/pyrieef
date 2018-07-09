@@ -17,24 +17,20 @@
 #
 # Jim Mainprice on Sunday June 17 2018
 
-from __future__ import print_function
-from common_imports import *
-from geometry.differentiable_geometry import *
+import test_common_imports
+from motion.trajectory import *
+from motion.cost_terms import *
+from optimization.optimization import *
 
 
-class FiniteDifferencesAcceleration(AffineMap):
+def CostSpace2D:
+    def __init__(self):
+        T = 30  # time steps
+        self.config_space_dim = 2
+        self.trajectory_space_dim = (self.config_space_dim * (T + 2))
+        self.objective = CliquesFunctionNetwork(self.trajectory_space_dim)
+        nb_cliques = self.objective.nb_cliques()
+        acceration = FiniteDifferencesAcceleration(self.config_space_dim)
+        SquaredNorm()
+        self.objective.register_function_for_clique
 
-    """ This class allows to define acceleration"""
-
-    def __init__(self, dim, dt):
-        self.a_ = np.matrix(np.zeros((dim, 3 * dim)))
-        self.b_ = np.matrix(np.zeros((dim, 1)))
-        self._initialize_matrix(dim, dt)
-
-    def _initialize_matrix(self, dim, dt):
-        # Acceleration = [ x_{t+1} + x_{t-1} - 2 * x_t ] / dt^2
-        I = np.eye(dim)
-        self.a_[0:dim, 0:dim] = I
-        self.a_[0:dim, dim:(2 * dim)] = -2 * I
-        self.a_[0:dim, (2 * dim):(3 * dim)] = I
-        self.a_ /= (dt * dt)

@@ -25,7 +25,7 @@ from motion.cost_terms import *
 def test_finite_differences():
 
     dim = 4
-    acceleration = FiniteDiferencesAcceleration(dim, 1)
+    acceleration = FiniteDifferencesAcceleration(dim, 1)
     print acceleration.jacobian(np.zeros(dim * 3))
 
 
