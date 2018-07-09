@@ -19,6 +19,68 @@
 
 from __future__ import print_function
 from common_imports import *
+from geometry.differentiable_geometry import *
+
+
+class FunctionNetwork(DifferentiableMap):
+
+    """ Base class to implement a function network
+        It allows to register functions and evaluates
+        f(x_0, x_1, ... ) = \sum_i f_i(x_0, x_1, ...)
+        """
+
+    def __init__(self):
+        self.functions_ = []
+
+    def output_dimension(self):
+        return 1
+
+    def input_dimension(self):
+        raise NotImplementedError()
+
+    def forward(self, x):
+        value = 0.
+        for f in range(self.functions_):
+            value += f.forward(x)
+        return value
+
+    def add_function(self, f):
+        self.functions_.append(f)
+
+
+class CliquesFunctionNetwork(FunctionNetwork):
+    """ Base class to implement a function network
+        It allows to register functions and evaluates
+        f(x_{i-1}, x_i, x_{i+1}) = \sum_i f_i(x_{i-1}, x_i, x_{i+1})
+        """
+
+    def __init__(self, dim):
+        FunctionNetwork.__init__(self)
+        self.input_size_ = dim
+        self.clique_size_ = 3
+
+    def input_dimension(self):
+        raise input_size_
+
+    def nb_cliques(self):
+        return self.input_size_ - self.clique_size_ + 1
+
+    def foward(self, x):
+        value = 0.
+        cliques = self.all_cliques(x)
+        assert len(cliques) == len(x)
+        assert len(cliques) == self.nb_cliques()
+        for i, c in enumerate(cliques):
+            value += functions_[i].forward(c)
+        return value
+
+    def all_cliques(self, x):
+        """returns a dictionary of cliques """
+        print("x : ", len(x))
+        print("clique size : ", self.clique_size_)
+        cliques = [x[i:self.clique_size_ + i]
+                   for i in range(self.nb_cliques())]
+        return cliques
 
 
 class Trajectory:
