@@ -37,7 +37,7 @@ class DifferentiableMap:
         raise NotImplementedError()
 
     def __call__(self, q):
-        """ Method called wehn call object """
+        """ Method called when call object """
         return self.forward(q)
 
     def gradient(self, q):
@@ -46,7 +46,7 @@ class DifferentiableMap:
             for addition and substraction, of course gradients are
             only availables if the output dimension is one."""
         assert self.output_dimension() == 1
-        return self.jacobian(q).reshape(self.input_dimension())
+        return np.array(self.jacobian(q)).reshape(self.input_dimension())
 
     def jacobian(self, q):
         """ by default the method returns the finite difference jacobian.

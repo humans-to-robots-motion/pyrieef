@@ -17,6 +17,8 @@
 #
 #                                           Jim Mainprice on Sunday May 17 2015
 import numpy as np
+from differentiable_geometry import *
+import scipy
 
 
 class Extends:
@@ -64,3 +66,15 @@ class PixelMap:
     def grid_to_world(self, p):
         """world coorindates of the center of a grid cell"""
         return self.resolution * p.astype(float) + self.origin
+
+
+class RegressedPixelGridSpline(DifferentiableMap):
+    """
+    Lightweight wrapper around the Analytical grid to implement the
+    NDimZerothOrderFunction interface. Upon construction can decide whether the
+    to use the finite-differenced Hessian or to replace it with the identity
+    matrix.
+    """
+
+    def __init__(self):
+        self.pixel_map_ = PixelMap()
