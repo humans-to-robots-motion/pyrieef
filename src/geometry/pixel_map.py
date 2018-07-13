@@ -18,7 +18,7 @@
 #                                           Jim Mainprice on Sunday May 17 2015
 import numpy as np
 from differentiable_geometry import *
-import scipy
+from scipy.interpolate import RectBivariateSpline
 
 
 class Extends:
@@ -76,5 +76,22 @@ class RegressedPixelGridSpline(DifferentiableMap):
     matrix.
     """
 
-    def __init__(self):
-        self.pixel_map_ = PixelMap()
+    def __init__(self, matrix, resolution, extends=Extends()):
+        x = np.arange(extends.x_min, extends.x_max, resolution)
+        y = np.arange(extends.y_min, extends.y_max, resolution)
+        self.interp_spline_ = RectBivariateSpline(x, y, matrix)
+
+    def output_dimension(self): return 1
+
+    def input_dimension(self): return 2
+
+    def forward(self, p):
+        assert p.size == 2
+        return self.interp_spline_(p[0], p[1])
+
+    def jacobian(self, p):
+        assert p.size == 2
+        J = np.matrix([[0., 0.]])
+        J[0, 0] = self.interp_spline_(p[0], p[1], dx=1)
+        J[0, 1] = self.interp_spline_(p[0], p[1], dy=1)
+        return J

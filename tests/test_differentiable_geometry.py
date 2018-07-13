@@ -19,6 +19,7 @@
 
 from test_common_imports import *
 from geometry.differentiable_geometry import *
+from geometry.pixel_map import *
 
 
 def check_jacobian_against_finite_difference(phi):
@@ -90,7 +91,50 @@ def test_affine():
     assert check_jacobian_against_finite_difference(f)
 
 
+def test_regressed_grid():
+
+    xmax, ymax = 0.5, 0.5
+
+    # Regularly-spaced, coarse grid
+    ds1 = 0.025
+    x = np.arange(-xmax, xmax, ds1)
+    y = np.arange(-ymax, ymax, ds1)
+    X, Y = np.meshgrid(x, y)
+    Z = np.exp(-(2 * X)**2 - (Y / 2)**2)
+
+    # spline with grid data
+    interp_spline = RectBivariateSpline(x, y, Z.transpose())
+
+    # same but with DifferentiableMap structure
+    f = RegressedPixelGridSpline(Z.transpose(), ds1, Extends(xmax))
+
+    # Regularly-spaced, fine grid
+    ds2 = 0.01
+    x2 = np.arange(-xmax, xmax, ds2)
+    y2 = np.arange(-ymax, ymax, ds2)
+    Z2 = interp_spline(x2, y2)
+    g2_x = interp_spline(x2, y2, dx=1)  # Gradient x
+    g2_y = interp_spline(x2, y2, dy=1)  # Gradient y
+
+    assert xmax == ymax
+    g1_x = np.zeros((x2.size, y2.size))
+    g1_y = np.zeros((x2.size, y2.size))
+    z1 = np.zeros((x2.size, y2.size))
+    print "g1 : ", g1_x.shape
+    for i, x in enumerate(x2):
+        for j, y in enumerate(y2):
+            p = np.array([x, y])
+            z1[i, j] = f.forward(p)
+            grad = f.gradient(p)
+            g1_x[i, j] = grad[0]  # Gradient x
+            g1_y[i, j] = grad[1]  # Gradient y
+
+    assert check_is_close(Z2, z1, 1e-10)
+    assert check_is_close(g2_x, g1_x, 1e-10)
+    assert check_is_close(g2_y, g1_y, 1e-10)
+
 if __name__ == "__main__":
     test_finite_difference()
     test_square_norm()
     test_affine()
+    test_regressed_grid()
