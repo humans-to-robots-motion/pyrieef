@@ -31,7 +31,7 @@ interp_spline = RectBivariateSpline(x, y, Z.transpose())
 dx2, dy2 = 0.16, 0.16
 x2 = np.arange(-xmax, xmax, dx2)
 y2 = np.arange(-ymax, ymax, dy2)
-Z2 = interp_spline(x2, y2, dx=0, dy=0)
+Z2 = interp_spline(x2, y2)
 g2_x = interp_spline(x2, y2, dx=1)  # Gradient x
 g2_y = interp_spline(x2, y2, dy=1)  # Gradient y
 
@@ -76,9 +76,11 @@ else:
     plot_matrix(1, Z, "Coarse Values")
     plot_matrix(2, z1.transpose(), "Values ")
     plot_matrix(3, Z2.transpose(), "Interpolated Values")
+
     plot_matrix(5, g1_x.transpose(), "X Gradient")
-    plot_matrix(6, g2_y.transpose(), "Interpolated X Gradient")
-    plot_matrix(8, g1_x.transpose(), "Y Gradient")
+    plot_matrix(6, g2_x.transpose(), "Interpolated X Gradient")
+
+    plot_matrix(8, g1_y.transpose(), "Y Gradient")
     plot_matrix(9, g2_y.transpose(), "Interpolated Y Gradient")
 
 fig.tight_layout()
