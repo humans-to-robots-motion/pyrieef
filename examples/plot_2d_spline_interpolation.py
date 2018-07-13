@@ -4,23 +4,17 @@ from scipy.interpolate import RectBivariateSpline
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from geometry.differentiable_geometry import *
-import math
 
 
 class ExpF(DifferentiableMap):
 
-    def __init__(self):
-        return
+    def output_dimension(self): return 1
 
-    def output_dimension(self):
-        return 1
-
-    def input_dimension(self):
-        return 2
+    def input_dimension(self): return 2
 
     def forward(self, p):
         assert p.size == 2
-        return math.exp(-(2 * p[0])**2 - (p[1] / 2)**2)
+        return np.exp(-(2 * p[0])**2 - (p[1] / 2)**2)
 
 # Regularly-spaced, coarse grid
 dx, dy = 0.4, 0.4
@@ -38,7 +32,8 @@ dx2, dy2 = 0.16, 0.16
 x2 = np.arange(-xmax, xmax, dx2)
 y2 = np.arange(-ymax, ymax, dy2)
 Z2 = interp_spline(x2, y2, dx=0, dy=0)
-g2 = interp_spline(x2, y2, dx=1, dy=1)
+g2_x = interp_spline(x2, y2, dx=1)  # Gradient x
+g2_y = interp_spline(x2, y2, dy=1)  # Gradient y
 
 f = ExpF()
 g1_x = np.zeros((x2.size, y2.size))
@@ -50,29 +45,41 @@ for i, x in enumerate(x2):
         p = np.array([x, y])
         z1[i, j] = f.forward(p)
         grad = f.gradient(p)
-        g1_x[i, j] = grad[0]
-        g1_y[i, j] = grad[1]
+        g1_x[i, j] = grad[0]  # Gradient x
+        g1_y[i, j] = grad[1]  # Gradient y
 
 
-print "Z2 : ", Z2.shape
-print "g2 : ", g2.shape
+print "g1_x : \n", g1_x
+print "g2_x : \n", g2_x
 
-print "Z2 : ", Z2
-# print "g2 : ", g2
-# print "g1_x : ", g1_x
-# print "g1_y : ", g1_y
-print "z1 : ", z1
+plot3d = False
+if plot3d:
+    X2, Y2 = np.meshgrid(x2, y2)
+    fig, ax = plt.subplots(nrows=1, ncols=3, subplot_kw={'projection': '3d'})
+    ax[0].plot_wireframe(X, Y, Z, color='k')
+    ax[1].plot_wireframe(X2, Y2, Z2.transpose(), color='k')
+    ax[2].plot_wireframe(X2, Y2, z1.transpose(), color='k')
+    for axes in ax:
+        axes.set_zlim(-0.2, 1)
+        axes.set_axis_off()
+else:
+    fig = plt.figure()
+    fig.subplots_adjust(hspace=0.3)
+    extent = (-3, 4, -4, 3)
 
+    def plot_matrix(idx, mat, title):
+        plt.subplot(3, 3, idx)
+        plt.title(title)
+        im = plt.imshow(mat, extent=extent)
+        plt.colorbar(im, fraction=0.046, pad=0.04)
 
-X2, Y2 = np.meshgrid(x2, y2)
-
-fig, ax = plt.subplots(nrows=1, ncols=3, subplot_kw={'projection': '3d'})
-ax[0].plot_wireframe(X, Y, Z, color='k')
-ax[1].plot_wireframe(X2, Y2, Z2.transpose(), color='k')
-ax[2].plot_wireframe(X2, Y2, z1.transpose(), color='k')
-for axes in ax:
-    axes.set_zlim(-0.2, 1)
-    axes.set_axis_off()
+    plot_matrix(1, Z, "Coarse Values")
+    plot_matrix(2, z1.transpose(), "Values ")
+    plot_matrix(3, Z2.transpose(), "Interpolated Values")
+    plot_matrix(5, g1_x.transpose(), "X Gradient")
+    plot_matrix(6, g2_y.transpose(), "Interpolated X Gradient")
+    plot_matrix(8, g1_x.transpose(), "Y Gradient")
+    plot_matrix(9, g2_y.transpose(), "Interpolated Y Gradient")
 
 fig.tight_layout()
 plt.show()
