@@ -93,12 +93,12 @@ def test_affine():
 
 def test_regressed_grid():
 
-    xmax, ymax = 0.5, 0.5
+    l = 0.5
 
     # Regularly-spaced, coarse grid
-    ds1 = 0.025
-    x = np.arange(-xmax, xmax, ds1)
-    y = np.arange(-ymax, ymax, ds1)
+    ds1 = 0.1
+    x = np.arange(-l, l, ds1)
+    y = np.arange(-l, l, ds1)
     X, Y = np.meshgrid(x, y)
     Z = np.exp(-(2 * X)**2 - (Y / 2)**2)
 
@@ -106,17 +106,18 @@ def test_regressed_grid():
     interp_spline = RectBivariateSpline(x, y, Z.transpose())
 
     # same but with DifferentiableMap structure
-    f = RegressedPixelGridSpline(Z.transpose(), ds1, Extends(xmax))
+    f = RegressedPixelGridSpline(Z.transpose(), ds1, Extends(l))
 
     # Regularly-spaced, fine grid
-    ds2 = 0.01
-    x2 = np.arange(-xmax, xmax, ds2)
-    y2 = np.arange(-ymax, ymax, ds2)
+
+    ds2 = 0.05
+    x2 = np.arange(-l, l, ds2)
+    y2 = np.arange(-l, l, ds2)
     Z2 = interp_spline(x2, y2)
     g2_x = interp_spline(x2, y2, dx=1)  # Gradient x
     g2_y = interp_spline(x2, y2, dy=1)  # Gradient y
 
-    assert xmax == ymax
+    # Function interpolation
     g1_x = np.zeros((x2.size, y2.size))
     g1_y = np.zeros((x2.size, y2.size))
     z1 = np.zeros((x2.size, y2.size))
@@ -128,6 +129,8 @@ def test_regressed_grid():
             grad = f.gradient(p)
             g1_x[i, j] = grad[0]  # Gradient x
             g1_y[i, j] = grad[1]  # Gradient y
+
+    print g1_x.shape
 
     assert check_is_close(Z2, z1, 1e-10)
     assert check_is_close(g2_x, g1_x, 1e-10)
