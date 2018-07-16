@@ -102,12 +102,13 @@ class Compose(DifferentiableMap):
 
     def jacobian(self, q):
         [y, J] = self.evaluate(q)
+        return J
 
     def evaluate(self, q):
         """  d/dq f(g(q)) """
         x = self._g(q)
-        [y, J_f] = self.f.evaluate(x)
-        J = self.phi.pullback_jacobian(q, J_f)
+        [y, J_f] = self._f.evaluate(x)
+        J = self._g.pullback_jacobian(q, J_f)
         return [y, J]
 
 
@@ -155,22 +156,23 @@ class AffineMap(DifferentiableMap):
     """Simple map of the form: f(x) = ax + b"""
 
     def __init__(self, a, b):
-        self.a_ = np.matrix(a)  # Make sure that a is matrix
-        self.b_ = np.matrix(b).transpose()
+        self._a = np.matrix(a)  # Make sure that a is matrix
+        self._b = np.matrix(b.reshape(b.size, 1))
 
     def output_dimension(self):
-        return self.b_.shape[0]
+        return self._b.shape[0]
 
     def input_dimension(self):
-        return self.b_.shape[0]
+        return self._a.shape[1]
 
     def forward(self, x):
-        x_tmp = x.reshape(self.b_.shape)
-        y = self.a_ * x_tmp + self.b_
+        x_tmp = x.reshape(self.input_dimension(), 1)
+        tmp = self._a * x_tmp
+        y = tmp + self._b
         return y.reshape(self.output_dimension())
 
     def jacobian(self, x):
-        return self.a_
+        return self._a
 
 
 def finite_difference_jacobian(f, q):

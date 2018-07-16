@@ -136,8 +136,28 @@ def test_regressed_grid():
     assert check_is_close(g2_x, g1_x, 1e-10)
     assert check_is_close(g2_y, g1_y, 1e-10)
 
+
+def test_composition():
+
+    dim = 3
+    g = AffineMap(                      # g = Ax + b
+        np.random.rand(dim, dim),       # A
+        np.random.rand(dim))            # b
+
+    dim_o = 4
+    dim_i = 3
+    f = AffineMap(                      # f = Ax + b
+        np.random.rand(dim_o, dim_i),   # A
+        np.random.rand(dim_o))          # b
+
+    phi = Compose(f, g)
+
+    print "Check Composition (J implementation) : "
+    assert check_jacobian_against_finite_difference(phi)
+
 if __name__ == "__main__":
     test_finite_difference()
     test_square_norm()
     test_affine()
     test_regressed_grid()
+    test_composition()

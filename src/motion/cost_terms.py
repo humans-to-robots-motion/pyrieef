@@ -27,14 +27,14 @@ class FiniteDifferencesAcceleration(AffineMap):
     """ This class allows to define accelerations"""
 
     def __init__(self, dim, dt):
-        self.a_ = np.matrix(np.zeros((dim, 3 * dim)))
-        self.b_ = np.matrix(np.zeros((dim, 1)))
+        self._a = np.matrix(np.zeros((dim, 3 * dim)))
+        self._b = np.matrix(np.zeros((dim, 1)))
         self._initialize_matrix(dim, dt)
 
     def _initialize_matrix(self, dim, dt):
         # Acceleration = [ x_{t+1} + x_{t-1} - 2 * x_t ] / dt^2
         I = np.eye(dim)
-        self.a_[0:dim, 0:dim] = I
-        self.a_[0:dim, dim:(2 * dim)] = -2 * I
-        self.a_[0:dim, (2 * dim):(3 * dim)] = I
-        self.a_ /= (dt * dt)
+        self._a[0:dim, 0:dim] = I
+        self._a[0:dim, dim:(2 * dim)] = -2 * I
+        self._a[0:dim, (2 * dim):(3 * dim)] = I
+        self._a /= (dt * dt)
