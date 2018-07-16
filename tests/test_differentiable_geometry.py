@@ -137,7 +137,29 @@ def test_regressed_grid():
     assert check_is_close(g2_y, g1_y, 1e-10)
 
 
+def test_quadric():
+    # Regular case
+    dim = 3
+    f = QuadricFunction(                # g = x'Ax + b'x + c
+        np.random.rand(dim, dim),       # A
+        np.random.rand(dim),            # b
+        0.)                             # c
+    print "Check quadric (J implementation) : "
+    assert check_jacobian_against_finite_difference(f)
+
+    # Symetric positive definite case
+    k = np.matrix(np.random.rand(dim, dim))
+    f = QuadricFunction(                # g = x'Ax + b'x + c
+        k.transpose() * k,              # A
+        np.random.rand(dim),            # b
+        0.)                             # c
+    print "Check quadric (J implementation) : "
+    assert check_jacobian_against_finite_difference(f)
+
+
 def test_composition():
+
+    # Test constant Jacobian.
 
     dim = 3
     g = AffineMap(                      # g = Ax + b
@@ -150,14 +172,20 @@ def test_composition():
         np.random.rand(dim_o, dim_i),   # A
         np.random.rand(dim_o))          # b
 
-    phi = Compose(f, g)
-
     print "Check Composition (J implementation) : "
-    assert check_jacobian_against_finite_difference(phi)
+    assert check_jacobian_against_finite_difference(Compose(f, g))
+
+    # Test function jacobian (gradient)
+
+    f = SquaredNorm(np.random.rand(dim))
+    print "Check Composition (J implementation) : "
+    assert check_jacobian_against_finite_difference(Compose(f, g))
+
 
 if __name__ == "__main__":
     test_finite_difference()
     test_square_norm()
     test_affine()
     test_regressed_grid()
+    test_quadric()
     test_composition()

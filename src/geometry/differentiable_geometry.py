@@ -41,7 +41,7 @@ class DifferentiableMap:
         return self.forward(q)
 
     def gradient(self, q):
-        """ Convienience function to get numpy 
+        """ Convienience function to get numpy
             gradients in the same shape as the input vector
             for addition and substraction, of course gradients are
             only availables if the output dimension is one."""
@@ -57,7 +57,7 @@ class DifferentiableMap:
     def evaluate(self, q):
         """ Evaluates the map and jacobian simultaneously. The default
             implementation simply calls both forward and Getjacobian()
-            separately but overriding this method can make the evaluation 
+            separately but overriding this method can make the evaluation
             more efficient """
         x = self.forward(q)
         J = self.jacobian(q)
@@ -65,8 +65,8 @@ class DifferentiableMap:
 
     def pullback_jacobian(self, q, J_f):
         """ If J is the jacobian of a function f(x), J_f = d/dx f(x)
-            then the jacobian of the "pullback" of f defined on the 
-            range space of a map g (this map), f(g(q)) is 
+            then the jacobian of the "pullback" of f defined on the
+            range space of a map g (this map), f(g(q)) is
                     d/dq f(g(q)) = J_f(g(q)) J_g
             This method computes and
             returns this "pullback gradient" J_f (g(q)) J_g(q).
@@ -81,7 +81,7 @@ class Compose(DifferentiableMap):
         """ Make sure the composition makes sense
             This function should be called pullback if we approxiate
             higher order (hessian) derivaties by pullback, here it's
-            still computing the true 1st order derivative of the 
+            still computing the true 1st order derivative of the
             composition.
 
             f after g : f(g(x))
@@ -112,8 +112,46 @@ class Compose(DifferentiableMap):
         return [y, J]
 
 
+class QuadricFunction(DifferentiableMap):
+    """ Here we implement a quadric funciton of the form:
+        f(x) = x^T A x + bx + c """
+
+    def __init__(self, a, b, c):
+        assert a.shape[0] == a.shape[1]
+        assert b.size == a.shape[1]
+        self._a = np.matrix(a)
+        self._b = np.matrix(b.reshape(b.size, 1))
+        self._c = c
+        self._symmetric = np.allclose(self._a, self._a.T, atol=1e-8)
+        self._posdef = np.all(np.linalg.eigvals(self._a) > 0)
+
+    def output_dimension(self):
+        return 1
+
+    def input_dimension(self):
+        return self._b.size
+
+    def forward(self, x):
+        x_tmp = np.matrix(x.reshape(self._b.size, 1))
+        v = (0.5 *
+             x_tmp.transpose() * self._a * x_tmp +
+             self._b.transpose() * x_tmp +
+             self._c)
+        return v
+
+    def jacobian(self, x):
+        """ when the matrix is positive this can be simplified
+            see matrix cookbook """
+        x_tmp = np.matrix(x.reshape(self._b.size, 1))
+        if self._symmetric and self._posdef:
+            return (self._a.transpose() * x_tmp + self._b).transpose()
+        else:
+            return (0.5 * (self._a + self._a.transpose()) * x_tmp +
+                    self._b).transpose()
+
+
 class SquaredNorm(DifferentiableMap):
-    """ Simple squared norm : f(x) = |x|^2 """
+    """ Simple squared norm : f(x)= | x | ^2 """
 
     def __init__(self, x_0):
         self.x_0 = x_0
@@ -125,7 +163,8 @@ class SquaredNorm(DifferentiableMap):
         return self.x_0.size
 
     def forward(self, x):
-        delta_x = x - self.x_0
+        delta_x = np.array(x).reshape(x.size) - self.x_0
+        print "delta_x.shape", delta_x
         return 0.5 * np.dot(delta_x, delta_x)
 
     def jacobian(self, x):
@@ -134,7 +173,7 @@ class SquaredNorm(DifferentiableMap):
 
 
 class IdentityMap(DifferentiableMap):
-    """Simple identity map : f(x) = x"""
+    """Simple identity map : f(x)=x"""
 
     def __init__(self, n):
         self.dim = n
@@ -153,7 +192,7 @@ class IdentityMap(DifferentiableMap):
 
 
 class AffineMap(DifferentiableMap):
-    """Simple map of the form: f(x) = ax + b"""
+    """Simple map of the form: f(x)=ax + b"""
 
     def __init__(self, a, b):
         self._a = np.matrix(a)  # Make sure that a is matrix
