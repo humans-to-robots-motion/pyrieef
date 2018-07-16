@@ -63,30 +63,19 @@ class DifferentiableMap:
         J = self.jacobian(q)
         return [x, J]
 
-    def pullback_jacobian(self, q, J_f):
-        """ If J is the jacobian of a function f(x), J_f = d/dx f(x)
-            then the jacobian of the "pullback" of f defined on the
-            range space of a map g (this map), f(g(q)) is
-                    d/dq f(g(q)) = J_f(g(q)) J_g
-            This method computes and
-            returns this "pullback gradient" J_f (g(q)) J_g(q).
-        WARNING: J_f is assumed to be a jacobian np.matrix object
-        """
-        return J_f * self.jacobian(q)
-
 
 class Compose(DifferentiableMap):
 
     def __init__(self, f, g):
-        """ Make sure the composition makes sense
+        """ 
+            f round g : f(g(x))
+
             This function should be called pullback if we approxiate
             higher order (hessian) derivaties by pullback, here it's
-            still computing the true 1st order derivative of the
-            composition.
-
-            f after g : f(g(x))
+            computing the true 1st order derivative of the composition.
 
             """
+        # Make sure the composition makes sense
         assert g.output_dimension() == f.input_dimension()
         self._f = f
         self._g = g
@@ -105,10 +94,19 @@ class Compose(DifferentiableMap):
         return J
 
     def evaluate(self, q):
-        """  d/dq f(g(q)) """
+        """  d/dq f(g(q)), applies chain rule.
+
+            If J is the jacobian of a function f(x), J_f = d/dx f(x)
+            then the jacobian of the "pullback" of f defined on the
+            range space of a map g (this map), f(g(q)) is
+                    d/dq f(g(q)) = J_f(g(q)) J_g
+            This method computes and
+            returns this "pullback gradient" J_f (g(q)) J_g(q).
+            WARNING: J_f is assumed to be a jacobian np.matrix object
+        """
         x = self._g(q)
         [y, J_f] = self._f.evaluate(x)
-        J = self._g.pullback_jacobian(q, J_f)
+        J = J_f * self._g.jacobian(q)
         return [y, J]
 
 
