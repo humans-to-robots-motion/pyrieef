@@ -17,7 +17,8 @@
 #
 # Jim Mainprice on Sunday June 17 2018
 
-from differentiable_geometry import *
+import common_imports
+from geometry.differentiable_geometry import *
 import numpy as np
 
 
@@ -35,7 +36,7 @@ class UnconstraintedOptimizer:
 class GradientDescent:
 
     def one_step(self):
-        return x - self._eta * self.f_.gradient(x)
+        self.x = self.x - self._eta * self.f_.gradient(x)
 
 
 class NaturalGradientDescent:
@@ -44,7 +45,7 @@ class NaturalGradientDescent:
         self.A_inv = np.linalg.inv(A)
 
     def one_step(self):
-        return self.x - self._eta * self.A_inv * self.gradient(x)
+        self.x = self.x - self._eta * self.A_inv * self.gradient(x)
 
 
 class NetwtonAlgorithm:

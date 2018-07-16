@@ -25,5 +25,4 @@ def MakeAttractor(phi, x_goal):
         Note that this is an absolute distance, not the squared distance.
         Squaring this function (e.g. as part of a penalty function) gives a
         squared potential. """
-    return PullbackFunction(
-        phi, SquaredNorm(phi.forward(x_goal)))
+    return Compose(SquaredNorm(phi.forward(x_goal)), phi)

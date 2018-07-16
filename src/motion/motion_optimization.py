@@ -17,20 +17,20 @@
 #
 # Jim Mainprice on Sunday June 17 2018
 
-import test_common_imports
+import common_imports
 from motion.trajectory import *
 from motion.cost_terms import *
 from optimization.optimization import *
 
 
-def CostSpace2D:
-    def __init__(self):
+class MotionOptimization2DCostMap:
+    def __init__(self, costfield):
         T = 30  # time steps
-        self.config_space_dim = 2
-        self.trajectory_space_dim = (self.config_space_dim * (T + 2))
-        self.objective = CliquesFunctionNetwork(self.trajectory_space_dim)
-        nb_cliques = self.objective.nb_cliques()
-        acceration = FiniteDifferencesAcceleration(self.config_space_dim)
-        SquaredNorm()
-        self.objective.register_function_for_clique
-
+        # self.config_space_dim = 2
+        # self.trajectory_space_dim = (self.config_space_dim * (T + 2))
+        # self.extends = costfield.extends()
+        # self.objective = CliquesFunctionNetwork(self.trajectory_space_dim)
+        # nb_cliques = self.objective.nb_cliques()
+        # acceration = FiniteDifferencesAcceleration(self.config_space_dim)
+        # SquaredNorm()
+        # self.objective.register_function_for_all_cliques(acceration)

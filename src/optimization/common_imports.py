@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Copyright (c) 2015 Max Planck Institute
+# Copyright (c) 2018 University of Stuttgart
 # All rights reserved.
 #
 # Permission to use, copy, modify, and distribute this software for any purpose
@@ -15,26 +15,12 @@
 # OTHER TORTIOUS ACTION,   ARISING OUT OF OR IN    CONNECTION WITH THE USE   OR
 # PERFORMANCE OF THIS SOFTWARE.
 #
-# Jim Mainprice on Sunday June 17 2018
-
-from __future__ import print_function
-from common_imports import *
-from geometry.differentiable_geometry import *
+#                                        Jim Mainprice on Sunday June 13 2018
 
 
-class FiniteDifferencesAcceleration(AffineMap):
+import sys
+import os
+import numpy as np
 
-    """ This class allows to define accelerations"""
-
-    def __init__(self, dim, dt):
-        self.a_ = np.matrix(np.zeros((dim, 3 * dim)))
-        self.b_ = np.matrix(np.zeros((dim, 1)))
-        self._initialize_matrix(dim, dt)
-
-    def _initialize_matrix(self, dim, dt):
-        # Acceleration = [ x_{t+1} + x_{t-1} - 2 * x_t ] / dt^2
-        I = np.eye(dim)
-        self.a_[0:dim, 0:dim] = I
-        self.a_[0:dim, dim:(2 * dim)] = -2 * I
-        self.a_[0:dim, (2 * dim):(3 * dim)] = I
-        self.a_ /= (dt * dt)
+driectory = os.path.abspath(os.path.dirname(__file__))
+sys.path.insert(0, driectory + os.sep + "..")

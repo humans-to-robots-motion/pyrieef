@@ -27,7 +27,7 @@ class FunctionNetwork(DifferentiableMap):
     """ Base class to implement a function network
         It allows to register functions and evaluates
         f(x_0, x_1, ... ) = \sum_i f_i(x_0, x_1, ...)
-        """
+    """
 
     def __init__(self):
         self._functions = []
@@ -83,7 +83,7 @@ class CliquesFunctionNetwork(FunctionNetwork):
         return value
 
     def all_cliques(self, x):
-        """returns a dictionary of cliques """
+        """ returns a dictionary of cliques """
         print("x : ", len(x))
         print("clique size : ", self._clique_size)
         cliques = [x[i:self._clique_size + i]

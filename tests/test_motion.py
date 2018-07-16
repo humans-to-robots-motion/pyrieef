@@ -17,13 +17,13 @@
 #
 # Jim Mainprice on Sunday June 17 2018
 
-import test_common_imports
+from test_common_imports import *
 from motion.trajectory import *
 from motion.cost_terms import *
+from motion.motion_optimization import *
 
 
 def test_finite_differences():
-
     dim = 4
     acceleration = FiniteDifferencesAcceleration(dim, 1)
     print acceleration.jacobian(np.zeros(dim * 3))
@@ -81,7 +81,12 @@ def test_trajectory():
     print traj.final_configuration()
 
 
+def test_motion_optimimization_2d():
+    motion_optimization = MotionOptimization2DCostMap(None)
+
+
 if __name__ == "__main__":
     test_trajectory()
     test_cliques()
     test_finite_differences()
+    test_motion_optimimization_2d()

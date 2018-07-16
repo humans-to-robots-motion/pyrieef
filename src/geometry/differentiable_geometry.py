@@ -63,40 +63,52 @@ class DifferentiableMap:
         J = self.jacobian(q)
         return [x, J]
 
-    def pullback_gradient(self, q, g):
-        """ If g is the gradient of a function c(x) defined on the range space
-        of this map so that g = d/dx c(x)), then the gradient of the "pullback"
-        function c(phi(q)) is d/dq c(phi(q)) = J'g. This method computes and
-        returns this "pullback gradient" J'g.
-        WARNING: The return is will be of the same type as g:
-            - if g is an array then the function returns an array
-            - if g is a signe collumn matrix then it returns a 
-                numpy matrix object
+    def pullback_jacobian(self, q, J_f):
+        """ If J is the jacobian of a function f(x), J_f = d/dx f(x)
+            then the jacobian of the "pullback" of f defined on the 
+            range space of a map g (this map), f(g(q)) is 
+                    d/dq f(g(q)) = J_f(g(q)) J_g
+            This method computes and
+            returns this "pullback gradient" J_f (g(q)) J_g(q).
+        WARNING: J_f is assumed to be a jacobian np.matrix object
         """
-        J = self.jacobian(q)
-        return np.dot(J.transpose(), g)
+        return J_f * self.jacobian(q)
 
 
-class PullbackFunction(DifferentiableMap):
+class Compose(DifferentiableMap):
 
-    def __init__(self, phi, f):
-        self.phi = phi
-        self.f = f
+    def __init__(self, f, g):
+        """ Make sure the composition makes sense
+            This function should be called pullback if we approxiate
+            higher order (hessian) derivaties by pullback, here it's
+            still computing the true 1st order derivative of the 
+            composition.
+
+            f after g : f(g(x))
+
+            """
+        assert g.output_dimension() == f.input_dimension()
+        self._f = f
+        self._g = g
 
     def output_dimension(self):
-        return 1
+        return self._f.output_dimension()
 
     def input_dimension(self):
-        return self.phi.input_dimension()
+        return self._g.input_dimension()
 
     def forward(self, q):
-        return self.f(self.phi(q))
+        return self._f(self._g(q))
+
+    def jacobian(self, q):
+        [y, J] = self.evaluate(q)
 
     def evaluate(self, q):
-        x = self.phi(q)
-        [x, f_g] = self.f.evaluate(x)
-        g = self.phi.pullback_gradient(q, f_g)
-        return [x, g]
+        """  d/dq f(g(q)) """
+        x = self._g(q)
+        [y, J_f] = self.f.evaluate(x)
+        J = self.phi.pullback_jacobian(q, J_f)
+        return [y, J]
 
 
 class SquaredNorm(DifferentiableMap):
