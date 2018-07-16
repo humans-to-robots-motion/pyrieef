@@ -37,7 +37,7 @@ def test_cliques():
     assert len(cliques) == (len(A) - 2)
 
     dimension = 10
-    network = CliquesFunctionNetwork(dimension)
+    network = CliquesFunctionNetwork(dimension, 1)
     x_0 = np.zeros(3)
     for _ in range(network.nb_cliques()):
         network.add_function(SquaredNorm(x_0))
@@ -83,6 +83,15 @@ def test_trajectory():
 
 def test_motion_optimimization_2d():
     motion_optimization = MotionOptimization2DCostMap(None, None)
+    trajectory = Trajectory(motion_optimization.T)
+    sum_acceleration = motion_optimization.cost(trajectory)
+    print "sum_acceleration : ", sum_acceleration
+    q_init = np.zeros(2)
+    q_goal = np.ones(2)
+    trajectory = linear_interpolation_trajectory(
+        q_init, q_goal, motion_optimization.T)
+    print trajectory
+    print trajectory.final_configuration()
 
 
 if __name__ == "__main__":

@@ -54,10 +54,10 @@ class CliquesFunctionNetwork(FunctionNetwork):
         f(x_{i-1}, x_i, x_{i+1}) = \sum_i f_i(x_{i-1}, x_i, x_{i+1})
         """
 
-    def __init__(self, dim):
+    def __init__(self, input_dimension, clique_dimension):
         FunctionNetwork.__init__(self)
-        self._input_size = dim
-        self._clique_size = 3
+        self._input_size = input_dimension
+        self._clique_size = 3 * clique_dimension
         self._nb_cliques = self._input_size - self._clique_size + 1
         self._functions = self._nb_cliques * [None]
         for i in range(self._nb_cliques):
@@ -69,23 +69,22 @@ class CliquesFunctionNetwork(FunctionNetwork):
     def nb_cliques(self):
         return self._nb_cliques
 
-    def foward(self, x):
-
+    def forward(self, x):
         cliques = self.all_cliques(x)
-        assert len(cliques) == len(x)
         assert len(cliques) == self._nb_cliques
 
         # We call over all subfunctions in each clique
         value = 0.
         for i, c in enumerate(cliques):
+            print("c[{}] : {}".format(i, c))
             for f in self._functions[i]:
                 value += f.forward(c)
         return value
 
     def all_cliques(self, x):
         """ returns a dictionary of cliques """
-        print("x : ", len(x))
-        print("clique size : ", self._clique_size)
+        # print("x : ", len(x))
+        # print("clique size : ", self._clique_size)
         cliques = [x[i:self._clique_size + i]
                    for i in range(self._nb_cliques)]
         return cliques
@@ -101,6 +100,10 @@ class CliquesFunctionNetwork(FunctionNetwork):
 
 
 class Trajectory:
+    """ 
+        Implement a trajectory as a single vector of 
+        configuration, returns cliques of configurations
+    """
 
     def __init__(self, T=0, n=2):
         assert T > 0 and n > 0
@@ -112,8 +115,12 @@ class Trajectory:
         ss = ""
         ss += " - n : " + str(self._n) + "\n"
         ss += " - T : " + str(self._T) + "\n"
-        ss += " - x : " + str(self._x)
+        ss += " - x : \n" + str(self._x) + "\n"
+        ss += " - x.shape : " + str(self._x.shape)
         return ss
+
+    def x(self):
+        return self._x
 
     def final_configuration(self):
         return self.configuration(self._T)
@@ -135,3 +142,12 @@ class Trajectory:
     def set(self, x):
         assert x.shape[0] == self._n * (2 + self._T)
         self._x = x
+
+
+def linear_interpolation_trajectory(q_init, q_goal, T):
+    assert q_init.size == q_goal.size
+    trajectory = Trajectory(T, q_init.size)
+    for i in range(T + 2):
+        alpha = min(float(i) / float(T), 1)
+        trajectory.configuration(i)[:] = (1 - alpha) * q_init + alpha * q_goal
+    return trajectory

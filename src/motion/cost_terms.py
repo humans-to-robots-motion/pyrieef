@@ -17,7 +17,7 @@
 #
 # Jim Mainprice on Sunday June 17 2018
 
-from __future__ import print_function
+# from __future__ import print_function
 from common_imports import *
 from geometry.differentiable_geometry import *
 
@@ -30,6 +30,8 @@ class FiniteDifferencesAcceleration(AffineMap):
         self._a = np.matrix(np.zeros((dim, 3 * dim)))
         self._b = np.matrix(np.zeros((dim, 1)))
         self._initialize_matrix(dim, dt)
+        print "input dimension : ", self.input_dimension()
+        print "output dimension : ", self.output_dimension()
 
     def _initialize_matrix(self, dim, dt):
         # Acceleration = [ x_{t+1} + x_{t-1} - 2 * x_t ] / dt^2
