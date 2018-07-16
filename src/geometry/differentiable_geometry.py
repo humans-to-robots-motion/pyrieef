@@ -144,10 +144,10 @@ class QuadricFunction(DifferentiableMap):
             see matrix cookbook """
         x_tmp = np.matrix(x.reshape(self._b.size, 1))
         if self._symmetric and self._posdef:
-            return (self._a.transpose() * x_tmp + self._b).transpose()
+            a_term = self._a.transpose() * x_tmp
         else:
-            return (0.5 * (self._a + self._a.transpose()) * x_tmp +
-                    self._b).transpose()
+            a_term = 0.5 * (self._a + self._a.transpose()) * x_tmp
+        return (a_term + self._b).transpose()
 
 
 class SquaredNorm(DifferentiableMap):

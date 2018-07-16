@@ -143,7 +143,7 @@ def test_quadric():
     f = QuadricFunction(                # g = x'Ax + b'x + c
         np.random.rand(dim, dim),       # A
         np.random.rand(dim),            # b
-        0.)                             # c
+        .3)                             # c
     print "Check quadric (J implementation) : "
     assert check_jacobian_against_finite_difference(f)
 
@@ -152,7 +152,7 @@ def test_quadric():
     f = QuadricFunction(                # g = x'Ax + b'x + c
         k.transpose() * k,              # A
         np.random.rand(dim),            # b
-        0.)                             # c
+        1.)                             # c
     print "Check quadric (J implementation) : "
     assert check_jacobian_against_finite_difference(f)
 
@@ -160,25 +160,30 @@ def test_quadric():
 def test_composition():
 
     # Test constant Jacobian.
-
     dim = 3
     g = AffineMap(                      # g = Ax + b
         np.random.rand(dim, dim),       # A
         np.random.rand(dim))            # b
-
     dim_o = 4
     dim_i = 3
     f = AffineMap(                      # f = Ax + b
         np.random.rand(dim_o, dim_i),   # A
         np.random.rand(dim_o))          # b
-
     print "Check Composition (J implementation) : "
     assert check_jacobian_against_finite_difference(Compose(f, g))
 
     # Test function jacobian (gradient)
-
     f = SquaredNorm(np.random.rand(dim))
     print "Check Composition (J implementation) : "
+    assert check_jacobian_against_finite_difference(Compose(f, g))
+
+    # Symetric positive definite case
+    k = np.matrix(np.random.rand(dim, dim))
+    f = QuadricFunction(                # g = x'Ax + b'x + c
+        k.transpose() * k,              # A
+        np.random.rand(dim),            # b
+        1.)                             # c
+    print "Check quadric (J implementation) : "
     assert check_jacobian_against_finite_difference(Compose(f, g))
 
 
