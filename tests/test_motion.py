@@ -92,6 +92,9 @@ def test_motion_optimimization_2d():
         q_init, q_goal, motion_optimization.T)
     print trajectory
     print trajectory.final_configuration()
+    sum_acceleration = motion_optimization.cost(trajectory)
+    print "sum_acceleration : ", sum_acceleration
+
 
 
 if __name__ == "__main__":

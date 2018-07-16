@@ -21,12 +21,13 @@ import common_imports
 from motion.trajectory import *
 from motion.cost_terms import *
 from optimization.optimization import *
+from geometry.differentiable_geometry import *
 
 
 class MotionOptimization2DCostMap:
 
     def __init__(self, extends, costfield):
-        self.T = 30      # time steps
+        self.T = 20      # time steps
         self.dt = 0.1    # sample rate
         self.config_space_dim = 2
         self.trajectory_space_dim = (self.config_space_dim * (self.T + 2))
@@ -34,8 +35,9 @@ class MotionOptimization2DCostMap:
         self.objective = CliquesFunctionNetwork(
             self.trajectory_space_dim,
             self.config_space_dim)
-        acceleration = FiniteDifferencesAcceleration(
-            self.config_space_dim, self.dt)
+        acceleration = Compose(
+            SquaredNorm(np.zeros(2)),
+            FiniteDifferencesAcceleration(self.config_space_dim, self.dt))
         self.objective.register_function_for_all_cliques(acceleration)
         print self.objective.nb_cliques()
 
