@@ -35,10 +35,10 @@ class MotionOptimization2DCostMap:
         self.objective = CliquesFunctionNetwork(
             self.trajectory_space_dim,
             self.config_space_dim)
-        acceleration = Compose(
+        squared_norm_acc = Compose(
             SquaredNorm(np.zeros(2)),
             FiniteDifferencesAcceleration(self.config_space_dim, self.dt))
-        self.objective.register_function_for_all_cliques(acceleration)
+        self.objective.register_function_for_all_cliques(squared_norm_acc)
         print self.objective.nb_cliques()
 
     def cost(self, trajectory):
