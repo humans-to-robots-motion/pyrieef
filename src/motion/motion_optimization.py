@@ -24,13 +24,14 @@ from optimization.optimization import *
 
 
 class MotionOptimization2DCostMap:
-    def __init__(self, costfield):
-        T = 30  # time steps
-        # self.config_space_dim = 2
-        # self.trajectory_space_dim = (self.config_space_dim * (T + 2))
-        # self.extends = costfield.extends()
-        # self.objective = CliquesFunctionNetwork(self.trajectory_space_dim)
-        # nb_cliques = self.objective.nb_cliques()
-        # acceration = FiniteDifferencesAcceleration(self.config_space_dim)
-        # SquaredNorm()
-        # self.objective.register_function_for_all_cliques(acceration)
+
+    def __init__(self, extends, costfield):
+        T = 30      # time steps
+        dt = 0.1    # sample rate
+        self.config_space_dim = 2
+        self.trajectory_space_dim = (self.config_space_dim * (T + 2))
+        self.extends = extends
+        self.objective = CliquesFunctionNetwork(self.trajectory_space_dim)
+        nb_cliques = self.objective.nb_cliques()
+        acceration = FiniteDifferencesAcceleration(self.config_space_dim, dt)
+        self.objective.register_function_for_all_cliques(acceration)

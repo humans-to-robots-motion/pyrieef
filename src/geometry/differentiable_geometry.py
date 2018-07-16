@@ -71,7 +71,7 @@ class Compose(DifferentiableMap):
             f round g : f(g(x))
 
             This function should be called pullback if we approxiate
-            higher order (hessian) derivaties by pullback, here it's
+            higher order (i.e., hessians) derivaties by pullback, here it's
             computing the true 1st order derivative of the composition.
 
             """
@@ -98,7 +98,7 @@ class Compose(DifferentiableMap):
 
             If J is the jacobian of a function f(x), J_f = d/dx f(x)
             then the jacobian of the "pullback" of f defined on the
-            range space of a map g (this map), f(g(q)) is
+            range space of a map g, f(g(q)) is
                     d/dq f(g(q)) = J_f(g(q)) J_g
             This method computes and
             returns this "pullback gradient" J_f (g(q)) J_g(q).
@@ -108,6 +108,29 @@ class Compose(DifferentiableMap):
         [y, J_f] = self._f.evaluate(x)
         J = J_f * self._g.jacobian(q)
         return [y, J]
+
+
+class AffineMap(DifferentiableMap):
+    """Simple map of the form: f(x)=ax + b"""
+
+    def __init__(self, a, b):
+        self._a = np.matrix(a)  # Make sure that a is matrix
+        self._b = np.matrix(b.reshape(b.size, 1))
+
+    def output_dimension(self):
+        return self._b.shape[0]
+
+    def input_dimension(self):
+        return self._a.shape[1]
+
+    def forward(self, x):
+        x_tmp = x.reshape(self.input_dimension(), 1)
+        tmp = self._a * x_tmp
+        y = tmp + self._b
+        return y.reshape(self.output_dimension())
+
+    def jacobian(self, x):
+        return self._a
 
 
 class QuadricFunction(DifferentiableMap):
@@ -162,7 +185,6 @@ class SquaredNorm(DifferentiableMap):
 
     def forward(self, x):
         delta_x = np.array(x).reshape(x.size) - self.x_0
-        print "delta_x.shape", delta_x
         return 0.5 * np.dot(delta_x, delta_x)
 
     def jacobian(self, x):
@@ -187,29 +209,6 @@ class IdentityMap(DifferentiableMap):
 
     def jacobian(self, q):
         return np.matrix(np.eye(self.dim))
-
-
-class AffineMap(DifferentiableMap):
-    """Simple map of the form: f(x)=ax + b"""
-
-    def __init__(self, a, b):
-        self._a = np.matrix(a)  # Make sure that a is matrix
-        self._b = np.matrix(b.reshape(b.size, 1))
-
-    def output_dimension(self):
-        return self._b.shape[0]
-
-    def input_dimension(self):
-        return self._a.shape[1]
-
-    def forward(self, x):
-        x_tmp = x.reshape(self.input_dimension(), 1)
-        tmp = self._a * x_tmp
-        y = tmp + self._b
-        return y.reshape(self.output_dimension())
-
-    def jacobian(self, x):
-        return self._a
 
 
 def finite_difference_jacobian(f, q):

@@ -82,7 +82,7 @@ def test_trajectory():
 
 
 def test_motion_optimimization_2d():
-    motion_optimization = MotionOptimization2DCostMap(None)
+    motion_optimization = MotionOptimization2DCostMap(None, None)
 
 
 if __name__ == "__main__":
