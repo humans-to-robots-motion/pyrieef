@@ -22,17 +22,6 @@ from geometry.differentiable_geometry import *
 from geometry.pixel_map import *
 
 
-def check_jacobian_against_finite_difference(phi):
-    q = np.random.rand(phi.input_dimension())
-    J = phi.jacobian(q)
-    J_diff = finite_difference_jacobian(phi, q)
-    print "J : "
-    print J
-    print "J_diff : "
-    print J_diff
-    return check_is_close(J, J_diff, 1e-4)
-
-
 def test_finite_difference():
     dim = 3
     identity = IdentityMap(dim)

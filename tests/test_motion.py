@@ -27,6 +27,7 @@ def test_finite_differences():
     dim = 4
     acceleration = FiniteDifferencesAcceleration(dim, 1)
     print acceleration.jacobian(np.zeros(dim * 3))
+    assert check_jacobian_against_finite_difference(acceleration)
 
 
 def test_cliques():
@@ -94,7 +95,8 @@ def test_motion_optimimization_2d():
     print trajectory.final_configuration()
     sum_acceleration = motion_optimization.cost(trajectory)
     print "sum_acceleration : ", sum_acceleration
-
+    assert check_jacobian_against_finite_difference(
+        motion_optimization.objective)
 
 
 if __name__ == "__main__":

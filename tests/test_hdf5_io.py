@@ -23,6 +23,14 @@ from learning.utils import *
 import numpy as np
 
 
+def check_is_close(a, b, tolerance=1e-10):
+    """ Returns True of all variable are close."""
+    results = np.isclose(
+        np.array(a),
+        np.array(b),
+        atol=tolerance)
+    return results.all()
+
 
 def test_hdf5_io():
     filename = "test_file.hdf5"

@@ -36,7 +36,7 @@ class MotionOptimization2DCostMap:
             self.trajectory_space_dim,
             self.config_space_dim)
         squared_norm_acc = Compose(
-            SquaredNorm(np.zeros(2)),
+            SquaredNorm(np.zeros(self.config_space_dim)),
             FiniteDifferencesAcceleration(self.config_space_dim, self.dt))
         self.objective.register_function_for_all_cliques(squared_norm_acc)
         print self.objective.nb_cliques()

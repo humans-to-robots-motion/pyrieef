@@ -63,23 +63,42 @@ class CliquesFunctionNetwork(FunctionNetwork):
         for i in range(self._nb_cliques):
             self._functions[i] = []
 
+    def output_dimension(self):
+        return 1
+
     def input_dimension(self):
-        raise input_size_
+        return self._input_size
 
     def nb_cliques(self):
         return self._nb_cliques
 
     def forward(self, x):
-        cliques = self.all_cliques(x)
-        assert len(cliques) == self._nb_cliques
-
         # We call over all subfunctions in each clique
         value = 0.
-        for i, c in enumerate(cliques):
-            print("c[{}] : {}".format(i, c))
+        for i, c in enumerate(self.all_cliques(x)):
+            # print("c[{}] : {}".format(i, c))
             for f in self._functions[i]:
                 value += f.forward(c)
         return value
+
+    def jacobian(self, x):
+        """ 
+            The jacboian matrix is of dimension m x n
+                m (rows) : output size
+                n (cols) : input size
+            which can also be viewed becase the first order Taylor expansion
+            of any differentiable map is f(x) = f(x_0) + J(x_0)_f x,
+            where x is a collumn vector.
+            The sub jacobian of the maps are the sum of clique jacobians
+            each clique function f : R^n -> R, where n is the clique size.
+        """
+        J = np.matrix(np.zeros((
+            self.output_dimension(),
+            self.input_dimension())))
+        for i, c in enumerate(self.all_cliques(x)):
+            for f in self._functions[i]:
+                J[0, i:self._clique_size + i] += f.jacobian(c)
+        return J
 
     def all_cliques(self, x):
         """ returns a dictionary of cliques """
@@ -87,6 +106,7 @@ class CliquesFunctionNetwork(FunctionNetwork):
         # print("clique size : ", self._clique_size)
         cliques = [x[i:self._clique_size + i]
                    for i in range(self._nb_cliques)]
+        assert len(cliques) == self._nb_cliques
         return cliques
 
     def register_function_for_clique(self, i, f):

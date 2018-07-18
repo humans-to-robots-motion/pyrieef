@@ -227,3 +227,24 @@ def finite_difference_jacobian(f, q):
         x_down = f.forward(q_down)
         J[:, j] = (x_up - x_down) / dt
     return np.matrix(J)
+
+
+def check_is_close(a, b, tolerance=1e-10):
+    """ Returns True of all variable are close."""
+    results = np.isclose(
+        np.array(a),
+        np.array(b),
+        atol=tolerance)
+    return results.all()
+
+
+def check_jacobian_against_finite_difference(phi):
+    """ Makes sure the jacobian is close to the finite difference """
+    q = np.random.rand(phi.input_dimension())
+    J = phi.jacobian(q)
+    J_diff = finite_difference_jacobian(phi, q)
+    print "J : "
+    print J
+    print "J_diff : "
+    print J_diff
+    return check_is_close(J, J_diff, 1e-4)
