@@ -73,7 +73,7 @@ def test_square_norm():
 def test_affine():
     dim = 3
     a = np.random.rand(dim, dim)
-    b = np.random.rand(3)
+    b = np.random.rand(dim)
     f = AffineMap(a, b)
 
     print "Check AffineMap (J implementation) : "
@@ -176,6 +176,17 @@ def test_composition():
     assert check_jacobian_against_finite_difference(Compose(f, g))
 
 
+def test_rangesubspace():
+    dim = 10
+    a = np.random.rand(dim, dim)
+    b = np.random.rand(dim)
+    f = AffineMap(a, b)
+    indices = [1, 3, 7]
+    f_sub = Compose(RangeSubspaceMap(f.output_dimension(), indices), f)
+
+    print "Check SubRangeMap (J implementation) : "
+    assert check_jacobian_against_finite_difference(f_sub)
+
 if __name__ == "__main__":
     test_finite_difference()
     test_square_norm()
@@ -183,3 +194,4 @@ if __name__ == "__main__":
     test_regressed_grid()
     test_quadric()
     test_composition()
+    test_rangesubspace()

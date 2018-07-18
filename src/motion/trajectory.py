@@ -73,12 +73,12 @@ class CliquesFunctionNetwork(FunctionNetwork):
         return self._nb_cliques
 
     def forward(self, x):
-        # We call over all subfunctions in each clique
+        """ We call over all subfunctions in each clique"""
         value = 0.
-        for i, c in enumerate(self.all_cliques(x)):
-            # print("c[{}] : {}".format(i, c))
-            for f in self._functions[i]:
-                value += f.forward(c)
+        for t, x_t in enumerate(self.all_cliques(x)):
+            # print("x_c[{}] : {}".format(t, x_t))
+            for f in self._functions[t]:
+                value += f.forward(x_t)
         return value
 
     def jacobian(self, x):
@@ -95,28 +95,36 @@ class CliquesFunctionNetwork(FunctionNetwork):
         J = np.matrix(np.zeros((
             self.output_dimension(),
             self.input_dimension())))
-        for i, c in enumerate(self.all_cliques(x)):
-            for f in self._functions[i]:
-                J[0, i:self._clique_size + i] += f.jacobian(c)
+        for t, x_t in enumerate(self.all_cliques(x)):
+            for f in self._functions[t]:
+                J[0, t:self._clique_size + t] += f.jacobian(x_t)
         return J
 
     def all_cliques(self, x):
         """ returns a dictionary of cliques """
         # print("x : ", len(x))
         # print("clique size : ", self._clique_size)
-        cliques = [x[i:self._clique_size + i]
-                   for i in range(self._nb_cliques)]
+        n = self._clique_size
+        cliques = [x[t:n + t] for t in range(self._nb_cliques)]
         assert len(cliques) == self._nb_cliques
         return cliques
 
-    def register_function_for_clique(self, i, f):
+    def register_function_for_clique(self, t, f):
         """ Register function f for clique i """
-        self._functions[i].append(f)
+        assert f.input_dimension() == self._clique_size
+        self._functions[t].append(f)
 
     def register_function_for_all_cliques(self, f):
         """ Register function f """
-        for i in range(self._nb_cliques):
-            self._functions[i].append(f)
+        assert f.input_dimension() == self._clique_size
+        for t in range(self._nb_cliques):
+            self._functions[t].append(f)
+
+    def register_function_last_clique(self, f):
+        """ Register function f """
+        assert f.input_dimension() == self._clique_size
+        T = self._nb_cliques - 1
+        self._functions[T].append(f)
 
 
 class Trajectory:

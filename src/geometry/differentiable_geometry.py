@@ -32,24 +32,27 @@ class DifferentiableMap:
     def input_dimension(self):
         raise NotImplementedError()
 
-    @abstractmethod
-    def forward(self, q):
-        raise NotImplementedError()
-
     def __call__(self, q):
         """ Method called when call object """
         return self.forward(q)
 
+    @abstractmethod
+    def forward(self, q):
+        """ Should return an array or single value"""
+        raise NotImplementedError()
+
     def gradient(self, q):
-        """ Convienience function to get numpy
-            gradients in the same shape as the input vector
+        """ Should return an array or single value
+            Convienience function to get numpy gradients in the same shape 
+            as the input vector
             for addition and substraction, of course gradients are
             only availables if the output dimension is one."""
         assert self.output_dimension() == 1
         return np.array(self.jacobian(q)).reshape(self.input_dimension())
 
     def jacobian(self, q):
-        """ by default the method returns the finite difference jacobian.
+        """ Should return a matrix or single value
+            by default the method returns the finite difference jacobian.
             WARNING the object returned by this function is a numpy matrix.
             Thhe Jacobian matrix is allways a numpy matrix object."""
         return finite_difference_jacobian(self, q)
@@ -127,7 +130,7 @@ class AffineMap(DifferentiableMap):
         x_tmp = x.reshape(self.input_dimension(), 1)
         tmp = self._a * x_tmp
         y = tmp + self._b
-        return y.reshape(self.output_dimension())
+        return np.array(y).reshape(self.output_dimension())
 
     def jacobian(self, x):
         return self._a
@@ -192,23 +195,44 @@ class SquaredNorm(DifferentiableMap):
         return np.matrix(delta_x)
 
 
+class RangeSubspaceMap(DifferentiableMap):
+    """Take only some outputs"""
+
+    def __init__(self, n, indices):
+        self._indices = indices
+        self._dim = n
+
+    def output_dimension(self):
+        return len(self._indices)
+
+    def input_dimension(self):
+        return self._dim
+
+    def forward(self, q):
+        return q[self._indices]
+
+    def jacobian(self, q):
+        I = np.matrix(np.eye(self._dim))
+        return I[self._indices, :]
+
+
 class IdentityMap(DifferentiableMap):
     """Simple identity map : f(x)=x"""
 
     def __init__(self, n):
-        self.dim = n
+        self._dim = n
 
     def output_dimension(self):
-        return self.dim
+        return self._dim
 
     def input_dimension(self):
-        return self.dim
+        return self._dim
 
-    def forward(self, x):
-        return x
+    def forward(self, q):
+        return q
 
     def jacobian(self, q):
-        return np.matrix(np.eye(self.dim))
+        return np.matrix(np.eye(self._dim))
 
 
 def finite_difference_jacobian(f, q):

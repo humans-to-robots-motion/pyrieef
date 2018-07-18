@@ -32,13 +32,23 @@ class MotionOptimization2DCostMap:
         self.config_space_dim = 2
         self.trajectory_space_dim = (self.config_space_dim * (self.T + 2))
         self.extends = extends
+        self.q_final = np.ones(2)
+
         self.objective = CliquesFunctionNetwork(
             self.trajectory_space_dim,
             self.config_space_dim)
+
         squared_norm_acc = Compose(
             SquaredNorm(np.zeros(self.config_space_dim)),
             FiniteDifferencesAcceleration(self.config_space_dim, self.dt))
         self.objective.register_function_for_all_cliques(squared_norm_acc)
+
+        # Get the central indices
+        dim = self.config_space_dim
+        center_range = RangeSubspaceMap(dim * 3, range(dim, 2 * dim))
+        terminal_potential=Compose(SquaredNorm(self.q_final), center_range)
+        self.objective.register_function_last_clique(terminal_potential)
+
         print self.objective.nb_cliques()
 
     def cost(self, trajectory):
