@@ -43,13 +43,16 @@ class MotionOptimization2DCostMap:
             FiniteDifferencesAcceleration(self.config_space_dim, self.dt))
         self.objective.register_function_for_all_cliques(squared_norm_acc)
 
-        # Get the central indices
-        dim = self.config_space_dim
-        center_range = RangeSubspaceMap(dim * 3, range(dim, 2 * dim))
-        terminal_potential=Compose(SquaredNorm(self.q_final), center_range)
+        terminal_potential = Compose(
+            SquaredNorm(self.q_final),
+            self.center_of_clique_map())
         self.objective.register_function_last_clique(terminal_potential)
 
         print self.objective.nb_cliques()
+
+    def center_of_clique_map(self):
+        dim = self.config_space_dim
+        return RangeSubspaceMap(dim * 3, range(dim, 2 * dim))
 
     def cost(self, trajectory):
         """ compute sum of acceleration """
