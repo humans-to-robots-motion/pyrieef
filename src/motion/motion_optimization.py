@@ -22,6 +22,7 @@ from motion.trajectory import *
 from motion.cost_terms import *
 from optimization.optimization import *
 from geometry.differentiable_geometry import *
+from geometry.workspace import *
 
 
 class MotionOptimization2DCostMap:
@@ -33,6 +34,20 @@ class MotionOptimization2DCostMap:
         self.trajectory_space_dim = (self.config_space_dim * (self.T + 2))
         self.extends = extends
         self.q_final = np.ones(2)
+        self.create_objective()
+
+    def center_of_clique_map(self):
+        dim = self.config_space_dim
+        return RangeSubspaceMap(dim * 3, range(dim, 2 * dim))
+
+    def cost(self, trajectory):
+        """ compute sum of acceleration """
+        return self.objective.forward(trajectory.x())
+
+    def create_workspace(self):
+        return None
+
+    def create_objective(self):
 
         self.objective = CliquesFunctionNetwork(
             self.trajectory_space_dim,
@@ -49,11 +64,3 @@ class MotionOptimization2DCostMap:
         self.objective.register_function_last_clique(terminal_potential)
 
         print self.objective.nb_cliques()
-
-    def center_of_clique_map(self):
-        dim = self.config_space_dim
-        return RangeSubspaceMap(dim * 3, range(dim, 2 * dim))
-
-    def cost(self, trajectory):
-        """ compute sum of acceleration """
-        return self.objective.forward(trajectory.x())

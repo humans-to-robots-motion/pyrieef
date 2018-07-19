@@ -28,11 +28,11 @@ def test_ellipse():
     ellipse.a = 0.1
     ellipse.b = 0.2
 
-    dist = ellipse.DistFromBorder(np.array([0.3, 0.0]))
+    dist = ellipse.dist_from_border(np.array([0.3, 0.0]))
     print "dist = ", dist
     assert np.fabs(dist - 0.2) < 1.e-06
 
-    dist = ellipse.DistFromBorder(np.array([0.0, 0.3]))
+    dist = ellipse.dist_from_border(np.array([0.0, 0.3]))
     print "dist = ", dist
     assert np.fabs(dist - 0.1) < 1.e-06
 

@@ -36,7 +36,7 @@ ellipse.b = .2
 
 workspace = Workspace()
 workspace.obstacles.append(ellipse.object())
-points = workspace.AllPoints()
+points = workspace.all_points()
 X = np.array(points)[:, 0]
 Y = np.array(points)[:, 1]
 

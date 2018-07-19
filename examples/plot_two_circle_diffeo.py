@@ -65,7 +65,7 @@ workspace = Workspace()
 for circle in analytical_circles:
     workspace.obstacles.append(circle.object())
 for obstacles in workspace.obstacles:
-    points = obstacles.SampledPoints()
+    points = obstacles.sampled_points()
     X = np.array(points)[:, 0]
     Y = np.array(points)[:, 1]
     plt.plot(X, Y, "b", linewidth=2.0)

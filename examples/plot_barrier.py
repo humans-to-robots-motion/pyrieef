@@ -42,7 +42,7 @@ segment.orientation = 0.0
 segment.nb_points = 50
 workspace.obstacles.append(segment)
 
-points = workspace.AllPoints()
+points = workspace.all_points()
 X = np.array(points)[:, 0]
 Y = np.array(points)[:, 1]
 

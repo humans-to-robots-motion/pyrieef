@@ -37,7 +37,7 @@ class Shape:
     def __init__(self):
         self.nb_points = 50
 
-    def SampledPoints(self):
+    def sampled_points(self):
         return self.nb_points * [np.array(2 * [0.])]
 
 
@@ -50,7 +50,7 @@ class Circle(Shape):
 
     # Signed distance
     #
-    def DistFromBorder(self, x):
+    def dist_from_border(self, x):
         x_center = x - self.origin
         # Oddly the norm of matlab is slower than the standard library here...
         # d1 = np.linalg.norm(x_center)
@@ -58,7 +58,7 @@ class Circle(Shape):
         # print "d1 : {}, d : {}".format(d1, d)
         return d - self.radius
 
-    def SampledPoints(self):
+    def sampled_points(self):
         points = []
         for theta in np.linspace(0, 2 * math.pi, self.nb_points):
             x = self.origin[0] + self.radius * np.cos(theta)
@@ -67,9 +67,12 @@ class Circle(Shape):
         return points
 
 
-# Define a ellipse shape. This is performed using
-# a and b parameters. (a, b) are the size of the great and small radii.
 class Ellipse(Shape):
+
+    """ 
+    Define a ellipse shape. This is performed using
+    a and b parameters. (a, b) are the size of the great and small radii.
+    """
 
     def __init__(self):
         Shape.__init__(self)
@@ -77,7 +80,7 @@ class Ellipse(Shape):
         self.a = 0.2
         self.b = 0.2
 
-    def SampledPoints(self):
+    def sampled_points(self):
         points = []
         for theta in np.linspace(0, 2 * math.pi, self.nb_points):
             x = self.origin[0] + self.a * np.cos(theta)
@@ -85,9 +88,11 @@ class Ellipse(Shape):
             points.append(np.array([x, y]))
         return points
 
-    # Iterative method described, Signed distance
-    # http://www.am.ub.edu/~robert/Documents/ellipse.pdf
-    def DistFromBorder(self, x):
+    def dist_from_border(self, x):
+        """
+        Iterative method described, Signed distance
+        http://www.am.ub.edu/~robert/Documents/ellipse.pdf
+        """
         x_abs = math.fabs(x[0])
         y_abs = math.fabs(x[1])
         a_m_b = self.a**2 - self.b**2
@@ -113,7 +118,7 @@ class Segment(Shape):
         self.orientation = orientation
         self.length = length
 
-    def SampledPoints(self):
+    def sampled_points(self):
         points = []
         p_0 = 0.5 * self.length * np.array([
             np.cos(self.orientation), np.sin(self.orientation)])
@@ -155,47 +160,50 @@ class Box:
 
 
 class Workspace:
+    """
+        Contains obstacles.
+    """
 
     def __init__(self, box=Box()):
         self.box = box
         self.obstacles = []
 
-    def InCollision(self, pt):
+    def in_collision(self, pt):
         for obst in self.obstacles:
-            if obst.DistFromBorder(pt) < 0.:
+            if obst.dist_from_border(pt) < 0.:
                 return True
         return False
 
-    def MinDist(self, pt):
+    def min_dist(self, pt):
         mindist = float("inf")
         minid = -1
         for k, obst in enumerate(self.obstacles):
-            dist = obst.DistFromBorder(pt)  # Signed distance
+            dist = obst.dist_from_border(pt)  # Signed distance
             if dist < mindist:
                 mindist = dist
                 minid = k
         return mindist
 
-    def AddCircle(self, origin=None, radius=None):
+    def add_circle(self, origin=None, radius=None):
         if origin is None and radius is None:
             self.obstacles.append(Circle())
         else:
             self.obstacles.append(Circle(origin, radius))
 
-    def AddSegment(self, origin=None, length=None):
+    def add_segment(self, origin=None, length=None):
         if origin is None and length is None:
             self.obstacles.append(Segment())
         else:
             self.obstacles.append(Segment(origin, length))
 
-    def AllPoints(self):
+    def all_points(self):
         points = []
         for o in self.obstacles:
-            points += o.SampledPoints()
+            points += o.sampled_points()
         return points
 
 
 # run the server
 if __name__ == "__main__":
     obstacle = Circle()
-    print obstacle.SampledPoints()
+    print obstacle.sampled_points()

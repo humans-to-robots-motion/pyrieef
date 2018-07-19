@@ -310,9 +310,9 @@ class AnalyticMultiCircle(AnalyticPlaneDiffeomoprhism):
     def GetActivation(self, i, x):
         part = 0.
         for circle in self.circles_:
-            d = circle.object().DistFromBorder(x)
+            d = circle.object().dist_from_border(x)
             part += np.exp(-self.gamma * d)
-        d = self.circles_[i].object().DistFromBorder(x)
+        d = self.circles_[i].object().dist_from_border(x)
         return np.exp(-self.gamma * d) / part
 
     def OneCircle(self, i, x):

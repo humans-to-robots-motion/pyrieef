@@ -27,9 +27,9 @@ from geometry.geodesics import *
 import itertools
 
 workspace = Workspace()
-workspace.AddCircle(np.array([0.1, .3]), .1)
-workspace.AddCircle(np.array([0., -.3]), .1)
-points = workspace.AllPoints()
+workspace.add_circle(np.array([0.1, .3]), .1)
+workspace.add_circle(np.array([0., -.3]), .1)
+points = workspace.all_points()
 X = np.array(points)[:, 0]
 Y = np.array(points)[:, 1]
 

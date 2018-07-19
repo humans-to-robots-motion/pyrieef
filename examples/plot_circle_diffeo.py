@@ -37,7 +37,7 @@ phi.circle.origin = np.array([.1, .0])
 
 workspace = Workspace()
 workspace.obstacles.append(phi.object())
-points = workspace.AllPoints()
+points = workspace.all_points()
 X = np.array(points)[:, 0]
 Y = np.array(points)[:, 1]
 
