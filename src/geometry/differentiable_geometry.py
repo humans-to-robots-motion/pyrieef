@@ -262,13 +262,14 @@ def check_is_close(a, b, tolerance=1e-10):
     return results.all()
 
 
-def check_jacobian_against_finite_difference(phi):
+def check_jacobian_against_finite_difference(phi, verbose=True):
     """ Makes sure the jacobian is close to the finite difference """
     q = np.random.rand(phi.input_dimension())
     J = phi.jacobian(q)
     J_diff = finite_difference_jacobian(phi, q)
-    print "J : "
-    print J
-    print "J_diff : "
-    print J_diff
+    if verbose:
+        print "J : "
+        print J
+        print "J_diff : "
+        print J_diff
     return check_is_close(J, J_diff, 1e-4)

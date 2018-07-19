@@ -36,4 +36,19 @@ def test_ellipse():
     print "dist = ", dist
     assert np.fabs(dist - 0.1) < 1.e-06
 
+
+def test_sdf_jacobians():
+    verbose = False
+    nb_circles = 10
+    centers = np.random.rand(nb_circles, 2)
+    radii = np.random.rand(nb_circles)
+    circles = []
+    for p, r in zip(centers, radii):
+        # print("p : {}, r : {}".format(p, r))
+        circles.append(Circle(p, r))
+    for c in circles:
+        signed_dist = SignedDistance2DMap(c)
+        assert check_jacobian_against_finite_difference(signed_dist, verbose)
+
 test_ellipse()
+test_sdf_jacobians()

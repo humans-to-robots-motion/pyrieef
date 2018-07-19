@@ -24,21 +24,54 @@ import numpy as np
 import sys
 import math
 from pixel_map import *
+from abc import abstractmethod
+from differentiable_geometry import *
 
 
 class Shape:
     """ 
-    This class of Shape represent two dimensional Shapes that can
-    be represented as analytical or other type of functions. 
-    The implementations
-    should return a set of points on the perimeter of the Shapes.
+        This class of Shape represent two dimensional Shapes that can
+        be represented as analytical or other type of functions. 
+        The implementations should return a set of points on the 
+        perimeter of the Shapes.
     """
 
     def __init__(self):
         self.nb_points = 50
 
+    @abstractmethod
+    def dist_from_border(self, x):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def dist_gradient(self, x):
+        raise NotImplementedError()
+
+    @abstractmethod
     def sampled_points(self):
-        return self.nb_points * [np.array(2 * [0.])]
+        raise NotImplementedError()
+
+
+class SignedDistance2DMap(DifferentiableMap):
+    """ 
+        This class of wraps the shape class in a differentiable
+        map function
+    """
+
+    def __init__(self, shape):
+        self._shape = shape
+
+    def output_dimension(self):
+        return 1
+
+    def input_dimension(self):
+        return 2
+
+    def forward(self, x):
+        return self._shape.dist_from_border(x)
+
+    def jacobian(self, x):
+        return np.matrix(self._shape.dist_gradient(x)).reshape((1, 2))
 
 
 class Circle(Shape):
@@ -48,15 +81,20 @@ class Circle(Shape):
         self.origin = c
         self.radius = r
 
-    # Signed distance
-    #
     def dist_from_border(self, x):
+        """
+            Signed distance
+        """
         x_center = x - self.origin
-        # Oddly the norm of matlab is slower than the standard library here...
+        # Oddly the norm of numpy is slower than the standard library here...
         # d1 = np.linalg.norm(x_center)
         d = math.sqrt(x_center[0]**2 + x_center[1]**2)
         # print "d1 : {}, d : {}".format(d1, d)
         return d - self.radius
+
+    def dist_gradient(self, x):
+        x_center = x - self.origin
+        return x_center / math.sqrt(x_center[0]**2 + x_center[1]**2)
 
     def sampled_points(self):
         points = []
@@ -68,10 +106,10 @@ class Circle(Shape):
 
 
 class Ellipse(Shape):
-
     """ 
-    Define a ellipse shape. This is performed using
-    a and b parameters. (a, b) are the size of the great and small radii.
+        Define a ellipse shape. This is performed using
+        a and b parameters. (a, b) are the size of the great 
+        nd small radii.
     """
 
     def __init__(self):
@@ -79,14 +117,6 @@ class Ellipse(Shape):
         self.origin = np.array([0., 0.])
         self.a = 0.2
         self.b = 0.2
-
-    def sampled_points(self):
-        points = []
-        for theta in np.linspace(0, 2 * math.pi, self.nb_points):
-            x = self.origin[0] + self.a * np.cos(theta)
-            y = self.origin[1] + self.b * np.sin(theta)
-            points.append(np.array([x, y]))
-        return points
 
     def dist_from_border(self, x):
         """
@@ -105,6 +135,14 @@ class Ellipse(Shape):
                 break
         return math.sqrt((x_abs - self.a * math.cos(phi))**2 +
                          (y_abs - self.b * math.sin(phi))**2)
+
+    def sampled_points(self):
+        points = []
+        for theta in np.linspace(0, 2 * math.pi, self.nb_points):
+            x = self.origin[0] + self.a * np.cos(theta)
+            y = self.origin[1] + self.b * np.sin(theta)
+            points.append(np.array([x, y]))
+        return points
 
 
 class Segment(Shape):
@@ -132,8 +170,8 @@ class Segment(Shape):
 
 class Box:
     """
-    A box is defined by an origin, which is its center.
-    and dimension which are it's size in axis aligned coordinates
+        A box is defined by an origin, which is its center.
+        and dimension which are it's size in axis aligned coordinates
     """
 
     def __init__(self,
