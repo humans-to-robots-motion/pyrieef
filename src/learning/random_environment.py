@@ -40,10 +40,10 @@ def samplerandpt(lims):
 
 def chomp_obstacle_cost(min_dist, epsilon):
     """ 
-    Compute the cost function now (From CHOMP paper)
-    If min_dist < 0, cost = -min_dist + epsilon/2
-    If min_dist >= 0 && min_dist < epsilon, have a different cost 
-    If min_dist >= epsilon, cost = 0
+        Compute the cost function now (From CHOMP paper)
+        If min_dist < 0, cost = -min_dist + epsilon/2
+        If min_dist >= 0 && min_dist < epsilon, have a different cost 
+        If min_dist >= epsilon, cost = 0
     """
     cost = 0.
     if min_dist < 0:
@@ -55,7 +55,7 @@ def chomp_obstacle_cost(min_dist, epsilon):
 
 def grids(workspace, grid_to_world, epsilon):
     """
-    Creates a boolean matrix of occupancies
+        Creates a boolean matrix of occupancies
         To convert it to int or floats, use the following
         matrix.astype(int)
         matrix.astype(float)

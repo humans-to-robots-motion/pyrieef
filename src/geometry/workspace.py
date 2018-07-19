@@ -120,8 +120,8 @@ class Ellipse(Shape):
 
     def dist_from_border(self, x):
         """
-        Iterative method described, Signed distance
-        http://www.am.ub.edu/~robert/Documents/ellipse.pdf
+            Iterative method described, Signed distance
+            http://www.am.ub.edu/~robert/Documents/ellipse.pdf
         """
         x_abs = math.fabs(x[0])
         y_abs = math.fabs(x[1])

@@ -25,9 +25,37 @@ from geometry.differentiable_geometry import *
 from geometry.workspace import *
 
 
+class SDFPotential2D(DifferentiableMap):
+
+    def __init__(self, signed_distance_field):
+        self._sdf = signed_distance_field
+        self._rho_scaling = 1.e-3
+        self._alpha = 20.
+
+    def output_dimension(self):
+        return 3
+
+    def input_dimension(self):
+        return 2
+
+    def forward(self, x):
+        rho = exp(-alpha * self._sdf.foward(x))
+        y = np.zeros(3)
+        y[0] = self._rho_scaling * rho
+        y[1] = x[0]
+        y[2] = x[1]
+
+    def jacobian(self, x):
+        [sdf, J_sdf] = self._sdf.evaluate(x)
+        rho = exp(-alpha * sdf)
+        J = np.matrix(np.zeros(3, 3))
+        J[0, :] = -self._alpha * self._rho_scaling * rho * J_sdf
+        J[1:2, :] = np.matrix(np.eye(2, 2))
+
+
 class MotionOptimization2DCostMap:
 
-    def __init__(self, extends, costfield):
+    def __init__(self, extends, signed_distance_field):
         self.T = 20      # time steps
         self.dt = 0.1    # sample rate
         self.config_space_dim = 2
@@ -43,9 +71,6 @@ class MotionOptimization2DCostMap:
     def cost(self, trajectory):
         """ compute sum of acceleration """
         return self.objective.forward(trajectory.x())
-
-    def create_workspace(self):
-        return None
 
     def create_objective(self):
 
