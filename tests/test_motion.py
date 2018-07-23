@@ -21,6 +21,7 @@ from test_common_imports import *
 from motion.trajectory import *
 from motion.cost_terms import *
 from motion.motion_optimization import *
+import time
 
 
 def test_finite_differences():
@@ -102,6 +103,22 @@ def test_obstacle_potential():
     assert check_jacobian_against_finite_difference(phi)
 
 
+def calculate_analytical_gradient_speedup(f):
+    nb_points = 10
+    samples = np.random.rand(nb_points, f.input_dimension())
+    time1 = time.time()
+    [f.gradient(x) for x in samples]
+    time2 = time.time()
+    t_analytic = (time2 - time1) * 1000.0
+    print '%s function took %0.3f ms' % ("analytic", t_analytic)
+    time1 = time.time()
+    [finite_difference_jacobian(f, x) for x in samples]
+    time2 = time.time()
+    t_fd = (time2 - time1) * 1000.0
+    print '%s function took %0.3f ms' % ("finite diff", t_fd)
+    print " -- speedup : {} x".format(int(round(t_fd / t_analytic)))
+
+
 def test_motion_optimimization_2d():
     print "Checkint Motion Optimization"
     motion_optimization = MotionOptimization2DCostMap(None, None)
@@ -118,6 +135,9 @@ def test_motion_optimimization_2d():
     print "sum_acceleration : ", sum_acceleration
     assert check_jacobian_against_finite_difference(
         motion_optimization.objective)
+
+    # Calulate speed up.
+    # calculate_analytical_gradient_speedup(motion_optimization.objective)
 
 
 if __name__ == "__main__":

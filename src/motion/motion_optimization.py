@@ -35,6 +35,7 @@ class MotionOptimization2DCostMap:
         self.extends = extends
         self.q_final = np.ones(2)
         self.workspace = None
+        self.objective = None
 
         # We only need the signed distance field
         # to create a trajectory optimization problem
