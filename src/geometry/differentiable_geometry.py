@@ -113,6 +113,61 @@ class Compose(DifferentiableMap):
         return [y, J]
 
 
+class RangeSubspaceMap(DifferentiableMap):
+    """Take only some outputs"""
+
+    def __init__(self, n, indices):
+        """n is the input dimension
+           indices are the output"""
+        self._indices = indices
+        self._dim = n
+
+    def output_dimension(self):
+        return len(self._indices)
+
+    def input_dimension(self):
+        return self._dim
+
+    def forward(self, q):
+        return q[self._indices]
+
+    def jacobian(self, q):
+        I = np.matrix(np.eye(self._dim))
+        return I[self._indices, :]
+
+
+class ProductFunction(DifferentiableMap):
+    """Take the product of functions"""
+
+    def __init__(self, g, h):
+        """ f(x) = g(x)h(x)
+            n is the input dimension
+           indices are the output"""
+        self._g = g
+        self._h = h
+        assert self._g.input_dimension() == self._h.input_dimension()
+        assert self._g.output_dimension() == 1
+        assert self._g.output_dimension() == 1
+
+    def output_dimension(self):
+        return 1
+
+    def input_dimension(self):
+        return self._g.input_dimension()
+
+    def forward(self, x):
+        v1 = self._g.forward(x)
+        v2 = self._h.forward(x)
+        return v1 * v2
+
+    def jacobian(self, x):
+        v1 = self._g.forward(x)
+        v2 = self._h.forward(x)
+        J1 = self._g.jacobian(x)
+        J2 = self._h.jacobian(x)
+        return v1 * J2 + v2 * J1
+
+
 class AffineMap(DifferentiableMap):
     """Simple map of the form: f(x)=ax + b"""
 
@@ -193,27 +248,6 @@ class SquaredNorm(DifferentiableMap):
     def jacobian(self, x):
         delta_x = x - self.x_0
         return np.matrix(delta_x)
-
-
-class RangeSubspaceMap(DifferentiableMap):
-    """Take only some outputs"""
-
-    def __init__(self, n, indices):
-        self._indices = indices
-        self._dim = n
-
-    def output_dimension(self):
-        return len(self._indices)
-
-    def input_dimension(self):
-        return self._dim
-
-    def forward(self, q):
-        return q[self._indices]
-
-    def jacobian(self, q):
-        I = np.matrix(np.eye(self._dim))
-        return I[self._indices, :]
 
 
 class IdentityMap(DifferentiableMap):

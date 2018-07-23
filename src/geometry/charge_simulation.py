@@ -70,5 +70,5 @@ class ChargeSimulation:
 # run the server
 if __name__ == "__main__":
     simulation = ChargeSimulation()
-    simulation.charged_points_ = Circle().SampledPoints()
+    simulation.charged_points_ = Circle().sampled_points()
     simulation.Run()

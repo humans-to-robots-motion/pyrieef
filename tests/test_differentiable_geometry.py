@@ -187,6 +187,26 @@ def test_rangesubspace():
     print "Check SubRangeMap (J implementation) : "
     assert check_jacobian_against_finite_difference(f_sub)
 
+
+def test_product():
+
+    dim = 3
+
+    g = QuadricFunction(                # g = x'Ax + b'x + c
+        np.random.rand(dim, dim),       # A
+        np.random.rand(dim),            # b
+        .3)                             # c
+
+    h = QuadricFunction(                # g = x'Ax + b'x + c
+        np.random.rand(dim, dim),       # A
+        np.random.rand(dim),            # b
+        .3)                             # c
+
+    f = ProductFunction(g, h)
+    print "Check ProductFunction (J implementation) : "
+    assert check_jacobian_against_finite_difference(f)
+
+
 if __name__ == "__main__":
     test_finite_difference()
     test_square_norm()
@@ -195,3 +215,4 @@ if __name__ == "__main__":
     test_quadric()
     test_composition()
     test_rangesubspace()
+    test_product()

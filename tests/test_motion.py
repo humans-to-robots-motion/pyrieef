@@ -29,6 +29,10 @@ def test_finite_differences():
     print acceleration.jacobian(np.zeros(dim * 3))
     assert check_jacobian_against_finite_difference(acceleration)
 
+    velocity = FiniteDifferencesVelocity(dim, 1)
+    print velocity.jacobian(np.zeros(dim * 3))
+    assert check_jacobian_against_finite_difference(acceleration)
+
 
 def test_cliques():
     A = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])

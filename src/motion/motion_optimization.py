@@ -25,34 +25,6 @@ from geometry.differentiable_geometry import *
 from geometry.workspace import *
 
 
-class SDFPotential2D(DifferentiableMap):
-
-    def __init__(self, signed_distance_field):
-        self._sdf = signed_distance_field
-        self._rho_scaling = 1.e-3
-        self._alpha = 20.
-
-    def output_dimension(self):
-        return 3
-
-    def input_dimension(self):
-        return 2
-
-    def forward(self, x):
-        rho = exp(-alpha * self._sdf.foward(x))
-        y = np.zeros(3)
-        y[0] = self._rho_scaling * rho
-        y[1] = x[0]
-        y[2] = x[1]
-
-    def jacobian(self, x):
-        [sdf, J_sdf] = self._sdf.evaluate(x)
-        rho = exp(-alpha * sdf)
-        J = np.matrix(np.zeros(3, 3))
-        J[0, :] = -self._alpha * self._rho_scaling * rho * J_sdf
-        J[1:2, :] = np.matrix(np.eye(2, 2))
-
-
 class MotionOptimization2DCostMap:
 
     def __init__(self, extends, signed_distance_field):
@@ -62,11 +34,15 @@ class MotionOptimization2DCostMap:
         self.trajectory_space_dim = (self.config_space_dim * (self.T + 2))
         self.extends = extends
         self.q_final = np.ones(2)
+        self.sdf = signed_distance_field
         self.create_objective()
 
     def center_of_clique_map(self):
         dim = self.config_space_dim
         return RangeSubspaceMap(dim * 3, range(dim, 2 * dim))
+
+    def obstacle_cost_map(self):
+        return Compose(RangeSubspaceMap(2, [1]), SDFPotential2D(self.sdf))
 
     def cost(self, trajectory):
         """ compute sum of acceleration """
@@ -78,11 +54,27 @@ class MotionOptimization2DCostMap:
             self.trajectory_space_dim,
             self.config_space_dim)
 
+        # Smoothness term.
         squared_norm_acc = Compose(
             SquaredNorm(np.zeros(self.config_space_dim)),
             FiniteDifferencesAcceleration(self.config_space_dim, self.dt))
         self.objective.register_function_for_all_cliques(squared_norm_acc)
 
+        # Obstacle term.
+        if self.sdf is not None:
+            obstacle_potential = Compose(
+                self.obstacle_cost_map(),
+                self.center_of_clique_map())
+            squared_norm_vel = Compose(
+                SquaredNorm(np.zeros(self.config_space_dim)),
+                FiniteDifferencesVellocity(self.config_space_dim, self.dt))
+            isometric_obstacle_cost = Product(
+                obstacle_potential,
+                squared_norm_vel)
+            self.objective.register_function_for_all_cliques(
+                isometric_obstacle_cost)
+
+        # Terminal term.
         terminal_potential = Compose(
             SquaredNorm(self.q_final),
             self.center_of_clique_map())
