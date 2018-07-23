@@ -103,8 +103,7 @@ def test_obstacle_potential():
     assert check_jacobian_against_finite_difference(phi)
 
 
-def calculate_analytical_gradient_speedup(f):
-    nb_points = 10
+def calculate_analytical_gradient_speedup(f, nb_points=10):
     samples = np.random.rand(nb_points, f.input_dimension())
     time1 = time.time()
     [f.gradient(x) for x in samples]
