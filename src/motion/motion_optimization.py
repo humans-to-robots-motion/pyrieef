@@ -34,10 +34,10 @@ class MotionOptimization2DCostMap:
         self.trajectory_space_dim = (self.config_space_dim * (self.T + 2))
         self.extends = extends
         self.q_final = np.ones(2)
+        self.workspace = None
 
         # We only need the signed distance field
         # to create a trajectory optimization problem
-        self.workspace = None
         self.sdf = signed_distance_field
         if self.sdf is None:
             self.create_workspace()
@@ -46,11 +46,19 @@ class MotionOptimization2DCostMap:
         self.create_objective()
 
     def center_of_clique_map(self):
+        """ x_{t} """
         dim = self.config_space_dim
         return RangeSubspaceMap(dim * 3, range(dim, 2 * dim))
 
+    def right_of_clique_map(self):
+        """ x_{t+1} ; x_{t} """
+        dim = self.config_space_dim
+        return RangeSubspaceMap(dim * 3, range(dim, 3 * dim))
+
     def obstacle_cost_map(self):
-        return Compose(RangeSubspaceMap(2, [1]), SDFPotential2D(self.sdf))
+        dim = self.config_space_dim
+        phi = ObstaclePotential2D(self.sdf)
+        return Compose(RangeSubspaceMap(3, [0]), phi)
 
     def cost(self, trajectory):
         """ compute sum of acceleration """
@@ -80,8 +88,11 @@ class MotionOptimization2DCostMap:
             self.center_of_clique_map())
         squared_norm_vel = Compose(
             SquaredNorm(np.zeros(self.config_space_dim)),
-            FiniteDifferencesVellocity(self.config_space_dim, self.dt))
-        isometric_obstacle_cost = Product(
+            Compose(
+                FiniteDifferencesVelocity(self.config_space_dim, self.dt),
+                self.right_of_clique_map())
+        )
+        isometric_obstacle_cost = ProductFunction(
             obstacle_potential,
             squared_norm_vel)
         self.objective.register_function_for_all_cliques(

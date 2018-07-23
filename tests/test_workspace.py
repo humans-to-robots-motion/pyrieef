@@ -64,6 +64,7 @@ def test_sdf_workspace():
     signed_distance_field = SignedDistanceWorkspaceMap(workspace)
     assert check_jacobian_against_finite_difference(signed_distance_field)
 
+
 test_ellipse()
 test_sdf_jacobians()
 test_sdf_workspace()

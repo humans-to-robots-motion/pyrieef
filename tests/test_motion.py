@@ -86,7 +86,24 @@ def test_trajectory():
     print traj.final_configuration()
 
 
+def sample_circles(nb_circles):
+    centers = np.random.rand(nb_circles, 2)
+    radii = np.random.rand(nb_circles)
+    return centers, radii
+
+
+def test_obstacle_potential():
+    centers, radii = sample_circles(nb_circles=10)
+    workspace = Workspace()
+    for center, radius in zip(centers, radii):
+        workspace.obstacles.append(Circle(center, radius))
+    phi = ObstaclePotential2D(SignedDistanceWorkspaceMap(workspace))
+    print "Checkint Obstacle Potential"
+    assert check_jacobian_against_finite_difference(phi)
+
+
 def test_motion_optimimization_2d():
+    print "Checkint Motion Optimization"
     motion_optimization = MotionOptimization2DCostMap(None, None)
     trajectory = Trajectory(motion_optimization.T)
     sum_acceleration = motion_optimization.cost(trajectory)
@@ -107,4 +124,5 @@ if __name__ == "__main__":
     test_trajectory()
     test_cliques()
     test_finite_differences()
+    test_obstacle_potential()
     test_motion_optimimization_2d()

@@ -61,9 +61,11 @@ class FiniteDifferencesVelocity(AffineMap):
         self._a /= dt
 
 
-class SDFPotential2D(DifferentiableMap):
+class ObstaclePotential2D(DifferentiableMap):
 
     def __init__(self, signed_distance_field):
+        assert signed_distance_field.input_dimension() == 2
+        assert signed_distance_field.output_dimension() == 1
         self._sdf = signed_distance_field
         self._rho_scaling = 1.e-3
         self._alpha = 20.
@@ -75,15 +77,17 @@ class SDFPotential2D(DifferentiableMap):
         return 2
 
     def forward(self, x):
-        rho = exp(-alpha * self._sdf.foward(x))
+        rho = np.exp(-self._alpha * self._sdf.forward(x))
         y = np.zeros(3)
         y[0] = self._rho_scaling * rho
         y[1] = x[0]
         y[2] = x[1]
+        return y
 
     def jacobian(self, x):
         [sdf, J_sdf] = self._sdf.evaluate(x)
-        rho = exp(-alpha * sdf)
-        J = np.matrix(np.zeros(3, 3))
+        rho = np.exp(-self._alpha * sdf)
+        J = np.matrix(np.zeros((3, 2)))
         J[0, :] = -self._alpha * self._rho_scaling * rho * J_sdf
-        J[1:2, :] = np.matrix(np.eye(2, 2))
+        J[1:3, :] = np.matrix(np.eye(2, 2))
+        return J

@@ -43,7 +43,8 @@ class DifferentiableMap:
 
     def gradient(self, q):
         """ Should return an array or single value
-            Convienience function to get numpy gradients in the same shape 
+                n : input dimension
+            Convienience function to get numpy gradients in the same shape
             as the input vector
             for addition and substraction, of course gradients are
             only availables if the output dimension is one."""
@@ -51,7 +52,8 @@ class DifferentiableMap:
         return np.array(self.jacobian(q)).reshape(self.input_dimension())
 
     def jacobian(self, q):
-        """ Should return a matrix or single value
+        """ Should return a matrix or single value of 
+                m x n : ouput x input (dimensions)
             by default the method returns the finite difference jacobian.
             WARNING the object returned by this function is a numpy matrix.
             Thhe Jacobian matrix is allways a numpy matrix object."""
@@ -70,7 +72,7 @@ class DifferentiableMap:
 class Compose(DifferentiableMap):
 
     def __init__(self, f, g):
-        """ 
+        """
             f round g : f(g(x))
 
             This function should be called pullback if we approxiate
@@ -145,9 +147,11 @@ class ProductFunction(DifferentiableMap):
            indices are the output"""
         self._g = g
         self._h = h
+        # print "self._g.input_dimension() : ", self._g.input_dimension()
+        # print "self._h.input_dimension() : ", self._h.input_dimension()
         assert self._g.input_dimension() == self._h.input_dimension()
         assert self._g.output_dimension() == 1
-        assert self._g.output_dimension() == 1
+        assert self._h.output_dimension() == 1
 
     def output_dimension(self):
         return 1
@@ -267,6 +271,26 @@ class IdentityMap(DifferentiableMap):
 
     def jacobian(self, q):
         return np.matrix(np.eye(self._dim))
+
+
+class ZeroMap(DifferentiableMap):
+    """Simple identity map : f(x)=0"""
+
+    def __init__(self, m, n):
+        self._n = n
+        self._m = m
+
+    def output_dimension(self):
+        return self._m
+
+    def input_dimension(self):
+        return self._n
+
+    def forward(self, q):
+        return np.zeros(self._m)
+
+    def jacobian(self, q):
+        return np.matrix(np.zeros((self._m, self._n)))
 
 
 def finite_difference_jacobian(f, q):

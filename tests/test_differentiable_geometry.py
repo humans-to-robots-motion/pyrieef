@@ -40,6 +40,17 @@ def test_finite_difference():
     assert check_is_close(J, J_eye)
 
 
+def test_zero():
+    dim = 3
+    zero = ZeroMap(dim + 3, dim)
+    q = np.random.rand(dim)
+    [x, J] = zero.evaluate(q)
+
+    print "----------------------"
+    print "Check zero (J implementation) : "
+    assert check_jacobian_against_finite_difference(zero)
+
+
 def test_square_norm():
     x_0 = np.array([1., 2.])
     x_1 = np.array([3., 4.])
@@ -209,6 +220,7 @@ def test_product():
 
 if __name__ == "__main__":
     test_finite_difference()
+    test_zero()
     test_square_norm()
     test_affine()
     test_regressed_grid()

@@ -224,8 +224,8 @@ class SignedDistanceWorkspaceMap(DifferentiableMap):
         """ Warning: this gradient is ill defined
             it has a kink when two objects are at the same distance """
         [mindist, minid] = self._workspace.min_dist(x)
-        g_mindist = self._workspace.obstacles[minid].dist_gradient(pt)
-        J_mindist = np.matrix(g_dist).reshape((1, 2))
+        g_mindist = self._workspace.obstacles[minid].dist_gradient(x)
+        J_mindist = np.matrix(g_mindist).reshape((1, 2))
         return [mindist, J_mindist]
 
 
@@ -258,12 +258,7 @@ class Workspace:
         """ Warning: this gradient is ill defined
             it has a kink when two objects are at the same distance """
         [mindist, minid] = self.min_dist(pt)
-        print "mindist : ", mindist
-        print "minid : ", minid
         g_mindist = self.obstacles[minid].dist_gradient(pt)
-        print "g_shape : ", 
-        print "g_mindist : ", g_mindist.shape
-        print g_mindist
         return g_mindist
 
     def add_circle(self, origin=None, radius=None):
