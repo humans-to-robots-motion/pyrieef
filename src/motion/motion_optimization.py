@@ -34,7 +34,15 @@ class MotionOptimization2DCostMap:
         self.trajectory_space_dim = (self.config_space_dim * (self.T + 2))
         self.extends = extends
         self.q_final = np.ones(2)
+
+        # We only need the signed distance field
+        # to create a trajectory optimization problem
+        self.workspace = None
         self.sdf = signed_distance_field
+        if self.sdf is None:
+            self.create_workspace()
+
+        # Here we combine everything to make an objective
         self.create_objective()
 
     def center_of_clique_map(self):
@@ -48,8 +56,14 @@ class MotionOptimization2DCostMap:
         """ compute sum of acceleration """
         return self.objective.forward(trajectory.x())
 
-    def create_objective(self):
+    def create_workspace(self):
+        self.workspace = Workspace()
+        self.workspace.obstacles.append(Circle(np.array([0.4, 0.2]), .2))
+        self.workspace.obstacles.append(Circle(np.array([0.0, 0.2]), .1))
+        self.sdf = SignedDistanceWorkspaceMap(self.workspace)
 
+    def create_objective(self):
+        # Creates a differentiable clique function.
         self.objective = CliquesFunctionNetwork(
             self.trajectory_space_dim,
             self.config_space_dim)
@@ -61,18 +75,17 @@ class MotionOptimization2DCostMap:
         self.objective.register_function_for_all_cliques(squared_norm_acc)
 
         # Obstacle term.
-        if self.sdf is not None:
-            obstacle_potential = Compose(
-                self.obstacle_cost_map(),
-                self.center_of_clique_map())
-            squared_norm_vel = Compose(
-                SquaredNorm(np.zeros(self.config_space_dim)),
-                FiniteDifferencesVellocity(self.config_space_dim, self.dt))
-            isometric_obstacle_cost = Product(
-                obstacle_potential,
-                squared_norm_vel)
-            self.objective.register_function_for_all_cliques(
-                isometric_obstacle_cost)
+        obstacle_potential = Compose(
+            self.obstacle_cost_map(),
+            self.center_of_clique_map())
+        squared_norm_vel = Compose(
+            SquaredNorm(np.zeros(self.config_space_dim)),
+            FiniteDifferencesVellocity(self.config_space_dim, self.dt))
+        isometric_obstacle_cost = Product(
+            obstacle_potential,
+            squared_norm_vel)
+        self.objective.register_function_for_all_cliques(
+            isometric_obstacle_cost)
 
         # Terminal term.
         terminal_potential = Compose(

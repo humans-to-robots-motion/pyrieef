@@ -67,7 +67,7 @@ def grids(workspace, grid_to_world, epsilon):
     # return [None, None, None]
     for i in range(grid_to_world.shape[0]):
         for j in range(grid_to_world.shape[1]):
-            min_dist = workspace.min_dist(grid_to_world[i, j])
+            [min_dist, obstacle_id] = workspace.min_dist(grid_to_world[i, j])
             sdf[i, j] = min_dist
             occupancy[i, j] = min_dist <= 0.
             costs[i, j] = chomp_obstacle_cost(min_dist, epsilon)
@@ -126,7 +126,7 @@ def random_environments(opt):
             r = minrad + random() * (maxrad - minrad)
             c = samplerandpt(lims)
             # If this object is reasonably far away from other objects
-            min_dist = workspace.min_dist(c)
+            [min_dist, obstacle_id] = workspace.min_dist(c)
             # print "numtries : {}, nobj : {},\
             #   c : {}, r : {}, min_dist : {}".format(
             #      numtries, nobj, c, r, min_dist)

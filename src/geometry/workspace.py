@@ -52,28 +52,6 @@ class Shape:
         raise NotImplementedError()
 
 
-class SignedDistance2DMap(DifferentiableMap):
-    """ 
-        This class of wraps the shape class in a differentiable
-        map function
-    """
-
-    def __init__(self, shape):
-        self._shape = shape
-
-    def output_dimension(self):
-        return 1
-
-    def input_dimension(self):
-        return 2
-
-    def forward(self, x):
-        return self._shape.dist_from_border(x)
-
-    def jacobian(self, x):
-        return np.matrix(self._shape.dist_gradient(x)).reshape((1, 2))
-
-
 class Circle(Shape):
 
     def __init__(self, c=np.array([0., 0.]), r=0.2):
@@ -197,6 +175,60 @@ class Box:
         return extends
 
 
+class SignedDistance2DMap(DifferentiableMap):
+    """ 
+        This class of wraps the shape class in a 
+        differentiable map
+    """
+
+    def __init__(self, shape):
+        self._shape = shape
+
+    def output_dimension(self):
+        return 1
+
+    def input_dimension(self):
+        return 2
+
+    def forward(self, x):
+        return self._shape.dist_from_border(x)
+
+    def jacobian(self, x):
+        return np.matrix(self._shape.dist_gradient(x)).reshape((1, 2))
+
+
+class SignedDistanceWorkspaceMap(DifferentiableMap):
+    """ 
+        This class of wraps the workspace class in a 
+        differentiable map
+    """
+
+    def __init__(self, workspace):
+        self._workspace = workspace
+
+    def output_dimension(self):
+        return 1
+
+    def input_dimension(self):
+        return 2
+
+    def forward(self, x):
+        return self._workspace.min_dist(x)[0]
+
+    def jacobian(self, x):
+        """ Warning: this gradient is ill defined
+            it has a kink when two objects are at the same distance """
+        return np.matrix(self._workspace.min_dist_gradient(x)).reshape((1, 2))
+
+    def evaluate(self, x):
+        """ Warning: this gradient is ill defined
+            it has a kink when two objects are at the same distance """
+        [mindist, minid] = self._workspace.min_dist(x)
+        g_mindist = self._workspace.obstacles[minid].dist_gradient(pt)
+        J_mindist = np.matrix(g_dist).reshape((1, 2))
+        return [mindist, J_mindist]
+
+
 class Workspace:
     """
         Contains obstacles.
@@ -220,7 +252,19 @@ class Workspace:
             if dist < mindist:
                 mindist = dist
                 minid = k
-        return mindist
+        return [mindist, minid]
+
+    def min_dist_gradient(self, pt):
+        """ Warning: this gradient is ill defined
+            it has a kink when two objects are at the same distance """
+        [mindist, minid] = self.min_dist(pt)
+        print "mindist : ", mindist
+        print "minid : ", minid
+        g_mindist = self.obstacles[minid].dist_gradient(pt)
+        print "g_shape : ", 
+        print "g_mindist : ", g_mindist.shape
+        print g_mindist
+        return g_mindist
 
     def add_circle(self, origin=None, radius=None):
         if origin is None and radius is None:
