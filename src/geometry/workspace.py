@@ -260,15 +260,16 @@ class Workspace:
             d_m = float("inf")
             i_m = -1
         else:
+            """ Here we declare special variable for element wise querry """
             shape = (pt.shape[1], pt.shape[2])
             d_m = np.full(shape, np.inf)
             i_m = np.full(shape, -1)
 
-        for k, obst in enumerate(self.obstacles):
+        for i, obst in enumerate(self.obstacles):
             d = obst.dist_from_border(pt)
-            closer = d < d_m
-            d_m = np.where(closer, d, d_m)
-            i_m = np.where(closer, k, i_m)
+            closer_to_i = d < d_m
+            d_m = np.where(closer_to_i, d, d_m)
+            i_m = np.where(closer_to_i, i, i_m)
         return [d_m, i_m]
 
     def min_dist_gradient(self, pt):

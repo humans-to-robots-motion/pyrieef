@@ -58,26 +58,12 @@ for i, o in enumerate(workspace.obstacles):
 plt.plot(x_init[0], x_init[1], 'ro')
 plt.plot(x_goal[0], x_goal[1], 'bo')
 
-
-# [X, Y] = workspace.box.mesh_grid()
-# tmp = np.hstack([X, Y])
-# print "X.shape : ", X.shape
-# print "Y.shape : ", Y.shape
-# print "tmp.shape : ", tmp.shape
-# Z = signed_distance_field(tmp)
-# print "Z.shape : ", Z.shape
-# plt.pcolor(X, Y, Z)
-# plt.show()
 nb_points = 100
 xs = np.linspace(extends.x_min, extends.x_max, nb_points)
 ys = np.linspace(extends.y_min, extends.y_max, nb_points)
-X, Y = np.meshgrid(xs, ys)
-Q = np.stack([X, Y])
-print "Q.shape : ", Q.shape
-Z = signed_distance_field(Q)
-print "X.shape : ", X.shape
-print "Y.shape : ", Y.shape
-# print "tmp.shape : ", tmp.shape
-# print "Z.shape : ", Z.shape
-# plt.pcolor(X, Y, Z)
-# plt.show()
+Z = signed_distance_field(np.stack(np.meshgrid(xs, ys)))
+plt.imshow(Z,
+           extent=workspace.box.box_extends(),
+           origin='lower',
+           interpolation='bilinear')
+plt.show()
