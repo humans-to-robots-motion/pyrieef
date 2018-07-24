@@ -70,7 +70,7 @@ class Circle(Shape):
         # d = np.linalg.norm(x_center)
         d = np.sqrt(x_center[0]**2 + x_center[1]**2)
         # print "d1 : {}, d : {}".format(d1, d)
-        print "d : ", d
+        # print "d : ", d
         return d - self.radius
 
     def dist_gradient(self, x):
@@ -262,7 +262,7 @@ class Workspace:
             dist = obst.dist_from_border(pt)  # Signed distance
             # print "dist.shape : ", dist.shape
             if dist < mindist:
-                (dist, k) = (mindist, minid)
+                (mindist, minid) = (dist, k)
         return [mindist, minid]
 
     def min_dist_gradient(self, pt):
