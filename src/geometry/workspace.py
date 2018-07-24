@@ -29,10 +29,10 @@ from differentiable_geometry import *
 
 
 class Shape:
-    """ 
+    """
         This class of Shape represent two dimensional Shapes that can
-        be represented as analytical or other type of functions. 
-        The implementations should return a set of points on the 
+        be represented as analytical or other type of functions.
+        The implementations should return a set of points on the
         perimeter of the Shapes.
     """
 
@@ -89,9 +89,9 @@ class Circle(Shape):
 
 
 class Ellipse(Shape):
-    """ 
+    """
         Define a ellipse shape. This is performed using
-        a and b parameters. (a, b) are the size of the great 
+        a and b parameters. (a, b) are the size of the great
         nd small radii.
     """
 
@@ -187,8 +187,8 @@ class Box:
 
 
 class SignedDistance2DMap(DifferentiableMap):
-    """ 
-        This class of wraps the shape class in a 
+    """
+        This class of wraps the shape class in a
         differentiable map
     """
 
@@ -209,8 +209,8 @@ class SignedDistance2DMap(DifferentiableMap):
 
 
 class SignedDistanceWorkspaceMap(DifferentiableMap):
-    """ 
-        This class of wraps the workspace class in a 
+    """
+        This class of wraps the workspace class in a
         differentiable map
     """
 
@@ -256,14 +256,20 @@ class Workspace:
         return False
 
     def min_dist(self, pt):
-        mindist = float("inf")
-        minid = -1
+        if pt.shape == (2,):
+            d_m = float("inf")
+            i_m = -1
+        else:
+            shape = (pt.shape[1], pt.shape[2])
+            d_m = np.full(shape, np.inf)
+            i_m = np.full(shape, -1)
+
         for k, obst in enumerate(self.obstacles):
-            dist = obst.dist_from_border(pt)  # Signed distance
-            # print "dist.shape : ", dist.shape
-            if dist < mindist:
-                (mindist, minid) = (dist, k)
-        return [mindist, minid]
+            d = obst.dist_from_border(pt)
+            closer = d < d_m
+            d_m = np.where(closer, d, d_m)
+            i_m = np.where(closer, k, i_m)
+        return [d_m, i_m]
 
     def min_dist_gradient(self, pt):
         """ Warning: this gradient is ill defined
