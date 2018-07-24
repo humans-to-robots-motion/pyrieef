@@ -43,7 +43,7 @@ print trajectory.final_configuration()
 # assert check_jacobian_against_finite_difference(
 #     motion_optimization.objective, verbose=False)
 
-plt.figure(figsize=(6, 6))
+plt.figure(figsize=(7, 6.6))
 plt.axis('equal')
 plt.axis(workspace.box.box_extends())
 colorst = [cm.gist_ncar(i) for i in np.linspace(
@@ -62,8 +62,9 @@ nb_points = 100
 xs = np.linspace(extends.x_min, extends.x_max, nb_points)
 ys = np.linspace(extends.y_min, extends.y_max, nb_points)
 Z = signed_distance_field(np.stack(np.meshgrid(xs, ys)))
-plt.imshow(Z,
-           extent=workspace.box.box_extends(),
-           origin='lower',
-           interpolation='bilinear')
+im = plt.imshow(Z,
+                extent=workspace.box.box_extends(),
+                origin='lower',
+                interpolation='bilinear')
+plt.colorbar(im, fraction=0.05, pad=0.02)
 plt.show()

@@ -69,13 +69,10 @@ class Circle(Shape):
         # Oddly the norm of numpy is slower than the standard library here...
         # d = np.linalg.norm(x_center)
         d = np.sqrt(x_center[0]**2 + x_center[1]**2)
-        # print "d1 : {}, d : {}".format(d1, d)
-        # print "d : ", d
         return d - self.radius
 
     def dist_gradient(self, x):
         x_center = x - self.origin
-        # d = np.linalg.norm(x_center)
         d = np.sqrt(x_center[0]**2 + x_center[1]**2)
         return x_center / d
 
