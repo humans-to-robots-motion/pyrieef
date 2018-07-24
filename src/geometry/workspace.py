@@ -63,16 +63,21 @@ class Circle(Shape):
         """
             Signed distance
         """
-        x_center = x - self.origin
+        x_center = np.zeros(x.shape)
+        x_center[0] = x[0] - self.origin[0]
+        x_center[1] = x[1] - self.origin[1]
         # Oddly the norm of numpy is slower than the standard library here...
-        # d1 = np.linalg.norm(x_center)
-        d = math.sqrt(x_center[0]**2 + x_center[1]**2)
+        # d = np.linalg.norm(x_center)
+        d = np.sqrt(x_center[0]**2 + x_center[1]**2)
         # print "d1 : {}, d : {}".format(d1, d)
+        print "d : ", d
         return d - self.radius
 
     def dist_gradient(self, x):
         x_center = x - self.origin
-        return x_center / math.sqrt(x_center[0]**2 + x_center[1]**2)
+        # d = np.linalg.norm(x_center)
+        d = np.sqrt(x_center[0]**2 + x_center[1]**2)
+        return x_center / d
 
     def sampled_points(self):
         points = []
@@ -174,6 +179,12 @@ class Box:
         extends.y_max = box_extends[3]
         return extends
 
+    def mesh_grid(self, nb_points=100):
+        extends = self.extends()
+        x = np.linspace(extends.x_min, extends.x_max, nb_points)
+        y = np.linspace(extends.y_min, extends.y_max, nb_points)
+        return np.meshgrid(x, y)
+
 
 class SignedDistance2DMap(DifferentiableMap):
     """ 
@@ -249,9 +260,9 @@ class Workspace:
         minid = -1
         for k, obst in enumerate(self.obstacles):
             dist = obst.dist_from_border(pt)  # Signed distance
+            # print "dist.shape : ", dist.shape
             if dist < mindist:
-                mindist = dist
-                minid = k
+                (dist, k) = (mindist, minid)
         return [mindist, minid]
 
     def min_dist_gradient(self, pt):

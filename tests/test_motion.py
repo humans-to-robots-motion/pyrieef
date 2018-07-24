@@ -136,6 +136,7 @@ def test_motion_optimimization_2d():
         motion_optimization.objective)
 
     # Calulate speed up.
+    # print "Calculat analytic gradient speedup"
     # calculate_analytical_gradient_speedup(motion_optimization.objective)
 
 
