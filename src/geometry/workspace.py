@@ -272,9 +272,8 @@ class Workspace:
     def min_dist_gradient(self, pt):
         """ Warning: this gradient is ill defined
             it has a kink when two objects are at the same distance """
-        [mindist, minid] = self.min_dist(pt)
-        g_mindist = self.obstacles[minid].dist_gradient(pt)
-        return g_mindist
+        [d_m, i_m] = self.min_dist(pt)
+        return self.obstacles[i_m].dist_gradient(pt)
 
     def add_circle(self, origin=None, radius=None):
         if origin is None and radius is None:

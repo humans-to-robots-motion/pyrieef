@@ -21,6 +21,7 @@ import demos_common_imports
 from motion.motion_optimization import *
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
+from mpl_toolkits.mplot3d import Axes3D
 
 workspace = Workspace()
 workspace.obstacles.append(Circle(np.array([0.2, .15]), .1))
@@ -43,7 +44,7 @@ print trajectory.final_configuration()
 # assert check_jacobian_against_finite_difference(
 #     motion_optimization.objective, verbose=False)
 
-plt.figure(figsize=(7, 6.6))
+plt.figure(figsize=(7, 6.5))
 plt.axis('equal')
 plt.axis(workspace.box.box_extends())
 colorst = [cm.gist_ncar(i) for i in np.linspace(
@@ -61,10 +62,22 @@ plt.plot(x_goal[0], x_goal[1], 'bo')
 nb_points = 100
 xs = np.linspace(extends.x_min, extends.x_max, nb_points)
 ys = np.linspace(extends.y_min, extends.y_max, nb_points)
-Z = signed_distance_field(np.stack(np.meshgrid(xs, ys)))
+X, Y = np.meshgrid(xs, ys)
+Z = signed_distance_field(np.stack([X, Y]))
+color_style = plt.cm.hot
+color_style = plt.cm.bone
+color_style = plt.cm.magma
 im = plt.imshow(Z,
                 extent=workspace.box.box_extends(),
                 origin='lower',
-                interpolation='bilinear')
+                interpolation='bilinear',
+                cmap=color_style)
 plt.colorbar(im, fraction=0.05, pad=0.02)
+cs = plt.contour(X, Y, Z, 16, cmap=color_style)
+# plt.colorbar(cs, fraction=0.05, pad=0.02)
+plot_3d = False
+if plot_3d:
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.plot_surface(X, Y, Z, cmap=color_style, linewidth=0, antialiased=False)
 plt.show()

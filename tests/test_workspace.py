@@ -40,16 +40,14 @@ def test_ellipse():
 def sample_circles(nb_circles):
     centers = np.random.rand(nb_circles, 2)
     radii = np.random.rand(nb_circles)
-    return centers, radii
+    return zip(centers, radii)
 
 
 def test_sdf_jacobians():
     verbose = False
-    centers, radii = sample_circles(nb_circles=10)
     circles = []
-    for p, r in zip(centers, radii):
-        # print("p : {}, r : {}".format(p, r))
-        circles.append(Circle(p, r))
+    for center, radius in sample_circles(nb_circles=10):
+        circles.append(Circle(center, radius))
     for c in circles:
         signed_distance_field = SignedDistance2DMap(c)
         assert check_jacobian_against_finite_difference(
@@ -58,9 +56,8 @@ def test_sdf_jacobians():
 
 def test_sdf_workspace():
     workspace = Workspace()
-    centers, radii = sample_circles(nb_circles=10)
-    workspace.obstacles.append(Circle(centers[0], radii[0]))
-    workspace.obstacles.append(Circle(centers[1], radii[1]))
+    for center, radius in sample_circles(nb_circles=10):
+        workspace.obstacles.append(Circle(center, radius))
     signed_distance_field = SignedDistanceWorkspaceMap(workspace)
     assert check_jacobian_against_finite_difference(signed_distance_field)
 
