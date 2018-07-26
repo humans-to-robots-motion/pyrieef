@@ -33,7 +33,7 @@ class MotionOptimization2DCostMap:
         self.dt = 0.1                   # sample rate
         self.trajectory_space_dim = (self.config_space_dim * (self.T + 2))
         self.extends = extends
-        self.q_final = np.ones(2)
+        self.q_goal = .3 * np.ones(2)
         self.workspace = None
         self.objective = None
 
@@ -47,6 +47,9 @@ class MotionOptimization2DCostMap:
         # TODO see why n==1 doesn't work...
         if self.config_space_dim > 1:
             self.create_objective()
+
+        # Create metric for natural gradient descent
+        self.create_smoothness_metric()
 
     def center_of_clique_map(self):
         """ x_{t} """
@@ -69,25 +72,23 @@ class MotionOptimization2DCostMap:
 
     def create_workspace(self):
         self.workspace = Workspace()
-        self.workspace.obstacles.append(Circle(np.array([0.4, 0.2]), .2))
-        self.workspace.obstacles.append(Circle(np.array([0.0, 0.2]), .1))
+        self.workspace.obstacles.append(Circle(np.array([0.2, .15]), .1))
+        self.workspace.obstacles.append(Circle(np.array([-.1, .15]), .1))
         self.sdf = SignedDistanceWorkspaceMap(self.workspace)
 
     def create_smoothness_metric(self):
         a = FiniteDifferencesAcceleration(1, 1).a()
         K_dof = np.matrix(np.zeros((self.T + 2, self.T + 2)))
         for i in range(0, self.T + 2):
-            print i
             if i == 0:
                 K_dof[i, i:i + 2] = a[0, 1:3]
             elif i == self.T + 1:
                 K_dof[i, i - 1:i + 1] = a[0, 0:2]
             elif i > 0:
                 K_dof[i, i - 1:i + 2] = a
-
         A_dof = K_dof.transpose() * K_dof
-        print K_dof
-        print A_dof
+        # print K_dof
+        # print A_dof
 
         # represented in the form :  \xi = [q_0 ; q_1; ... ; q_2]
         K_full = np.matrix(np.zeros((
@@ -99,9 +100,10 @@ class MotionOptimization2DCostMap:
                 id_col = j * self.config_space_dim + dof
                 if id_row < K_full.shape[0] and id_col < K_full.shape[1]:
                     K_full[id_row, id_col] = K_dof[i, j]
-        print K_full
-        print K_full.shape
+        # print K_full
+        # print K_full.shape
         A = K_full.transpose() * K_full
+        self.metric = A
         return A
 
     def create_objective(self):
@@ -114,7 +116,9 @@ class MotionOptimization2DCostMap:
         squared_norm_acc = Compose(
             SquaredNorm(np.zeros(self.config_space_dim)),
             FiniteDifferencesAcceleration(self.config_space_dim, self.dt))
-        self.objective.register_function_for_all_cliques(squared_norm_acc)
+
+        # TODO add some scalling this is either too string or doesn't work
+        # self.objective.register_function_for_all_cliques(squared_norm_acc)
 
         # Obstacle term.
         obstacle_potential = Compose(
@@ -134,8 +138,23 @@ class MotionOptimization2DCostMap:
 
         # Terminal term.
         terminal_potential = Compose(
-            SquaredNorm(self.q_final),
+            SquaredNorm(self.q_goal),
             self.center_of_clique_map())
         self.objective.register_function_last_clique(terminal_potential)
 
         print self.objective.nb_cliques()
+
+    def optimize(self, q_init, nb_steps=100, trajectory=None):
+        if trajectory is None:
+            trajectory = linear_interpolation_trajectory(
+                q_init, self.q_goal, self.T)
+        optimizer = NaturalGradientDescent(self.objective, self.metric)
+        xi = trajectory.x()
+        dist = float("inf")
+        for i in range(nb_steps):
+            xi = optimizer.one_step(xi)
+            trajectory.x()[:] = xi
+            dist = np.linalg.norm(
+                trajectory.final_configuration() - self.q_goal)
+            print "dist[{}] : {}".format(i, dist)
+        return [dist < 1.e-3, trajectory]

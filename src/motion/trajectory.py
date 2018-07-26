@@ -179,3 +179,10 @@ def linear_interpolation_trajectory(q_init, q_goal, T):
         alpha = min(float(i) / float(T), 1)
         trajectory.configuration(i)[:] = (1 - alpha) * q_init + alpha * q_goal
     return trajectory
+
+
+def no_motion_trajectory(q_init, T):
+    trajectory = Trajectory(T, q_init.size)
+    for i in range(T + 2):
+        trajectory.configuration(i)[:] = q_init
+    return trajectory

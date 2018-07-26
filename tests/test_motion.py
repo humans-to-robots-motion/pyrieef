@@ -146,6 +146,12 @@ def test_motion_optimimization_smoothness_metric():
     A = motion_optimization.create_smoothness_metric()
 
 
+def test_optimize():
+    print "Checkint Motion Optimization"
+    q_init = np.zeros(2)
+    motion_optimization = MotionOptimization2DCostMap()
+    motion_optimization.optimize(q_init)
+
 if __name__ == "__main__":
     test_trajectory()
     test_cliques()
@@ -153,3 +159,4 @@ if __name__ == "__main__":
     test_obstacle_potential()
     test_motion_optimimization_2d()
     test_motion_optimimization_smoothness_metric()
+    test_optimize()

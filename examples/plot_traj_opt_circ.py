@@ -29,19 +29,12 @@ workspace.obstacles.append(Circle(np.array([-.1, .15]), .1))
 signed_distance_field = SignedDistanceWorkspaceMap(workspace)
 extends = workspace.box.extends()
 motion_optimization = MotionOptimization2DCostMap(
-    T=10, n=2, extends=extends, signed_distance_field=signed_distance_field)
+    T=20, n=2, extends=extends, signed_distance_field=signed_distance_field)
 
 trajectory = Trajectory(motion_optimization.T)
 x_init = -0.2 * np.ones(2)
 x_goal = .3 * np.ones(2)
-print "x_init : ", x_init
-print "x_goal : ", x_goal
-trajectory = linear_interpolation_trajectory(
-    x_init, x_goal, motion_optimization.T)
-print trajectory.configuration(0)
-print trajectory.final_configuration()
-# assert check_jacobian_against_finite_difference(
-#     motion_optimization.objective, verbose=False)
+
 
 plt.figure(figsize=(7, 6.5))
 plt.axis('equal')
@@ -79,4 +72,16 @@ if plot_3d:
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     ax.plot_surface(X, Y, Z, cmap=color_style, linewidth=0, antialiased=False)
+
+# Plot trajectory
+trajectory = linear_interpolation_trajectory(
+    x_init, x_goal, motion_optimization.T)
+for i in range(100):
+    [dist, trajectory] = motion_optimization.optimize(x_init, 1, trajectory)
+for k in range(motion_optimization.T + 1):
+    q = trajectory.configuration(k)
+    plt.plot(q[0], q[1], 'ro')
+    # plt.show(block=False)
+    # plt.draw()
+    # plt.pause(0.0001)
 plt.show()

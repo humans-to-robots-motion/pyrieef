@@ -24,33 +24,39 @@ import numpy as np
 
 class UnconstraintedOptimizer:
 
-    def __init__(self):
-        self._eta = 0.01
-        self._f = None
+    def __init__(self, f):
+        self._eta = 0.001
+        self._f = f
 
     @abstractmethod
-    def one_step(self):
+    def one_step(self, x):
         raise NotImplementedError()
 
 
-class GradientDescent:
+class GradientDescent(UnconstraintedOptimizer):
 
-    def one_step(self):
-        self.x = self.x - self._eta * self.f_.gradient(x)
+    def one_step(self, x):
+        g = self.f_.gradient(x)
+        return x - self._eta * g / np.linalg.norm(g)
 
 
-class NaturalGradientDescent:
+class NaturalGradientDescent(UnconstraintedOptimizer):
 
-    def __init__(self, A):
+    def __init__(self, f, A):
+        UnconstraintedOptimizer.__init__(self, f)
         self.A_inv = np.linalg.inv(A)
+        # self.A_inv = np.eye(self.A_inv.shape[0])
 
-    def one_step(self):
-        self.x = self.x - self._eta * self.A_inv * self.gradient(x)
+    def one_step(self, x):
+        g = self._f.gradient(x)
+        delta = self.A_inv * np.matrix(g).transpose() / np.linalg.norm(g)
+        delta = np.array(delta).reshape(x.size)
+        return x - self._eta * delta
 
 
-class NetwtonAlgorithm:
+class NetwtonAlgorithm(UnconstraintedOptimizer):
 
-    def one_step(self):
+    def one_step(self, x):
         H = self.f_.hessian(x)
         g = self.f_.gradient(x)
-        self.x = self.x - self._eta * np.linalg.solve(H, g)
+        return x - self._eta * np.linalg.solve(H, g)
