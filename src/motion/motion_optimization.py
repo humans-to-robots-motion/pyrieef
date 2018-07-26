@@ -27,10 +27,10 @@ from geometry.workspace import *
 
 class MotionOptimization2DCostMap:
 
-    def __init__(self, extends, signed_distance_field):
-        self.T = 20      # time steps
-        self.dt = 0.1    # sample rate
-        self.config_space_dim = 2
+    def __init__(self, T=10, n=2, extends=None, signed_distance_field=None):
+        self.config_space_dim = n       # nb of dofs
+        self.T = T                      # time steps
+        self.dt = 0.1                   # sample rate
         self.trajectory_space_dim = (self.config_space_dim * (self.T + 2))
         self.extends = extends
         self.q_final = np.ones(2)
@@ -44,7 +44,9 @@ class MotionOptimization2DCostMap:
             self.create_workspace()
 
         # Here we combine everything to make an objective
-        self.create_objective()
+        # TODO see why n==1 doesn't work...
+        if self.config_space_dim > 1:
+            self.create_objective()
 
     def center_of_clique_map(self):
         """ x_{t} """
@@ -70,6 +72,37 @@ class MotionOptimization2DCostMap:
         self.workspace.obstacles.append(Circle(np.array([0.4, 0.2]), .2))
         self.workspace.obstacles.append(Circle(np.array([0.0, 0.2]), .1))
         self.sdf = SignedDistanceWorkspaceMap(self.workspace)
+
+    def create_smoothness_metric(self):
+        a = FiniteDifferencesAcceleration(1, 1).a()
+        K_dof = np.matrix(np.zeros((self.T + 2, self.T + 2)))
+        for i in range(0, self.T + 2):
+            print i
+            if i == 0:
+                K_dof[i, i:i + 2] = a[0, 1:3]
+            elif i == self.T + 1:
+                K_dof[i, i - 1:i + 1] = a[0, 0:2]
+            elif i > 0:
+                K_dof[i, i - 1:i + 2] = a
+
+        A_dof = K_dof.transpose() * K_dof
+        print K_dof
+        print A_dof
+
+        # represented in the form :  \xi = [q_0 ; q_1; ... ; q_2]
+        K_full = np.matrix(np.zeros((
+            self.config_space_dim * (self.T + 2),
+            self.config_space_dim * (self.T + 2))))
+        for dof in range(0, self.config_space_dim):
+            for (i, j), K_ij in np.ndenumerate(K_full):
+                id_row = i * self.config_space_dim + dof
+                id_col = j * self.config_space_dim + dof
+                if id_row < K_full.shape[0] and id_col < K_full.shape[1]:
+                    K_full[id_row, id_col] = K_dof[i, j]
+        print K_full
+        print K_full.shape
+        A = K_full.transpose() * K_full
+        return A
 
     def create_objective(self):
         # Creates a differentiable clique function.

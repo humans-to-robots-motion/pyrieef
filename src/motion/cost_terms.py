@@ -41,6 +41,9 @@ class FiniteDifferencesAcceleration(AffineMap):
         self._a[0:dim, (2 * dim):(3 * dim)] = I
         self._a /= (dt * dt)
 
+    def a(self):
+        return self._a.copy()
+
 
 class FiniteDifferencesVelocity(AffineMap):
 
@@ -59,6 +62,9 @@ class FiniteDifferencesVelocity(AffineMap):
         self._a[0:dim, 0:dim] = -I
         self._a[0:dim, dim:(2 * dim)] = I
         self._a /= dt
+
+    def a(self):
+        return self._a.copy()
 
 
 class ObstaclePotential2D(DifferentiableMap):

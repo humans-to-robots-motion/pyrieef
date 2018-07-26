@@ -29,8 +29,7 @@ workspace.obstacles.append(Circle(np.array([-.1, .15]), .1))
 signed_distance_field = SignedDistanceWorkspaceMap(workspace)
 extends = workspace.box.extends()
 motion_optimization = MotionOptimization2DCostMap(
-    extends,
-    signed_distance_field)
+    T=10, n=2, extends=extends, signed_distance_field=signed_distance_field)
 
 trajectory = Trajectory(motion_optimization.T)
 x_init = -0.2 * np.ones(2)

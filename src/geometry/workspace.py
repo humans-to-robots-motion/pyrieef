@@ -72,7 +72,9 @@ class Circle(Shape):
         return d - self.radius
 
     def dist_gradient(self, x):
-        x_center = x - self.origin
+        x_center = np.zeros(x.shape)
+        x_center[0] = x[0] - self.origin[0]
+        x_center[1] = x[1] - self.origin[1]
         d = np.sqrt(x_center[0]**2 + x_center[1]**2)
         return x_center / d
 

@@ -120,7 +120,7 @@ def calculate_analytical_gradient_speedup(f, nb_points=10):
 
 def test_motion_optimimization_2d():
     print "Checkint Motion Optimization"
-    motion_optimization = MotionOptimization2DCostMap(None, None)
+    motion_optimization = MotionOptimization2DCostMap()
     trajectory = Trajectory(motion_optimization.T)
     sum_acceleration = motion_optimization.cost(trajectory)
     print "sum_acceleration : ", sum_acceleration
@@ -140,9 +140,16 @@ def test_motion_optimimization_2d():
     # calculate_analytical_gradient_speedup(motion_optimization.objective)
 
 
+def test_motion_optimimization_smoothness_metric():
+    print "Checkint Motion Optimization"
+    motion_optimization = MotionOptimization2DCostMap()
+    A = motion_optimization.create_smoothness_metric()
+
+
 if __name__ == "__main__":
     test_trajectory()
     test_cliques()
     test_finite_differences()
     test_obstacle_potential()
     test_motion_optimimization_2d()
+    test_motion_optimimization_smoothness_metric()
