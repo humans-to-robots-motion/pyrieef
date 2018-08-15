@@ -4,6 +4,7 @@ imported from openai 15/08/08
 https://github.com/openai/gym/blob/master/gym/envs/classic_control/rendering.py
 """
 from __future__ import division
+from __future__ import print_function
 import os
 import six
 import sys
@@ -19,14 +20,13 @@ if "Apple" in sys.version:
 try:
     import pyglet
 except ImportError as e:
-    reraise(
-        suffix="HINT: you can install pyglet directly via 'pip install pyglet'. But if you really just want to install all Gym dependencies and not have to think about it, 'pip install -e .[all]' or 'pip install gym[all]' will do it.")
+    print(
+        "HINT: you can install pyglet directly via 'pip install pyglet'. But if you really just want to install all Gym dependencies and not have to think about it, 'pip install -e .[all]' or 'pip install gym[all]' will do it.")
 
 try:
     from pyglet.gl import *
 except ImportError as e:
-    reraise(prefix="Error occured while running `from pyglet.gl import *`",
-            suffix="HINT: make sure you have OpenGL install. On Ubuntu, you can run 'apt-get install python-opengl'. If you're running on a server, you may need a virtual frame buffer; something like this should work: 'xvfb-run -s \"-screen 0 1400x900x24\" python <your_script.py>'")
+    print("Error occured while running `from pyglet.gl import *`, HINT: make sure you have OpenGL install. On Ubuntu, you can run 'apt-get install python-opengl'. If you're running on a server, you may need a virtual frame buffer; something like this should work: 'xvfb-run -s \"-screen 0 1400x900x24\" python <your_script.py>'")
 
 import math
 import numpy as np
@@ -44,8 +44,9 @@ def get_display(spec):
     elif isinstance(spec, six.string_types):
         return pyglet.canvas.Display(spec)
     else:
-        raise error.Error(
+        print(
             'Invalid display specification: {}. (Must be a string like :0 or None.)'.format(spec))
+        raise
 
 
 class Viewer(object):
@@ -385,7 +386,8 @@ class SimpleImageViewer(object):
         if self.window is None:
             height, width, _channels = arr.shape
             self.window = pyglet.window.Window(
-                width=4 * width, height=4 * height, display=self.display, vsync=False, resizable=True)
+                width=4 * width, height=4 * height,
+                display=self.display, vsync=False, resizable=True)
             self.width = width
             self.height = height
             self.isopen = True
@@ -399,10 +401,11 @@ class SimpleImageViewer(object):
             def on_close():
                 self.isopen = False
 
-        assert len(
-            arr.shape) == 3, "You passed in an image with the wrong number shape"
-        image = pyglet.image.ImageData(arr.shape[1], arr.shape[
-                                       0], 'RGB', arr.tobytes(), pitch=arr.shape[1] * -3)
+        # assert len(arr.shape) == 3
+        # "You passed in an image with the wrong number shape")
+        image = pyglet.image.ImageData(arr.shape[1], arr.shape[0],
+                                       'RGB', arr.tobytes(),
+                                       pitch=arr.shape[1] * -3)
         self.window.clear()
         self.window.switch_to()
         self.window.dispatch_events()
