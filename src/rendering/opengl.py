@@ -401,11 +401,11 @@ class SimpleImageViewer(object):
             def on_close():
                 self.isopen = False
 
-        # assert len(arr.shape) == 3
-        # "You passed in an image with the wrong number shape")
-        image = pyglet.image.ImageData(arr.shape[1], arr.shape[0],
-                                       'RGB', arr.tobytes(),
-                                       pitch=arr.shape[1] * -3)
+        error_msg = "You passed in an image with the wrong number shape"
+        assert len(arr.shape) == 3, error_msg
+        image = pyglet.image.ImageData(
+            arr.shape[1], arr.shape[0], 'RGB',
+            arr.tobytes(), pitch=arr.shape[1] * -3)
         self.window.clear()
         self.window.switch_to()
         self.window.dispatch_events()
