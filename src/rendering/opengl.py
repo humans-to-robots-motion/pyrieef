@@ -360,17 +360,29 @@ class Line(Geom):
 
 class Image(Geom):
 
-    def __init__(self, fname, width, height):
+    def __init__(self, width, height, arr=None, fname=None):
         Geom.__init__(self)
         self.width = width
         self.height = height
-        img = pyglet.image.load(fname)
+        if fname is not None:
+            img = pyglet.image.load(fname)
+        elif arr is not None:
+            img = pyglet.image.ImageData(
+                arr.shape[1], arr.shape[0], 'RGB',
+                arr.tobytes(), pitch=arr.shape[1] * -3)
+        else:
+            raise
+
         self.img = img
         self.flip = False
 
+        self.image_sprite  = pyglet.sprite.Sprite(img)
+
     def render1(self):
-        self.img.blit(-self.width / 2, -self.height / 2,
-                      width=self.width, height=self.height)
+        # self.img.blit(0, 0, width=self.width, height=self.height)
+        self.image_sprite.draw()
+        # self.img.blit(-self.width / 2, -self.height / 2,
+        #               width=self.width, height=self.height)
 
 # ================================================================
 

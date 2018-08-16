@@ -181,7 +181,7 @@ class Box:
     def diag(self):
         return np.sqrt(self.dim[0] ** 2 + self.dim[1]**2)
 
-    def mesh_grid(self, nb_points=100):
+    def meshgrid(self, nb_points=100):
         extends = self.extends()
         x = np.linspace(extends.x_min, extends.x_max, nb_points)
         y = np.linspace(extends.y_min, extends.y_max, nb_points)

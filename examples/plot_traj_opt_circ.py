@@ -52,9 +52,7 @@ plt.plot(x_init[0], x_init[1], 'ro')
 plt.plot(x_goal[0], x_goal[1], 'bo')
 
 nb_points = 100
-xs = np.linspace(extends.x_min, extends.x_max, nb_points)
-ys = np.linspace(extends.y_min, extends.y_max, nb_points)
-X, Y = np.meshgrid(xs, ys)
+X, Y = workspace.box.meshgrid(nb_points)
 Z = signed_distance_field(np.stack([X, Y]))
 color_style = plt.cm.hot
 color_style = plt.cm.bone
