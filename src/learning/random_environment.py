@@ -74,6 +74,34 @@ def grids(workspace, grid_to_world, epsilon):
     return [occupancy, sdf, costs]
 
 
+def sample_circle_workspace(box, 
+    nobjs_max=3, random_max=False, maxnumtries=100):
+    """ Samples a workspace made of a maximum of 
+        nobjs_max circles that do not intersect 
+        todo replace the random environment script to use this function """
+    workspace = Workspace(box)
+    extends = box.extends()
+    lims = np.array([[0., 1.], [0., 1.]])
+    lims[0][1] = extends.x_max
+    lims[0][0] = extends.x_min
+    lims[1][1] = extends.y_max
+    lims[1][0] = extends.y_min
+    diagonal = box.diag()
+    minrad = .10 * diagonal
+    maxrad = .15 * diagonal
+    nobj = nobjs_max if not random_max else int(ceil(random() * nobjs_max))
+    found = False
+    for numtries in range(maxnumtries):
+        r = minrad + random() * (maxrad - minrad)
+        c = samplerandpt(lims)
+        [min_dist, obstacle_id] = workspace.min_dist(c)
+        if min_dist >= (r + .01 * diagonal):
+            workspace.add_circle(c, r)
+        if len(workspace.obstacles) >= nobj:
+            return workspace
+    return None
+
+
 def random_environments(opt):
 
     ndim = 2
