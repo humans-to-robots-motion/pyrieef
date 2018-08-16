@@ -115,6 +115,26 @@ class Compose(DifferentiableMap):
         return [y, J]
 
 
+class Scale(DifferentiableMap):
+    """Scales a function by a constant"""
+
+    def __init__(self, f, alpha):
+        self._f = f
+        self._alpha = alpha
+
+    def output_dimension(self):
+        return self._f.output_dimension()
+
+    def input_dimension(self):
+        return self._f.input_dimension()
+
+    def forward(self, q):
+        return self._alpha * self._f.forward(q)
+
+    def jacobian(self, q):
+        return self._alpha * self._f.jacobian(q)
+
+
 class RangeSubspaceMap(DifferentiableMap):
     """Take only some outputs"""
 

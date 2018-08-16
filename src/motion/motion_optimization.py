@@ -30,12 +30,17 @@ class MotionOptimization2DCostMap:
     def __init__(self, T=10, n=2, extends=None, signed_distance_field=None):
         self.config_space_dim = n       # nb of dofs
         self.T = T                      # time steps
-        self.dt = 0.1                   # sample rate
+        self.dt = .1                    # sample rate
         self.trajectory_space_dim = (self.config_space_dim * (self.T + 2))
         self.extends = extends
         self.q_goal = .3 * np.ones(2)
         self.workspace = None
         self.objective = None
+
+        self._eta = 1.
+        self._obstacle_scalar = 1000
+        self._term_potential_scalar = 0.0
+        self._smoothness_scalar = 0.0
 
         # We only need the signed distance field
         # to create a trajectory optimization problem
@@ -77,7 +82,7 @@ class MotionOptimization2DCostMap:
         self.sdf = SignedDistanceWorkspaceMap(self.workspace)
 
     def create_smoothness_metric(self):
-        a = FiniteDifferencesAcceleration(1, 1).a()
+        a = FiniteDifferencesAcceleration(1, self.dt).a()
         K_dof = np.matrix(np.zeros((self.T + 2, self.T + 2)))
         for i in range(0, self.T + 2):
             if i == 0:
@@ -116,9 +121,8 @@ class MotionOptimization2DCostMap:
         squared_norm_acc = Compose(
             SquaredNorm(np.zeros(self.config_space_dim)),
             FiniteDifferencesAcceleration(self.config_space_dim, self.dt))
-
-        # TODO add some scalling this is either too string or doesn't work
-        # self.objective.register_function_for_all_cliques(squared_norm_acc)
+        # self.objective.register_function_for_all_cliques(
+        #     Scale(squared_norm_acc, self._smoothness_scalar))
 
         # Obstacle term.
         obstacle_potential = Compose(
@@ -134,13 +138,14 @@ class MotionOptimization2DCostMap:
             obstacle_potential,
             squared_norm_vel)
         self.objective.register_function_for_all_cliques(
-            isometric_obstacle_cost)
+            Scale(isometric_obstacle_cost, self._obstacle_scalar))
 
         # Terminal term.
         terminal_potential = Compose(
             SquaredNorm(self.q_goal),
             self.center_of_clique_map())
-        self.objective.register_function_last_clique(terminal_potential)
+        # self.objective.register_function_last_clique(
+        #     Scale(terminal_potential, self._term_potential_scalar))
 
         print self.objective.nb_cliques()
 
@@ -149,6 +154,7 @@ class MotionOptimization2DCostMap:
             trajectory = linear_interpolation_trajectory(
                 q_init, self.q_goal, self.T)
         optimizer = NaturalGradientDescent(self.objective, self.metric)
+        optimizer.set_eta(self._eta)
         xi = trajectory.x()
         dist = float("inf")
         for i in range(nb_steps):
@@ -156,5 +162,7 @@ class MotionOptimization2DCostMap:
             trajectory.x()[:] = xi
             dist = np.linalg.norm(
                 trajectory.final_configuration() - self.q_goal)
-            print "dist[{}] : {}".format(i, dist)
+            print "dist[{}] : {}, objective : {}, gnorm {}".format(
+                i, dist, optimizer.objective(xi),
+                np.linalg.norm(optimizer.gradient(xi)))
         return [dist < 1.e-3, trajectory]

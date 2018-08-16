@@ -91,6 +91,18 @@ def test_affine():
     assert check_jacobian_against_finite_difference(f)
 
 
+def test_scale():
+    dim = 3
+    a = np.random.rand(dim, dim)
+    b = np.random.rand(dim)
+    f = AffineMap(a, b)
+
+    g = Scale(f, .3)
+
+    print "Check Scale (J implementation) : "
+    assert check_jacobian_against_finite_difference(g)
+
+
 def test_regressed_grid():
 
     l = 0.5
@@ -223,6 +235,7 @@ if __name__ == "__main__":
     test_zero()
     test_square_norm()
     test_affine()
+    test_scale()
     test_regressed_grid()
     test_quadric()
     test_composition()

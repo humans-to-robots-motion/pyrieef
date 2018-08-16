@@ -74,7 +74,7 @@ class ObstaclePotential2D(DifferentiableMap):
         assert signed_distance_field.output_dimension() == 1
         self._sdf = signed_distance_field
         self._rho_scaling = 1.e-3
-        self._alpha = 20.
+        self._alpha = 100.
 
     def output_dimension(self):
         return 3

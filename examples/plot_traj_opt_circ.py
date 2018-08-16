@@ -22,6 +22,10 @@ from motion.motion_optimization import *
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from mpl_toolkits.mplot3d import Axes3D
+from rendering import workspace_renderer
+import time
+
+use_matplotlib = False
 
 workspace = Workspace()
 workspace.obstacles.append(Circle(np.array([0.2, .15]), .1))
@@ -51,35 +55,50 @@ for i, o in enumerate(workspace.obstacles):
 plt.plot(x_init[0], x_init[1], 'ro')
 plt.plot(x_goal[0], x_goal[1], 'bo')
 
-nb_points = 100
-X, Y = workspace.box.meshgrid(nb_points)
-Z = signed_distance_field(np.stack([X, Y]))
-color_style = plt.cm.hot
-color_style = plt.cm.bone
-color_style = plt.cm.magma
-im = plt.imshow(Z,
-                extent=workspace.box.box_extends(),
-                origin='lower',
-                interpolation='bilinear',
-                cmap=color_style)
-plt.colorbar(im, fraction=0.05, pad=0.02)
-cs = plt.contour(X, Y, Z, 16, cmap=color_style)
-# plt.colorbar(cs, fraction=0.05, pad=0.02)
-plot_3d = False
-if plot_3d:
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    ax.plot_surface(X, Y, Z, cmap=color_style, linewidth=0, antialiased=False)
-
-# Plot trajectory
 trajectory = linear_interpolation_trajectory(
     x_init, x_goal, motion_optimization.T)
-for i in range(100):
-    [dist, trajectory] = motion_optimization.optimize(x_init, 1, trajectory)
-for k in range(motion_optimization.T + 1):
-    q = trajectory.configuration(k)
-    plt.plot(q[0], q[1], 'ro')
-    # plt.show(block=False)
-    # plt.draw()
-    # plt.pause(0.0001)
-plt.show()
+
+if use_matplotlib:
+    nb_points = 100
+    X, Y = workspace.box.meshgrid(nb_points)
+    Z = signed_distance_field(np.stack([X, Y]))
+    color_style = plt.cm.hot
+    color_style = plt.cm.bone
+    color_style = plt.cm.magma
+    im = plt.imshow(Z,
+                    extent=workspace.box.box_extends(),
+                    origin='lower',
+                    interpolation='bilinear',
+                    cmap=color_style)
+    plt.colorbar(im, fraction=0.05, pad=0.02)
+    cs = plt.contour(X, Y, Z, 16, cmap=color_style)
+    # plt.colorbar(cs, fraction=0.05, pad=0.02)
+    plot_3d = False
+    if plot_3d:
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        ax.plot_surface(X, Y, Z, cmap=color_style,
+                        linewidth=0, antialiased=False)
+
+    # Plot trajectory
+    for i in range(100):
+        [dist, trajectory] = motion_optimization.optimize(
+            x_init, 1, trajectory)
+    for k in range(motion_optimization.T + 1):
+        q = trajectory.configuration(k)
+        plt.plot(q[0], q[1], 'ro')
+        # plt.show(block=False)
+        # plt.draw()
+        # plt.pause(0.0001)
+    plt.show()
+else:
+    viewer = workspace_renderer.WorkspaceRender(workspace)
+    for i in range(100):
+        [dist, trajectory] = motion_optimization.optimize(
+            x_init, 1, trajectory)
+        for k in range(motion_optimization.T + 1):
+            q = trajectory.configuration(k)
+            viewer.add_circle(.01, q)
+        viewer.render()
+        time.sleep(0.02)
+    raw_input("Press Enter to continue...")

@@ -27,7 +27,7 @@ from skimage import img_as_ubyte
 from skimage.color import rgba2rgb
 from skimage.transform import rescale, resize
 import matplotlib.pyplot as plt
-cmap = plt.get_cmap('hot')
+cmap = plt.get_cmap('cool')
 
 
 # Red, Green, Blue
@@ -45,14 +45,15 @@ class WorkspaceRender(Viewer):
 
     def __init__(self, workspace, display=None):
         self._workspace = workspace
-        extends = workspace.box.extends()
-        scale = 400.
-        self.width = scale * (extends.x_max - extends.x_min)
-        self.height = scale * (extends.y_max - extends.y_min)
+        self._extends = workspace.box.extends()
+        self._scale = 400.
+        self.width = self._scale * (self._extends.x_max - self._extends.x_min)
+        self.height = self._scale * (self._extends.y_max - self._extends.y_min)
         Viewer.__init__(self, self.width, self.height, display)
 
+        # Get SDF as image
         signed_distance_field = SignedDistanceWorkspaceMap(self._workspace)
-        X, Y = box.meshgrid()
+        X, Y = self._workspace.box.meshgrid()
         Z = signed_distance_field(np.stack([X, Y]))
         Z = rgba2rgb(cmap(Z))
         Z = resize(Z, (self.width, self.height))
@@ -63,15 +64,25 @@ class WorkspaceRender(Viewer):
         image.add_attr(Transform())
         self.add_geom(image)
 
+        # Add obstacles.
         for i, o in enumerate(self._workspace.obstacles):
             if isinstance(o, Circle):
-                circ = make_circle(scale * o.radius, 30)
-                origin = o.origin - np.array([extends.x_min, extends.y_min])
-                t = Transform(translation=scale * origin)
+                circ = make_circle(self._scale * o.radius, 30)
+                origin = o.origin - np.array(
+                    [self._extends.x_min, self._extends.y_min])
+                t = Transform(translation=self._scale * origin)
                 print "o.origin {}, o.radius {}".format(o.origin, o.radius)
                 circ.add_attr(t)
                 circ.set_color(*COLORS[i])
                 self.add_geom(circ)
+
+    def add_circle(self, radius, origin):
+        t = Transform(translation=self._scale * (
+            origin - np.array([self._extends.x_min, self._extends.y_min])))
+        circ = make_circle(self._scale * radius, 30)
+        circ.add_attr(t)
+        # circ.set_color(*COLORS[0])
+        self.add_onetime(circ)
 
 
 if __name__ == '__main__':

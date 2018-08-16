@@ -25,12 +25,21 @@ import numpy as np
 class UnconstraintedOptimizer:
 
     def __init__(self, f):
-        self._eta = 0.001
+        self._eta = 0.0003
         self._f = f
 
     @abstractmethod
     def one_step(self, x):
         raise NotImplementedError()
+
+    def objective(self, x):
+        return self._f(x)
+
+    def gradient(self, x):
+        return self._f.gradient(x)
+
+    def set_eta(self, eta):
+        self._eta = eta
 
 
 class GradientDescent(UnconstraintedOptimizer):
@@ -45,6 +54,7 @@ class NaturalGradientDescent(UnconstraintedOptimizer):
     def __init__(self, f, A):
         UnconstraintedOptimizer.__init__(self, f)
         self.A_inv = np.linalg.inv(A)
+        np.savetxt('A_inv.txt', self.A_inv, fmt='%.2f')
         # self.A_inv = np.eye(self.A_inv.shape[0])
 
     def one_step(self, x):
