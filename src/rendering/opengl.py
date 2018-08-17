@@ -357,6 +357,9 @@ class Line(Geom):
         glVertex2f(*self.end)
         glEnd()
 
+    def set_linewidth(self, x):
+        self.linewidth.stroke = x
+
 
 class Image(Geom):
 
@@ -376,7 +379,7 @@ class Image(Geom):
         self.img = img
         self.flip = False
 
-        self.image_sprite  = pyglet.sprite.Sprite(img)
+        self.image_sprite = pyglet.sprite.Sprite(img)
 
     def render1(self):
         # self.img.blit(0, 0, width=self.width, height=self.height)

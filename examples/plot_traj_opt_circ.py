@@ -23,6 +23,7 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from mpl_toolkits.mplot3d import Axes3D
 from rendering import workspace_renderer
+from rendering import opengl
 import time
 
 use_matplotlib = False
@@ -36,6 +37,7 @@ motion_optimization = MotionOptimization2DCostMap(
     T=20, n=2, extends=extends, signed_distance_field=signed_distance_field)
 
 trajectory = Trajectory(motion_optimization.T)
+g_traj = Trajectory(motion_optimization.T)
 x_init = -0.2 * np.ones(2)
 x_goal = .3 * np.ones(2)
 
@@ -94,11 +96,13 @@ if use_matplotlib:
 else:
     viewer = workspace_renderer.WorkspaceRender(workspace)
     for i in range(100):
-        [dist, trajectory] = motion_optimization.optimize(
+        [dist, trajectory, gradient] = motion_optimization.optimize(
             x_init, 1, trajectory)
+        g_traj.set( .001 * gradient - trajectory.x()[:])
         for k in range(motion_optimization.T + 1):
             q = trajectory.configuration(k)
-            viewer.add_circle(.01, q)
+            viewer.draw_ws_circle(.01, q)
+            viewer.draw_ws_line(q, g_traj.configuration(k))
         viewer.render()
         time.sleep(0.02)
     raw_input("Press Enter to continue...")

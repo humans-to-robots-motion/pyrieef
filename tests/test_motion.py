@@ -98,8 +98,13 @@ def test_obstacle_potential():
     workspace = Workspace()
     for center, radius in zip(centers, radii):
         workspace.obstacles.append(Circle(center, radius))
-    phi = ObstaclePotential2D(SignedDistanceWorkspaceMap(workspace))
+    sdf = SignedDistanceWorkspaceMap(workspace)
+    phi = ObstaclePotential2D(sdf)
     print "Checkint Obstacle Potential"
+    assert check_jacobian_against_finite_difference(phi)
+
+    phi = SimplePotential2D(sdf)
+    print "Checkint Simple Potential"
     assert check_jacobian_against_finite_difference(phi)
 
 

@@ -27,7 +27,7 @@ from skimage import img_as_ubyte
 from skimage.color import rgba2rgb
 from skimage.transform import rescale, resize
 import matplotlib.pyplot as plt
-cmap = plt.get_cmap('cool')
+cmap = plt.get_cmap('plasma')
 
 
 # Red, Green, Blue
@@ -46,7 +46,7 @@ class WorkspaceRender(Viewer):
     def __init__(self, workspace, display=None):
         self._workspace = workspace
         self._extends = workspace.box.extends()
-        self._scale = 400.
+        self._scale = 1000.
         self.width = self._scale * (self._extends.x_max - self._extends.x_min)
         self.height = self._scale * (self._extends.y_max - self._extends.y_min)
         Viewer.__init__(self, self.width, self.height, display)
@@ -76,13 +76,19 @@ class WorkspaceRender(Viewer):
                 circ.set_color(*COLORS[i])
                 self.add_geom(circ)
 
-    def add_circle(self, radius, origin):
+    def draw_ws_circle(self, radius, origin):
         t = Transform(translation=self._scale * (
             origin - np.array([self._extends.x_min, self._extends.y_min])))
         circ = make_circle(self._scale * radius, 30)
         circ.add_attr(t)
         # circ.set_color(*COLORS[0])
         self.add_onetime(circ)
+
+    def draw_ws_line(self, p1, p2):
+        corner = np.array([self._extends.x_min, self._extends.y_min])
+        p1_ws = self._scale * (p1 - corner)
+        p2_ws = self._scale * (p2 - corner)
+        self.draw_line(p1_ws, p2_ws, linewidth=5)
 
 
 if __name__ == '__main__':
