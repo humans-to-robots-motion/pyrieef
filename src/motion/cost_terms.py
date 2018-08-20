@@ -73,8 +73,8 @@ class SimplePotential2D(DifferentiableMap):
         assert signed_distance_field.input_dimension() == 2
         assert signed_distance_field.output_dimension() == 1
         self._sdf = signed_distance_field
-        self._rho_scaling = 20.
-        self._alpha = 1.
+        self._rho_scaling = 1.
+        self._alpha = 10.
 
     def output_dimension(self):
         return 1
@@ -97,7 +97,7 @@ class ObstaclePotential2D(DifferentiableMap):
         assert signed_distance_field.input_dimension() == 2
         assert signed_distance_field.output_dimension() == 1
         self._sdf = signed_distance_field
-        self._rho_scaling = 20.
+        self._rho_scaling = 50.
         self._alpha = 1.e-3
 
     def output_dimension(self):

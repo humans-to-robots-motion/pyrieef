@@ -64,8 +64,7 @@ class NaturalGradientDescent(UnconstraintedOptimizer):
     def delta(self, x):
         g = self._f.gradient(x)
         delta = self.A_inv * np.matrix(g).transpose() / np.linalg.norm(g)
-        delta = np.array(delta).reshape(x.size)
-        return self._eta * delta
+        return self._eta * np.array(delta).reshape(x.size)
 
 
 class NetwtonAlgorithm(UnconstraintedOptimizer):

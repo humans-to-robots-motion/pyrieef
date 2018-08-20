@@ -94,12 +94,12 @@ class MotionOptimization2DCostMap:
         K_full = np.matrix(np.zeros((
             self.config_space_dim * (self.T + 2),
             self.config_space_dim * (self.T + 2))))
-        for dof in range(0, self.config_space_dim):
-            for (i, j), K_ij in np.ndenumerate(K_full):
+        for dof in range(self.config_space_dim):
+            for (i, j), K_ij in np.ndenumerate(K_dof):
                 id_row = i * self.config_space_dim + dof
                 id_col = j * self.config_space_dim + dof
                 if id_row < K_full.shape[0] and id_col < K_full.shape[1]:
-                    K_full[id_row, id_col] = K_dof[i, j]
+                    K_full[id_row, id_col] = K_ij
         # print K_full
         # print K_full.shape
         A = K_full.transpose() * K_full
@@ -130,22 +130,17 @@ class MotionOptimization2DCostMap:
         obstacle_potential = Compose(
             self.obstacle_cost_map(),
             self.objective.center_of_clique_map())
-        # squared_norm_vel = Compose(
-        #     SquaredNorm(np.zeros(self.config_space_dim)),
-        #     Compose(
-        #         FiniteDifferencesVelocity(self.config_space_dim, self.dt),
-        #          self.objective.right_of_clique_map())
-        # )
-        # isometric_obstacle_cost = ProductFunction(
-        #     obstacle_potential,
-        #     squared_norm_vel)
-        # self.objective.register_function_for_all_cliques(
-        #     Scale(isometric_obstacle_cost, self._obstacle_scalar))
-        obstacle_potential = Compose(
-            self.obstacle_cost_map(),
-            self.objective.center_of_clique_map())
+        squared_norm_vel = Compose(
+            SquaredNorm(np.zeros(self.config_space_dim)),
+            Compose(
+                FiniteDifferencesVelocity(self.config_space_dim, self.dt),
+                 self.objective.right_of_clique_map())
+        )
+        isometric_obstacle_cost = ProductFunction(
+            obstacle_potential,
+            squared_norm_vel)
         self.objective.register_function_for_all_cliques(
-            Scale(obstacle_potential, self._obstacle_scalar))
+            Scale(isometric_obstacle_cost, self._obstacle_scalar))
 
         print self.objective.nb_cliques()
 

@@ -63,14 +63,14 @@ class WorkspaceRender(Viewer):
             origin - np.array([self._extends.x_min, self._extends.y_min])))
         circ = make_circle(self._scale * radius, 30)
         circ.add_attr(t)
-        # circ.set_color(*COLORS[0])
+        circ.set_color(0, 1, 0)
         self.add_onetime(circ)
 
     def draw_ws_line(self, p1, p2):
         corner = np.array([self._extends.x_min, self._extends.y_min])
         p1_ws = self._scale * (p1 - corner)
         p2_ws = self._scale * (p2 - corner)
-        self.draw_line(p1_ws, p2_ws, linewidth=7, color=(1,0,0))
+        self.draw_line(p1_ws, p2_ws, linewidth=7, color=(1, 0, 0))
 
     def draw_ws_background(self, function):
         X, Y = self._workspace.box.meshgrid()
