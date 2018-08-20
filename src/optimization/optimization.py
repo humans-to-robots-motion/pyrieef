@@ -53,15 +53,19 @@ class NaturalGradientDescent(UnconstraintedOptimizer):
 
     def __init__(self, f, A):
         UnconstraintedOptimizer.__init__(self, f)
+        # self.A_inv = np.eye(A.shape[0])
         self.A_inv = np.linalg.inv(A)
         np.savetxt('A_inv.txt', self.A_inv, fmt='%.2f')
         # self.A_inv = np.eye(self.A_inv.shape[0])
 
     def one_step(self, x):
+        return x - self.delta(x)
+
+    def delta(self, x):
         g = self._f.gradient(x)
         delta = self.A_inv * np.matrix(g).transpose() / np.linalg.norm(g)
         delta = np.array(delta).reshape(x.size)
-        return x - self._eta * delta
+        return self._eta * delta
 
 
 class NetwtonAlgorithm(UnconstraintedOptimizer):

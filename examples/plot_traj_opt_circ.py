@@ -38,8 +38,8 @@ motion_optimization = MotionOptimization2DCostMap(
 
 trajectory = Trajectory(motion_optimization.T)
 g_traj = Trajectory(motion_optimization.T)
-x_init = -0.2 * np.ones(2)
-x_goal = .3 * np.ones(2)
+x_init = np.array([-.2, -.0])
+x_goal = np.array([.3, .3])
 
 
 plt.figure(figsize=(7, 6.5))
@@ -84,7 +84,7 @@ if use_matplotlib:
 
     # Plot trajectory
     for i in range(100):
-        [dist, trajectory] = motion_optimization.optimize(
+        [dist, trajectory, gradient] = motion_optimization.optimize(
             x_init, 1, trajectory)
     for k in range(motion_optimization.T + 1):
         q = trajectory.configuration(k)
@@ -95,10 +95,13 @@ if use_matplotlib:
     plt.show()
 else:
     viewer = workspace_renderer.WorkspaceRender(workspace)
+    viewer.draw_ws_background(motion_optimization.obstacle_cost_map())
+    # viewer.draw_ws_obstacles()
+    motion_optimization.set_eta(.01)
     for i in range(100):
-        [dist, trajectory, gradient] = motion_optimization.optimize(
+        [dist, trajectory, gradient, deltas] = motion_optimization.optimize(
             x_init, 1, trajectory)
-        g_traj.set( .001 * gradient - trajectory.x()[:])
+        g_traj.set(-300. * deltas + trajectory.x()[:])
         for k in range(motion_optimization.T + 1):
             q = trajectory.configuration(k)
             viewer.draw_ws_circle(.01, q)

@@ -145,6 +145,21 @@ def test_motion_optimimization_2d():
     # calculate_analytical_gradient_speedup(motion_optimization.objective)
 
 
+def test_center_of_clique():
+    config_dim = 2
+    nb_way_points = 10
+    trajectory = linear_interpolation_trajectory(
+        q_init=np.zeros(2),
+        q_goal=np.ones(2),
+        T=nb_way_points)
+    network = CliquesFunctionNetwork(trajectory.x().size, config_dim)
+    center_of_clique = network.center_of_clique_map()
+    network.register_function_for_all_cliques(center_of_clique)
+    for t, x_t in enumerate(network.all_cliques(trajectory.x())):
+        assert (np.linalg.norm(network.function_on_clique(t, x_t) -
+                               x_t[2:4]) < 1.e-10)
+
+
 def test_motion_optimimization_smoothness_metric():
     print "Checkint Motion Optimization"
     motion_optimization = MotionOptimization2DCostMap()
@@ -165,3 +180,4 @@ if __name__ == "__main__":
     test_motion_optimimization_2d()
     test_motion_optimimization_smoothness_metric()
     test_optimize()
+    test_center_of_clique()

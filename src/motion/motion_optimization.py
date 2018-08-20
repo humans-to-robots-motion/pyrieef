@@ -56,15 +56,8 @@ class MotionOptimization2DCostMap:
         # Create metric for natural gradient descent
         self.create_smoothness_metric()
 
-    def center_of_clique_map(self):
-        """ x_{t} """
-        dim = self.config_space_dim
-        return RangeSubspaceMap(dim * 3, range(dim, 2 * dim))
-
-    def right_of_clique_map(self):
-        """ x_{t+1} ; x_{t} """
-        dim = self.config_space_dim
-        return RangeSubspaceMap(dim * 3, range(dim, 3 * dim))
+    def set_eta(self, eta):
+        self._eta = eta
 
     def obstacle_cost_map(self):
         return SimplePotential2D(self.sdf)
@@ -81,17 +74,21 @@ class MotionOptimization2DCostMap:
 
     def create_smoothness_metric(self):
         a = FiniteDifferencesAcceleration(1, self.dt).a()
+        print "a : "
+        print a
         K_dof = np.matrix(np.zeros((self.T + 2, self.T + 2)))
         for i in range(0, self.T + 2):
             if i == 0:
                 K_dof[i, i:i + 2] = a[0, 1:3]
+                K_dof[i, i] *= 1000  # No variance at end points
             elif i == self.T + 1:
                 K_dof[i, i - 1:i + 1] = a[0, 0:2]
+                K_dof[i, i] *= 1000  # No variance at end points
             elif i > 0:
                 K_dof[i, i - 1:i + 2] = a
         A_dof = K_dof.transpose() * K_dof
-        # print K_dof
-        # print A_dof
+        print K_dof
+        print A_dof
 
         # represented in the form :  \xi = [q_0 ; q_1; ... ; q_2]
         K_full = np.matrix(np.zeros((
@@ -125,29 +122,28 @@ class MotionOptimization2DCostMap:
         # Terminal term.
         # terminal_potential = Compose(
         #     SquaredNorm(self.q_goal),
-        #     self.center_of_clique_map())
+        #     self.objective.center_of_clique_map())
         # self.objective.register_function_last_clique(
         #     Scale(terminal_potential, self._term_potential_scalar))
 
         # Obstacle term.
+        obstacle_potential = Compose(
+            self.obstacle_cost_map(),
+            self.objective.center_of_clique_map())
         # squared_norm_vel = Compose(
         #     SquaredNorm(np.zeros(self.config_space_dim)),
         #     Compose(
         #         FiniteDifferencesVelocity(self.config_space_dim, self.dt),
-        #         self.right_of_clique_map())
+        #          self.objective.right_of_clique_map())
         # )
-        # obstacle_potential = Compose(
-        #     self.obstacle_cost_map(),
-        #     self.center_of_clique_map())
         # isometric_obstacle_cost = ProductFunction(
         #     obstacle_potential,
         #     squared_norm_vel)
         # self.objective.register_function_for_all_cliques(
         #     Scale(isometric_obstacle_cost, self._obstacle_scalar))
-
         obstacle_potential = Compose(
             self.obstacle_cost_map(),
-            self.center_of_clique_map())
+            self.objective.center_of_clique_map())
         self.objective.register_function_for_all_cliques(
             Scale(obstacle_potential, self._obstacle_scalar))
 
@@ -169,4 +165,7 @@ class MotionOptimization2DCostMap:
             print "dist[{}] : {}, objective : {}, gnorm {}".format(
                 i, dist, optimizer.objective(xi),
                 np.linalg.norm(optimizer.gradient(xi)))
-        return [dist < 1.e-3, trajectory, optimizer.gradient(xi)]
+        return [dist < 1.e-3,
+                trajectory,
+                optimizer.gradient(xi),
+                optimizer.delta(xi)]
