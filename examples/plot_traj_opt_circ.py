@@ -96,13 +96,12 @@ if use_matplotlib:
 else:
     viewer = workspace_renderer.WorkspaceRender(workspace)
     viewer.draw_ws_background(motion_optimization.obstacle_cost_map())
-    viewer.draw_ws_obstacles()
-    step_size = 1.
-    motion_optimization.set_eta(step_size)
+    # viewer.draw_ws_obstacles()
+    # motion_optimization.set_eta(step_size)
     for i in range(100):
         [dist, trajectory, gradient, deltas] = motion_optimization.optimize(
             x_init, 1, trajectory)
-        g_traj.set(-300. * deltas / step_size + trajectory.x()[:])
+        g_traj.set(-.00002 * gradient + trajectory.x()[:])
         for k in range(motion_optimization.T + 1):
             q = trajectory.configuration(k)
             viewer.draw_ws_circle(.01, q)

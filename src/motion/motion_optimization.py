@@ -37,7 +37,7 @@ class MotionOptimization2DCostMap:
         self.workspace = None
         self.objective = None
 
-        self._eta = .01
+        self._eta = 2.
         self._obstacle_scalar = 100.
         self._term_potential_scalar = 0.0
         self._smoothness_scalar = 0.0
