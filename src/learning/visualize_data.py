@@ -65,7 +65,8 @@ def draw_grids(data):
 
 if __name__ == '__main__':
 
-    data = dict_to_object(load_dictionary_from_file())
+    data = dict_to_object(
+        load_dictionary_from_file(filename='costdata2d_10k_small.hdf5'))
     print "Data is now loaded !!!"
     print " -- size : ", data.size
     print " -- lims : ", data.lims

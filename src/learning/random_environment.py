@@ -74,8 +74,10 @@ def grids(workspace, grid_to_world, epsilon):
     return [occupancy, sdf, costs]
 
 
-def sample_circle_workspace(box, 
-    nobjs_max=3, random_max=False, maxnumtries=100):
+def sample_circle_workspace(box,
+                            nobjs_max=3,
+                            random_max=False,
+                            maxnumtries=100):
     """ Samples a workspace made of a maximum of 
         nobjs_max circles that do not intersect 
         todo replace the random environment script to use this function """
@@ -207,10 +209,10 @@ if __name__ == '__main__':
                       default=False, type="int", dest='savematlabfile',
                       help='Save results in .mat format')
     parser.add_option('--xsize',
-                      default=100, type="int", dest='xsize',
+                      default=24, type="int", dest='xsize',
                       help='Size of the x-dimension (in pixels). X values go from 0-1')
     parser.add_option('--ysize',
-                      default=100, type="int", dest='ysize',
+                      default=24, type="int", dest='ysize',
                       help='Size of the y-dimension (in pixels). Y values go from 0-1')
     parser.add_option('--maxnumobjs',
                       default=4, type="int", dest='maxnumobjs',
@@ -236,4 +238,4 @@ if __name__ == '__main__':
     #     parser.error("incorrect number of arguments")
 
     datasets = random_environments(options)
-    write_dictionary_to_file(datasets)
+    write_dictionary_to_file(datasets, filename='costdata2d_10k_small.hdf5')

@@ -30,7 +30,7 @@ def parse_options():
 
     parser = optparse.OptionParser("Supervised Cost Prediction")
 
-    parser.add_option('--dataset', default="costdata2d_10k.hdf5",
+    parser.add_option('--dataset', default="costdata2d_10k_small.hdf5",
                       type="string", help='path to training/test dataset')
     parser.add_option('--matlabdataset', action='store_true', default=False,
                       help='dataset is generated using MATLAB if this is set. Use MATIO to load it.')
