@@ -7,11 +7,26 @@ def symmetrize(a):
     return a + a.T - np.diag(a.diagonal())
 
 
-def costmap_node_id(cost, i, j):
-    return i + j * cost.shape[0]
+class CostmapToSparseGraph:
+    def __init__(self, costmap):
+        self.costmap = costmap
 
-def eight_connected_neiborghs(i, j):
-    coord 
+
+    def costmap_node_id(self, i, j):
+        return i + j * self.costmap.shape[0]
+
+    def neiborghs(i, j):
+        coord = [None] * 8
+        coord[0] = (i, j+1)
+        coord[1] = (i, j-1)
+        coord[2] = (i+1, j)
+        coord[3] = (i+1, j-1)
+        coord[4] = (i+1, j+1)
+        coord[5] = (i-1, j)
+        coord[6] = (i-1, j-1)
+        coord[7] = (i-1, j+1)
+        return coord
+
 
 def costmap_to_graph(cost):
     """ Converts a costmap to a compressed sparse graph
@@ -22,8 +37,9 @@ def costmap_to_graph(cost):
         node_graph_id   = i + j * M
     """
 
-    nb_nodes = cost.shape[0] * cost.shape[1]
+    nb_nodes = self.costmap.shape[0] * self.costmap.shape[1]
     graph_dense = np.zeros((nb_nodes, nb_nodes))
 
-    for (i, j), c_ij in np.ndenumerate(cost):
+    for (i, j), c_ij in np.ndenumerate(self.costmap):
+
 
