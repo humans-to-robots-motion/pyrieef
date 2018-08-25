@@ -21,8 +21,9 @@ from common_imports import *
 from opengl import *
 from learning import random_environment
 from geometry.workspace import *
-import time
+from utils import timer
 import random
+import time
 from skimage import img_as_ubyte
 from skimage.color import rgba2rgb
 from skimage.transform import rescale, resize
@@ -73,8 +74,7 @@ class WorkspaceRender(Viewer):
         self.draw_line(p1_ws, p2_ws, linewidth=7, color=(1, 0, 0))
 
     def draw_ws_background(self, function):
-        X, Y = self._workspace.box.meshgrid()
-        Z = function(np.stack([X, Y]))
+        Z = function(self._workspace.box.stacked_meshgrid())
         Z = (Z - np.ones(Z.shape) * Z.min()) / Z.max()
         Z = rgba2rgb(cmap(Z))
         Z = resize(Z, (self.width, self.height))  # Normalize to [0, 1]
@@ -102,6 +102,8 @@ if __name__ == '__main__':
     box = Box()
     workspace = random_environment.sample_circle_workspace(box)
     viewer = WorkspaceRender(workspace)
+    viewer.draw_ws_obstacles()
+    rate = timer.Rate(25)
     while True:
         viewer.render()
-        time.sleep(0.01)
+        rate.sleep()

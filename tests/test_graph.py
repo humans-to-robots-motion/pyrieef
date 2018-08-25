@@ -23,7 +23,8 @@ import numpy as np
 from numpy.testing import assert_allclose
 from geometry.workspace import *
 from motion.cost_terms import *
-
+import rendering.workspace_renderer as render
+from utils import timer
 
 def test_symetrize():
     A_res = np.array([[0, 2, 1],
@@ -61,6 +62,14 @@ def test_workspace_to_graph():
     converter = CostmapToSparseGraph(costmap, average_cost=True)
     graph = converter.convert()
     assert check_symmetric(graph)
+    # viewer = render.WorkspaceRender(workspace)
+    # viewer.draw_ws_background(phi)
+    # viewer.draw_ws_obstacles()
+    # rate = timer.Rate(25)
+    # while True:
+    #     viewer.render()
+    #     rate.sleep()
+
 
 if __name__ == "__main__":
     test_symetrize()
