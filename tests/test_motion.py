@@ -87,16 +87,9 @@ def test_trajectory():
     print traj.final_configuration()
 
 
-def sample_circles(nb_circles):
-    centers = np.random.rand(nb_circles, 2)
-    radii = np.random.rand(nb_circles)
-    return centers, radii
-
-
 def test_obstacle_potential():
-    centers, radii = sample_circles(nb_circles=10)
     workspace = Workspace()
-    for center, radius in zip(centers, radii):
+    for center, radius in sample_circles(nb_circles=10):
         workspace.obstacles.append(Circle(center, radius))
     sdf = SignedDistanceWorkspaceMap(workspace)
     phi = ObstaclePotential2D(sdf)

@@ -187,6 +187,10 @@ class Box:
         y = np.linspace(extends.y_min, extends.y_max, nb_points)
         return np.meshgrid(x, y)
 
+    def stacked_meshgrid(self, nb_points=100):
+        X, Y = self.meshgrid(nb_points)
+        return np.stack([X, Y])
+
     def __str__(self):
         return "origin : {}, dim : {}".format(self.origin, self.dim)
 
@@ -302,7 +306,7 @@ class Workspace:
         return points
 
 
-# run the server
-if __name__ == "__main__":
-    obstacle = Circle()
-    print obstacle.sampled_points()
+def sample_circles(nb_circles):
+    centers = np.random.rand(nb_circles, 2)
+    radii = np.random.rand(nb_circles)
+    return zip(centers, radii)

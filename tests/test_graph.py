@@ -21,6 +21,8 @@ from test_common_imports import *
 from graph.shortest_path import *
 import numpy as np
 from numpy.testing import assert_allclose
+from geometry.workspace import *
+from motion.cost_terms import *
 
 
 def test_symetrize():
@@ -37,17 +39,30 @@ def test_symetrize():
     assert check_symmetric(A, A_res)
 
 
-def test_cost_map_to_graph():
+def test_costmap_to_graph():
     costmap = np.random.random((5, 5))
-    converter = CostmapToSparseGraph(costmap)
+    converter = CostmapToSparseGraph(costmap, average_cost=True)
     graph = converter.convert()
-    np.set_printoptions(linewidth=200, precision=1)
+    np.set_printoptions(suppress=True, linewidth=200, precision=0)
     print costmap
     print graph.shape
     print graph
-    solve_shortest_path(graph)
-    # assert check_symmetric(graph)
+    assert check_symmetric(graph)
+
+
+def test_workspace_to_graph():
+    workspace = Workspace()
+    radius = .1
+    workspace.obstacles.append(Circle(np.array([0.1, 0.1]), radius))
+    workspace.obstacles.append(Circle(np.array([-.1, 0.1]), radius))
+    phi = SimplePotential2D(SignedDistanceWorkspaceMap(workspace))
+    costmap = phi(workspace.box.stacked_meshgrid(24))
+    print costmap
+    converter = CostmapToSparseGraph(costmap, average_cost=True)
+    graph = converter.convert()
+    assert check_symmetric(graph)
 
 if __name__ == "__main__":
     test_symetrize()
-    test_cost_map_to_graph()
+    test_costmap_to_graph()
+    test_workspace_to_graph()

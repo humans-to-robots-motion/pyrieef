@@ -15,8 +15,9 @@ def symmetrize(a):
 class CostmapToSparseGraph:
     """Class that convert image to sparse graph representation """
 
-    def __init__(self, costmap):
+    def __init__(self, costmap, average_cost=False):
         self.costmap = costmap
+        self.average_cost = average_cost
 
     def graph_id(self, i, j):
         return i + j * self.costmap.shape[0]
@@ -49,7 +50,9 @@ class CostmapToSparseGraph:
     def edge_cost(self, c_i, c_j, n_i, n_j):
         cost_c = self.costmap[c_i, c_j]
         cost_n = self.costmap[n_i, n_j]
-        return (cost_n + cost_c) / 2
+        if self.average_cost:
+            return 0.5 * (cost_c + cost_n)
+        return cost_n
 
     def convert(self):
         """ Converts a costmap to a compressed sparse graph
@@ -76,4 +79,9 @@ class CostmapToSparseGraph:
 def solve_shortest_path(graph_dense):
     graph_sparse = csgraph_from_dense(graph_dense)
     print graph_sparse
-    print shortest_path(graph_sparse)
+    print graph_sparse.shape
+    dist_matrix, predecessors = shortest_path(
+        graph_sparse,
+        method='D',
+        return_predecessors=True)
+    print predecessors

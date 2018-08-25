@@ -37,12 +37,6 @@ def test_ellipse():
     assert np.fabs(dist - 0.1) < 1.e-06
 
 
-def sample_circles(nb_circles):
-    centers = np.random.rand(nb_circles, 2)
-    radii = np.random.rand(nb_circles)
-    return zip(centers, radii)
-
-
 def test_sdf_jacobians():
     verbose = False
     circles = []
