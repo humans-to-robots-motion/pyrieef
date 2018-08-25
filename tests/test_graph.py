@@ -20,15 +20,7 @@
 from test_common_imports import *
 from graph.shortest_path import *
 import numpy as np
-
-
-def check_is_close(a, b, tolerance=1e-10):
-    """ Returns True of all variable are close."""
-    results = np.isclose(
-        np.array(a),
-        np.array(b),
-        atol=tolerance)
-    return results.all()
+from numpy.testing import assert_allclose
 
 
 def test_symetrize():
@@ -41,7 +33,19 @@ def test_symetrize():
     A = symmetrize(A)
     print "A : \n", A
     print "A_res : \n", A_res
-    assert(check_is_close(A, A_res))
+    assert_allclose(A, A_res, 1e-8)
+    assert check_symmetric(A, A_res)
+
+
+def test_cost_map_to_graph():
+    costmap = np.random.random((5, 5))
+    converter = CostmapToSparseGraph(costmap)
+    graph = converter.convert()
+    np.set_printoptions(linewidth=200)
+    print graph.shape
+    print graph
+    assert check_symmetric(graph)
 
 if __name__ == "__main__":
     test_symetrize()
+    test_cost_map_to_graph()
