@@ -1,4 +1,5 @@
 from scipy.sparse import csr_matrix
+from scipy.sparse.csgraph import csgraph_from_dense
 from scipy.sparse.csgraph import shortest_path
 import numpy as np
 
@@ -20,6 +21,11 @@ class CostmapToSparseGraph:
     def graph_id(self, i, j):
         return i + j * self.costmap.shape[0]
 
+    def costmap_id(self, g_id):
+        j = g_id // self.costmap.shape[0]
+        i = g_id % self.costmap.shape[0]
+        return (i, j)
+
     def is_in_costmap(self, i, j):
         """ Returns true if the node coord is in the costmap """
         return (
@@ -40,9 +46,10 @@ class CostmapToSparseGraph:
         coord[7] = (i - 1, j + 1)
         return coord
 
-    @staticmethod
-    def edge_cost(c_i, c_j, n_i, n_j):
-        return 1
+    def edge_cost(self, c_i, c_j, n_i, n_j):
+        cost_c = self.costmap[c_i, c_j]
+        cost_n = self.costmap[n_i, n_j]
+        return (cost_n + cost_c) / 2
 
     def convert(self):
         """ Converts a costmap to a compressed sparse graph
@@ -64,3 +71,9 @@ class CostmapToSparseGraph:
                     graph_dense[c_node, n_node] = self.edge_cost(
                         c_i, c_j, n_i, n_j)
         return graph_dense
+
+
+def solve_shortest_path(graph_dense):
+    graph_sparse = csgraph_from_dense(graph_dense)
+    print graph_sparse
+    print shortest_path(graph_sparse)

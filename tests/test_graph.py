@@ -38,13 +38,15 @@ def test_symetrize():
 
 
 def test_cost_map_to_graph():
-    costmap = np.random.random((4, 5))
+    costmap = np.random.random((5, 5))
     converter = CostmapToSparseGraph(costmap)
     graph = converter.convert()
-    np.set_printoptions(linewidth=200)
+    np.set_printoptions(linewidth=200, precision=1)
+    print costmap
     print graph.shape
     print graph
-    assert check_symmetric(graph)
+    solve_shortest_path(graph)
+    # assert check_symmetric(graph)
 
 if __name__ == "__main__":
     test_symetrize()
