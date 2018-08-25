@@ -23,8 +23,8 @@ class CostmapToSparseGraph:
     def is_in_costmap(self, i, j):
         """ Returns true if the node coord is in the costmap """
         return (
-            i > 0 and i < self.costmap.shape[0] and
-            j > 0 and j < self.costmap.shape[1])
+            i >= 0 and i < self.costmap.shape[0] and
+            j >= 0 and j < self.costmap.shape[1])
 
     @staticmethod
     def neiborghs(i, j):

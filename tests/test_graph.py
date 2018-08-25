@@ -38,7 +38,7 @@ def test_symetrize():
 
 
 def test_cost_map_to_graph():
-    costmap = np.random.random((5, 5))
+    costmap = np.random.random((4, 5))
     converter = CostmapToSparseGraph(costmap)
     graph = converter.convert()
     np.set_printoptions(linewidth=200)
