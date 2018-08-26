@@ -26,7 +26,7 @@ from rendering import workspace_renderer
 from rendering import opengl
 import time
 
-use_matplotlib = False
+use_matplotlib = True
 
 workspace = Workspace()
 workspace.obstacles.append(Circle(np.array([0.2, .0]), .1))
@@ -41,26 +41,25 @@ g_traj = Trajectory(motion_optimization.T)
 x_init = np.array([-.3, -.3])
 x_goal = np.array([+.4, .1])
 
-
-plt.figure(figsize=(7, 6.5))
-plt.axis('equal')
-plt.axis(workspace.box.box_extends())
-colorst = [cm.gist_ncar(i) for i in np.linspace(
-    0, 0.9, len(workspace.obstacles))]
-for i, o in enumerate(workspace.obstacles):
-    plt.plot(o.origin[0], o.origin[1], 'kx')
-    points = o.sampled_points()
-    X = np.array(points)[:, 0]
-    Y = np.array(points)[:, 1]
-    plt.plot(X, Y, color=colorst[i], linewidth=2.0)
-    print "colorst[" + str(i) + "] : ", colorst[i]
-plt.plot(x_init[0], x_init[1], 'ro')
-plt.plot(x_goal[0], x_goal[1], 'bo')
-
 trajectory = linear_interpolation_trajectory(
     x_init, x_goal, motion_optimization.T)
 
 if use_matplotlib:
+    plt.figure(figsize=(7, 6.5))
+    plt.axis('equal')
+    plt.axis(workspace.box.box_extends())
+    colorst = [cm.gist_ncar(i) for i in np.linspace(
+        0, 0.9, len(workspace.obstacles))]
+    for i, o in enumerate(workspace.obstacles):
+        plt.plot(o.origin[0], o.origin[1], 'kx')
+        points = o.sampled_points()
+        X = np.array(points)[:, 0]
+        Y = np.array(points)[:, 1]
+        plt.plot(X, Y, color=colorst[i], linewidth=2.0)
+        print "colorst[" + str(i) + "] : ", colorst[i]
+    plt.plot(x_init[0], x_init[1], 'ro')
+    plt.plot(x_goal[0], x_goal[1], 'bo')
+
     nb_points = 100
     X, Y = workspace.box.meshgrid(nb_points)
     Z = signed_distance_field(np.stack([X, Y]))
@@ -84,7 +83,7 @@ if use_matplotlib:
 
     # Plot trajectory
     for i in range(100):
-        [dist, trajectory, gradient] = motion_optimization.optimize(
+        [dist, trajectory, gradient, deltas] = motion_optimization.optimize(
             x_init, 1, trajectory)
     for k in range(motion_optimization.T + 1):
         q = trajectory.configuration(k)

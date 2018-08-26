@@ -26,6 +26,7 @@ from motion.cost_terms import *
 import rendering.workspace_renderer as render
 from utils import timer
 
+
 def test_symetrize():
     A_res = np.array([[0, 2, 1],
                       [2, 0, 0],
@@ -62,13 +63,17 @@ def test_workspace_to_graph():
     converter = CostmapToSparseGraph(costmap, average_cost=True)
     graph = converter.convert()
     assert check_symmetric(graph)
-    # viewer = render.WorkspaceRender(workspace)
+    s_i = 3
+    s_j = 3
+    t_i = 21
+    t_j = 21
+    path = converter.shortest_path(graph, s_i, s_j, t_i, t_j)
+    assert len(path) > 0
+    # viewer = render.WorkspaceDrawer(workspace)
     # viewer.draw_ws_background(phi)
     # viewer.draw_ws_obstacles()
-    # rate = timer.Rate(25)
-    # while True:
-    #     viewer.render()
-    #     rate.sleep()
+    # viewer.draw_ws_line(path)
+    # viewer.show()
 
 
 if __name__ == "__main__":

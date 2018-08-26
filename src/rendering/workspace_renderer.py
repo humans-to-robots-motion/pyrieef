@@ -28,6 +28,7 @@ from skimage import img_as_ubyte
 from skimage.color import rgba2rgb
 from skimage.transform import rescale, resize
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 cmap = plt.get_cmap('inferno')
 
 
@@ -36,9 +37,11 @@ COLORS = [(139, 0, 0),  (0, 100, 0), (0, 0, 139)]
 
 
 def to_rgb3(im):
-    # we can use dstack and an array copy
-    # this has to be slow, we create an array with
-    # 3x the data we need and truncate afterwards
+    """
+     we can use dstack and an array copy
+     this has to be slow, we create an array with
+     3x the data we need and truncate afterwards
+    """
     return np.asarray(np.dstack((im, im, im)), dtype=np.uint8)
 
 
@@ -95,6 +98,56 @@ class WorkspaceRender(Viewer):
                 circ.add_attr(t)
                 circ.set_color(*COLORS[i])
                 self.add_geom(circ)
+
+
+class WorkspaceDrawer:
+
+    def __init__(self, workspace, display=None):
+        self._workspace = workspace
+        self._extends = workspace.box.extends()
+        self._plot3d = False
+        plt.figure(figsize=(7, 6.5))
+        plt.axis('equal')
+        plt.axis(workspace.box.box_extends())
+
+    def draw_ws_obstacles(self):
+        colorst = [cm.gist_ncar(i) for i in np.linspace(
+            0, 0.9, len(self._workspace.obstacles))]
+        for i, o in enumerate(self._workspace.obstacles):
+            plt.plot(o.origin[0], o.origin[1], 'kx')
+            points = o.sampled_points()
+            X = np.array(points)[:, 0]
+            Y = np.array(points)[:, 1]
+            plt.plot(X, Y, color=colorst[i], linewidth=2.0)
+            # print "colorst[" + str(i) + "] : ", colorst[i]
+
+    def draw_ws_background(self, phi):
+        nb_points = 100
+        X, Y = self._workspace.box.meshgrid(nb_points)
+        Z = phi(np.stack([X, Y]))
+        color_style = plt.cm.hot
+        color_style = plt.cm.bone
+        color_style = plt.cm.magma
+        im = plt.imshow(Z,
+                        extent=self._workspace.box.box_extends(),
+                        origin='lower',
+                        interpolation='bilinear',
+                        cmap=color_style)
+        plt.colorbar(im, fraction=0.05, pad=0.02)
+        cs = plt.contour(X, Y, Z, 16, cmap=color_style)
+
+        if self._plot3d:
+            fig = plt.figure()
+            ax = fig.add_subplot(111, projection='3d')
+            ax.plot_surface(X, Y, Z, cmap=color_style,
+                            linewidth=0, antialiased=False)
+
+    def draw_ws_line(self, line):
+        for q in range(line):
+            plt.plot(q[0], q[1], 'ro')
+
+    def show(self):
+        plt.show()
 
 
 if __name__ == '__main__':

@@ -1,6 +1,5 @@
 from scipy.sparse import csr_matrix
-from scipy.sparse.csgraph import csgraph_from_dense
-from scipy.sparse.csgraph import shortest_path
+import scipy.sparse.csgraph as csgraph
 import numpy as np
 
 
@@ -10,6 +9,18 @@ def check_symmetric(a, tol=1e-8):
 
 def symmetrize(a):
     return a + a.T - np.diag(a.diagonal())
+
+
+def shortest_paths(graph_dense):
+    graph_sparse = csgraph.csgraph_from_dense(graph_dense)
+    print graph_sparse
+    print graph_sparse.shape
+    dist_matrix, predecessors = csgraph.shortest_path(
+        graph_sparse,
+        method='D',
+        return_predecessors=True)
+    print predecessors
+    return predecessors
 
 
 class CostmapToSparseGraph:
@@ -75,13 +86,21 @@ class CostmapToSparseGraph:
                         c_i, c_j, n_i, n_j)
         return graph_dense
 
+    def shortest_path(self, graph_dense, s_i, s_j, t_i, t_j):
+        """ Performs a shortest path querry and returns
+            the shortes path between some source cell and target cell
+            expressed in costmap coordinates
 
-def solve_shortest_path(graph_dense):
-    graph_sparse = csgraph_from_dense(graph_dense)
-    print graph_sparse
-    print graph_sparse.shape
-    dist_matrix, predecessors = shortest_path(
-        graph_sparse,
-        method='D',
-        return_predecessors=True)
-    print predecessors
+            graph_dense : dense graph retpresentation of the costmap
+        """
+        predecessors = shortest_paths(graph_dense)
+        source_id = self.graph_id(s_i, s_j)
+        target_id = self.graph_id(t_i, t_j)
+        path = []
+        path.append((s_i, s_j))
+        while True:
+            source_id = predecessors[target_id, source_id]
+            path.append(self.costmap_id(source_id))
+            if source_id == target_id:
+                break
+        return path
