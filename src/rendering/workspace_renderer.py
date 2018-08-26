@@ -106,9 +106,12 @@ class WorkspaceDrawer:
         self._workspace = workspace
         self._extends = workspace.box.extends()
         self._plot3d = False
-        plt.figure(figsize=(7, 6.5))
+        self.init()
+
+    def init(self):
+        self._fig = plt.figure(figsize=(7, 6.5))
         plt.axis('equal')
-        plt.axis(workspace.box.box_extends())
+        plt.axis(self._workspace.box.box_extends())
 
     def draw_ws_obstacles(self):
         colorst = [cm.gist_ncar(i) for i in np.linspace(
@@ -121,8 +124,7 @@ class WorkspaceDrawer:
             plt.plot(X, Y, color=colorst[i], linewidth=2.0)
             # print "colorst[" + str(i) + "] : ", colorst[i]
 
-    def draw_ws_background(self, phi):
-        nb_points = 100
+    def draw_ws_background(self, phi, nb_points=100):
         X, Y = self._workspace.box.meshgrid(nb_points)
         Z = phi(np.stack([X, Y]))
         color_style = plt.cm.hot
@@ -131,7 +133,7 @@ class WorkspaceDrawer:
         im = plt.imshow(Z,
                         extent=self._workspace.box.box_extends(),
                         origin='lower',
-                        interpolation='bilinear',
+                        interpolation='none',
                         cmap=color_style)
         plt.colorbar(im, fraction=0.05, pad=0.02)
         cs = plt.contour(X, Y, Z, 16, cmap=color_style)
@@ -143,11 +145,17 @@ class WorkspaceDrawer:
                             linewidth=0, antialiased=False)
 
     def draw_ws_line(self, line):
-        for q in range(line):
+        for q in line:
             plt.plot(q[0], q[1], 'ro')
 
     def show(self):
         plt.show()
+
+    def show_once(self):
+        plt.show(block=False)
+        plt.draw()
+        plt.pause(0.0001)
+        plt.close(self._fig)
 
 
 if __name__ == '__main__':

@@ -69,11 +69,6 @@ def test_workspace_to_graph():
     t_j = 21
     path = converter.shortest_path(graph, s_i, s_j, t_i, t_j)
     assert len(path) > 0
-    # viewer = render.WorkspaceDrawer(workspace)
-    # viewer.draw_ws_background(phi)
-    # viewer.draw_ws_obstacles()
-    # viewer.draw_ws_line(path)
-    # viewer.show()
 
 
 if __name__ == "__main__":

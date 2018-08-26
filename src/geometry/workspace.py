@@ -305,6 +305,12 @@ class Workspace:
             points += o.sampled_points()
         return points
 
+    def pixel_map(self, nb_points):
+        extends = self.box.extends()
+        assert extends.x() == extends.y()
+        resolution = extends.x() / nb_points
+        return PixelMap(resolution, extends)
+
 
 def sample_circles(nb_circles):
     centers = np.random.rand(nb_circles, 2)

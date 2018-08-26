@@ -13,13 +13,14 @@ def symmetrize(a):
 
 def shortest_paths(graph_dense):
     graph_sparse = csgraph.csgraph_from_dense(graph_dense)
-    print graph_sparse
-    print graph_sparse.shape
+    # print graph_sparse
+    # print graph_sparse.shape
     dist_matrix, predecessors = csgraph.shortest_path(
         graph_sparse,
         method='D',
+        directed=False,
         return_predecessors=True)
-    print predecessors
+    # print predecessors
     return predecessors
 
 
@@ -86,14 +87,13 @@ class CostmapToSparseGraph:
                         c_i, c_j, n_i, n_j)
         return graph_dense
 
-    def shortest_path(self, graph_dense, s_i, s_j, t_i, t_j):
+    def shortest_path(self, predecessors, s_i, s_j, t_i, t_j):
         """ Performs a shortest path querry and returns
             the shortes path between some source cell and target cell
             expressed in costmap coordinates
 
             graph_dense : dense graph retpresentation of the costmap
         """
-        predecessors = shortest_paths(graph_dense)
         source_id = self.graph_id(s_i, s_j)
         target_id = self.graph_id(t_i, t_j)
         path = []
