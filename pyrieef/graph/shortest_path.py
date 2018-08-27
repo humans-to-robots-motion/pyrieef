@@ -24,10 +24,13 @@ def shortest_paths(graph_dense):
 
 
 class CostmapToSparseGraph:
-    """Class that convert image to sparse graph representation """
+    """Class that convert image to sparse graph representation 
+        TODO write a test for and decide weather it should
+        be the costmap or the transpose of the costmap
+        that should be passed to initialize the class."""
 
     def __init__(self, costmap, average_cost=False):
-        self.costmap = costmap
+        self.costmap = costmap.transpose()
         self.average_cost = average_cost
         self.init = False
         self._graph_dense = None
@@ -105,7 +108,6 @@ class CostmapToSparseGraph:
             self._graph_dense[e[0], e[1]] = self.edge_cost(
                 node_0_i, node_0_j,
                 node_1_i, node_1_j)
-
 
     def shortest_path(self, predecessors, s_i, s_j, t_i, t_j):
         """ Performs a shortest path querry and returns
@@ -203,6 +205,4 @@ class CostmapToSparseGraph:
 
         self.update_graph(costmap.transpose())
         return self.shortest_path(shortest_paths(self._graph_dense),
-            s_i, s_j, t_i, t_j)
-
-
+                                  s_i, s_j, t_i, t_j)
