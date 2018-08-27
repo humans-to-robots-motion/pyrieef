@@ -16,11 +16,15 @@ ellipsoid_msgs/Makefile
 geodesic_flow/Makefile
 rieef_data/
 .idea/
+*.pdf
 
 # test data files
 *.txt
 *.csv
 *.h5
+*.gz
+*.hdf5
+*.saved
 
 # MacOS X
 .DS_Store
