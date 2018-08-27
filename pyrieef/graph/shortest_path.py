@@ -17,7 +17,6 @@ def shortest_paths(graph_dense):
     # print graph_sparse.shape
     dist_matrix, predecessors = csgraph.shortest_path(
         graph_sparse,
-        method='D',
         directed=False,
         return_predecessors=True)
     # print predecessors
@@ -52,8 +51,8 @@ class CostmapToSparseGraph:
     def neiborghs(i, j):
         """ returns the costmap coordinates of all neighbor nodes """
         coord = [None] * 8
-        coord[0] = (i, j + 1)
-        coord[1] = (i, j - 1)
+        coord[0] = (i, j - 1)
+        coord[1] = (i, j + 1)
         coord[2] = (i + 1, j)
         coord[3] = (i + 1, j - 1)
         coord[4] = (i + 1, j + 1)
@@ -106,6 +105,7 @@ class CostmapToSparseGraph:
             self._graph_dense[e[0], e[1]] = self.edge_cost(
                 node_0_i, node_0_j,
                 node_1_i, node_1_j)
+
 
     def shortest_path(self, predecessors, s_i, s_j, t_i, t_j):
         """ Performs a shortest path querry and returns
@@ -165,12 +165,16 @@ class CostmapToSparseGraph:
             graph_sparse,
             directed=not self.average_cost,
             return_predecessors=True,
-            indices=source_id)
+            indices=source_id,
+            limit=np.inf)
         path = []
         path.append((t_i, t_j))
         while True:
+            target_id_bkp = target_id
             target_id = predecessors[target_id]
-            path.append(self.costmap_id(target_id))
+            t_i, t_j = self.costmap_id(target_id)
+            s_i, s_j = self.costmap_id(target_id_bkp)
+            path.append((t_i, t_j))
             if source_id == target_id:
                 break
         return path
@@ -188,5 +192,17 @@ class CostmapToSparseGraph:
             s_i, s_j : source coordinate on the costmap
             t_i, t_j : target coordinate on the costmap
         """
-        self.update_graph(costmap)
+        self.update_graph(costmap.transpose())
         return self.dijkstra(self._graph_dense, s_i, s_j, t_i, t_j)
+
+    def shortest_path_on_map(self, costmap, s_i, s_j, t_i, t_j):
+        """
+            Performs a graph search for source and target on costmap
+            this is the most efficient implementation for single
+            querry graph search on a 2D costmap with scipy"""
+
+        self.update_graph(costmap.transpose())
+        return self.shortest_path(shortest_paths(self._graph_dense),
+            s_i, s_j, t_i, t_j)
+
+

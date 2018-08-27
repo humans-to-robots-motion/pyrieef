@@ -195,6 +195,14 @@ class Box:
         return "origin : {}, dim : {}".format(self.origin, self.dim)
 
 
+def box_from_limits(x_min, x_max, y_min, y_max):
+    assert x_max > x_min
+    assert y_max > y_min
+    return Box(
+        origin=np.array([(x_min + x_max) / 2., (y_min + y_max) / 2.]),
+        dim=np.array([x_max - x_min, y_max - y_min]))
+
+
 class SignedDistance2DMap(DifferentiableMap):
     """
         This class of wraps the shape class in a
@@ -316,3 +324,12 @@ def sample_circles(nb_circles):
     centers = np.random.rand(nb_circles, 2)
     radii = np.random.rand(nb_circles)
     return zip(centers, radii)
+
+
+def sample_collision_free(workspace):
+    extends = workspace.box.extends()
+    while True:
+        p = extends.sample_uniform()
+        dist = workspace.min_dist(p)[0]
+        if dist > 0.05:
+            return p

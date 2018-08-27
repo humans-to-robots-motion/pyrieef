@@ -39,6 +39,15 @@ def test_symetrize():
     assert check_symmetric(A, A_res)
 
 
+def test_coordinates():
+    costmap = np.random.random((100, 100))
+    converter = CostmapToSparseGraph(costmap, average_cost=True)
+    graph_ids = 100 * 100 * np.random.random(100)
+    for g_id in graph_ids.astype(int):
+        c_id = converter.costmap_id(g_id)
+        assert converter.graph_id(c_id[0], c_id[1]) == g_id
+
+
 def test_costmap_to_graph():
     costmap = np.random.random((5, 5))
     converter = CostmapToSparseGraph(costmap, average_cost=True)
@@ -88,6 +97,7 @@ def test_breadth_first_search():
 
 if __name__ == "__main__":
     test_symetrize()
+    test_coordinates()
     test_costmap_to_graph()
     test_workspace_to_graph()
     test_breadth_first_search()

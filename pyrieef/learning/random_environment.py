@@ -118,6 +118,7 @@ def random_environments(opt):
     padding = 3
     resolution_x = 1. / opt.xsize
     resolution_y = 1. / opt.ysize
+    save_workspace = True
 
     if resolution_x != resolution_y:
         print "Warning : resolution_x != resolution_y"
@@ -127,6 +128,7 @@ def random_environments(opt):
     # Create a bunch of datasets
     maxnobjs = 3
     datasets = [None] * numdatasets
+    dataws = [None] * numdatasets
     k = 0
 
     # Create structure that contains grids and obstacles
@@ -157,10 +159,7 @@ def random_environments(opt):
             c = samplerandpt(lims)
             # If this object is reasonably far away from other objects
             [min_dist, obstacle_id] = workspace.min_dist(c)
-            # print "numtries : {}, nobj : {},\
-            #   c : {}, r : {}, min_dist : {}".format(
-            #      numtries, nobj, c, r, min_dist)
-            if min_dist >= (r + 0.1):
+            if True or min_dist >= (r + 0.1):
                 workspace.add_circle(c, r)
             numtries = numtries + 1  # Increment num tries
 
@@ -170,10 +169,14 @@ def random_environments(opt):
                 # Needs states in Nx2 format
                 [occ, sdf, cost] = grids(workspace, grid_to_world, epsilon)
                 datasets[k] = np.array([occ, sdf, cost])
-                # print "k : {}, shape : {}".format(k, datasets[k].shape)
-                # print "shape : ", datasets[k].shape
-                # print "nobj : {}, obstacles : {} ".format(
-                #     nobj, len(workspace.obstacles))
+
+                if save_workspace:
+                    ws_c = -1000. * np.ones((maxnobjs, 2))
+                    ws_r = -1000. * np.ones((maxnobjs, 2))
+                    for i, o in enumerate(workspace.obstacles):
+                        ws_c[i, :] = o.origin
+                        ws_r[i, 0] = o.radius
+                    dataws[k] = np.array([ws_c, ws_r])
 
                 if opt.display:
                     draw_grids([occ, sdf, cost])
@@ -183,16 +186,19 @@ def random_environments(opt):
         else:
             print('[OBJS] Reached max number of tries. Restarting run...')
 
-    # for k, a in enumerate(datasets):
-    #     print "[{}] shape : {}".format(k, a.shape)
-    # data_tensor = np.stack(datasets)
-    # print "data_tensor.shape : ", data_tensor.shape
     data = {}
     data["lims"] = lims
     data["size"] = size
     data["datasets"] = np.stack(datasets)
-    # data["states"] = states
-    return data
+
+    print np.stack(datasets).shape
+    print np.stack(dataws).shape
+    workspaces = {}
+    workspaces["lims"] = lims
+    workspaces["size"] = size
+    workspaces["datasets"] = np.stack(dataws)
+
+    return data, workspaces
 
 
 if __name__ == '__main__':
@@ -200,7 +206,7 @@ if __name__ == '__main__':
     parser = optparse.OptionParser("usage: %prog [options] arg1 arg2")
 
     parser.add_option('--numdatasets',
-                      default=10000, type="int", dest='numdatasets',
+                      default=100, type="int", dest='numdatasets',
                       help='Number of datasets to generate')
     parser.add_option('--savefilename',
                       default='2dcostdata.t7', type="string", dest='savefilename',
@@ -237,5 +243,6 @@ if __name__ == '__main__':
     # if len(args) != 2:
     #     parser.error("incorrect number of arguments")
 
-    datasets = random_environments(options)
-    write_dictionary_to_file(datasets, filename='costdata2d_10k_small.hdf5')
+    datasets, workspaces = random_environments(options)
+    write_dictionary_to_file(datasets, filename='costdata2d_1k_small.hdf5')
+    write_dictionary_to_file(workspaces, filename='workspaces_1k_small.hdf5')

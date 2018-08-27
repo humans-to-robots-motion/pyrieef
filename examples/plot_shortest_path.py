@@ -27,16 +27,7 @@ import pyrieef.rendering.workspace_renderer as render
 from utils import timer
 import time
 
-
-def sample_collision_free(workspace):
-    extends = workspace.box.extends()
-    while True:
-        p = extends.sample_uniform()
-        dist = workspace.min_dist(p)[0]
-        if dist > 0.05:
-            return p
-
-show_result = False
+show_result = True
 radius = .1
 nb_points = 24
 average_cost = False
