@@ -30,6 +30,9 @@ class CostmapToSparseGraph:
     def __init__(self, costmap, average_cost=False):
         self.costmap = costmap
         self.average_cost = average_cost
+        self.init = False
+        self._graph_dense = None
+        self._edges = []
 
     def graph_id(self, i, j):
         return i + j * self.costmap.shape[0]
@@ -69,13 +72,14 @@ class CostmapToSparseGraph:
     def convert(self):
         """ Converts a costmap to a compressed sparse graph
 
-            cost : The M x N matrix of costs. cost[i,j] 
+            cost : The M x N matrix of costs. cost[i,j]
                    gives the cost of a certain node
             node_map_coord  = (i, j)
             node_graph_id   = i + j * M
         """
         nb_nodes = self.costmap.shape[0] * self.costmap.shape[1]
-        graph_dense = np.zeros((nb_nodes, nb_nodes))
+        self._graph_dense = np.zeros((nb_nodes, nb_nodes))
+        self._edges = []
         for (c_i, c_j), c_ij in np.ndenumerate(self.costmap):
             c_node = self.graph_id(c_i, c_j)
             for (n_i, n_j) in self.neiborghs(c_i, c_j):
@@ -83,16 +87,32 @@ class CostmapToSparseGraph:
                     # get the neighbor graph id
                     # compute edge cost and store it in graph
                     n_node = self.graph_id(n_i, n_j)
-                    graph_dense[c_node, n_node] = self.edge_cost(
+                    self._graph_dense[c_node, n_node] = self.edge_cost(
                         c_i, c_j, n_i, n_j)
-        return graph_dense
+                    self._edges.append([c_node, n_node])
+        return self._graph_dense
+
+    def update_graph(self, costmap):
+        """ updates the graph fast """
+        assert costmap.shape == self.costmap.shape
+        assert self._graph_dense is not None
+        assert self._edges is not []
+        self.costmap = costmap
+        nb_nodes = self.costmap.shape[0] * self.costmap.shape[1]
+        self._graph_dense = np.zeros((nb_nodes, nb_nodes))
+        for e in self._edges:
+            node_0_i, node_0_j = self.costmap_id(e[0])
+            node_1_i, node_1_j = self.costmap_id(e[1])
+            self._graph_dense[e[0], e[1]] = self.edge_cost(
+                node_0_i, node_0_j,
+                node_1_i, node_1_j)
 
     def shortest_path(self, predecessors, s_i, s_j, t_i, t_j):
         """ Performs a shortest path querry and returns
             the shortes path between some source cell and target cell
             expressed in costmap coordinates
 
-            graph_dense : dense graph retpresentation of the costmap
+            predecessors : as obdtained by shortest_paths function
         """
         source_id = self.graph_id(s_i, s_j)
         target_id = self.graph_id(t_i, t_j)
@@ -104,3 +124,69 @@ class CostmapToSparseGraph:
             if source_id == target_id:
                 break
         return path
+
+    def breadth_first_search(self, graph_dense, s_i, s_j, t_i, t_j):
+        """ Performs a shortest path querry and returns
+            the shortes path between some source cell and target cell
+            expressed in costmap coordinates. This method is targeted
+            for single querry.
+
+            graph_dense : dense graph retpresentation of the costmap
+        """
+        source_id = self.graph_id(s_i, s_j)
+        target_id = self.graph_id(t_i, t_j)
+        graph_sparse = csgraph.csgraph_from_dense(graph_dense)
+        nodes, predecessors = csgraph.breadth_first_order(
+            graph_sparse,
+            source_id,
+            directed=False,
+            return_predecessors=True)
+        path = []
+        path.append((t_i, t_j))
+        while True:
+            target_id = predecessors[target_id]
+            path.append(self.costmap_id(target_id))
+            if source_id == target_id:
+                break
+        return path
+
+    def dijkstra(self, graph_dense, s_i, s_j, t_i, t_j):
+        """
+            Performs a graph search for source and target
+
+            graph_dense : dense graph retpresentation of the costmap
+            s_i, s_j : source coordinate on the costmap
+            t_i, t_j : target coordinate on the costmap
+        """
+        source_id = self.graph_id(s_i, s_j)
+        target_id = self.graph_id(t_i, t_j)
+        graph_sparse = csgraph.csgraph_from_dense(graph_dense)
+        dist_matrix, predecessors = csgraph.dijkstra(
+            graph_sparse,
+            directed=not self.average_cost,
+            return_predecessors=True,
+            indices=source_id)
+        path = []
+        path.append((t_i, t_j))
+        while True:
+            target_id = predecessors[target_id]
+            path.append(self.costmap_id(target_id))
+            if source_id == target_id:
+                break
+        return path
+
+    def dijkstra_on_map(self, costmap, s_i, s_j, t_i, t_j):
+        """
+            Performs a graph search for source and target on costmap
+            this is the most efficient implementation for single
+            querry graph search on a 2D costmap with scipy
+
+            costmap : matrix of costs, the type of edge cost
+                      is given by the class option, either average of
+                      node cost or simply node cost which results in a
+                      directed graph.
+            s_i, s_j : source coordinate on the costmap
+            t_i, t_j : target coordinate on the costmap
+        """
+        self.update_graph(costmap)
+        return self.dijkstra(self._graph_dense, s_i, s_j, t_i, t_j)

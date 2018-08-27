@@ -69,8 +69,25 @@ def test_workspace_to_graph():
     path = converter.shortest_path(shortest_paths(graph), s_i, s_j, t_i, t_j)
     assert len(path) > 0
 
+def test_breadth_first_search():
+    workspace = Workspace()
+    radius = .1
+    workspace.obstacles.append(Circle(np.array([0.1, 0.1]), radius))
+    workspace.obstacles.append(Circle(np.array([-.1, 0.1]), radius))
+    phi = SimplePotential2D(SignedDistanceWorkspaceMap(workspace))
+    costmap = phi(workspace.box.stacked_meshgrid(24))
+    converter = CostmapToSparseGraph(costmap, average_cost=True)
+    graph = converter.convert()
+    assert check_symmetric(graph)
+    s_i = 3
+    s_j = 3
+    t_i = 21
+    t_j = 21
+    path = converter.breadth_first_search(graph, s_i, s_j, t_i, t_j)
+    assert len(path) > 0
 
 if __name__ == "__main__":
     test_symetrize()
     test_costmap_to_graph()
     test_workspace_to_graph()
+    test_breadth_first_search()
