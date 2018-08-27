@@ -17,8 +17,8 @@
 #
 #                                        Jim Mainprice on Sunday June 17 2018
 
+import __init__
 
-import test_common_imports
 
 def test_gradient_descent():
     return True

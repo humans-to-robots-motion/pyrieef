@@ -16,7 +16,7 @@
 # PERFORMANCE OF THIS SOFTWARE.
 #
 #                                        Jim Mainprice on Sunday June 17 2017
-
+import __init__
 from test_common_imports import *
 from learning.dataset import *
 from learning.utils import *

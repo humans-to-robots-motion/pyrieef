@@ -36,7 +36,7 @@ def sample_collision_free(workspace):
         if dist > 0.05:
             return p
 
-show_result = True
+show_result = False
 radius = .1
 nb_points = 24
 average_cost = False

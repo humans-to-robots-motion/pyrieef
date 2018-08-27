@@ -17,8 +17,7 @@
 #
 #                                        Jim Mainprice on Sunday June 17 2017
 
-
-import test_common_imports
+import __init__
 from geometry.workspace import *
 
 

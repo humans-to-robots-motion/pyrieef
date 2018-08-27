@@ -16,8 +16,7 @@
 # PERFORMANCE OF THIS SOFTWARE.
 #
 # Jim Mainprice on Sunday June 17 2018
-
-import test_common_imports
+import __init__
 from test_differentiable_geometry import *
 from geometry.diffeomorphisms import *
 

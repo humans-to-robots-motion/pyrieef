@@ -16,10 +16,9 @@
 # PERFORMANCE OF THIS SOFTWARE.
 #
 # Jim Mainprice on Sunday June 17 2017
-
-from test_common_imports import *
-from graph.shortest_path import *
+import __init__
 import numpy as np
+from graph.shortest_path import *
 from numpy.testing import assert_allclose
 from geometry.workspace import *
 from motion.cost_terms import *
@@ -68,6 +67,7 @@ def test_workspace_to_graph():
     t_j = 21
     path = converter.shortest_path(shortest_paths(graph), s_i, s_j, t_i, t_j)
     assert len(path) > 0
+
 
 def test_breadth_first_search():
     workspace = Workspace()

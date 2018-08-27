@@ -16,8 +16,7 @@
 # PERFORMANCE OF THIS SOFTWARE.
 #
 # Jim Mainprice on Sunday June 17 2018
-
-from test_common_imports import *
+import __init__
 from motion.trajectory import *
 from motion.cost_terms import *
 from motion.motion_optimization import *
