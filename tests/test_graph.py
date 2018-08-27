@@ -23,7 +23,6 @@ import numpy as np
 from numpy.testing import assert_allclose
 from geometry.workspace import *
 from motion.cost_terms import *
-import rendering.workspace_renderer as render
 from utils import timer
 
 
@@ -67,7 +66,7 @@ def test_workspace_to_graph():
     s_j = 3
     t_i = 21
     t_j = 21
-    path = converter.shortest_path(graph, s_i, s_j, t_i, t_j)
+    path = converter.shortest_path(shortest_paths(graph), s_i, s_j, t_i, t_j)
     assert len(path) > 0
 
 

@@ -75,6 +75,7 @@ class SimplePotential2D(DifferentiableMap):
         self._sdf = signed_distance_field
         self._rho_scaling = 100.
         self._alpha = 10.
+        self._epsilon = 0.
 
     def output_dimension(self):
         return 1
@@ -87,8 +88,22 @@ class SimplePotential2D(DifferentiableMap):
 
     def jacobian(self, x):
         [sdf, J_sdf] = self._sdf.evaluate(x)
-        rho = self._rho_scaling * np.exp(-self._alpha * sdf)
+        d_obs = sdf - self._epsilon
+        rho = self._rho_scaling * np.exp(-self._alpha * d_obs)
         return -self._alpha * rho * J_sdf
+
+
+class CostGridPotential2D(SimplePotential2D):
+
+    def __init__(self, signed_distance_field, alpha, epsilon, offset):
+        SimplePotential2D.__init__(self, signed_distance_field)
+        self._alpha = alpha
+        self._epsilon = epsilon
+        self._offset = offset
+
+    def forward(self, x):
+        d_obs = self._sdf.forward(x) - self._epsilon
+        return self._rho_scaling * np.exp(-self._alpha * d_obs) + self._offset
 
 
 class ObstaclePotential2D(DifferentiableMap):

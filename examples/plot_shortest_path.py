@@ -27,12 +27,23 @@ import rendering.workspace_renderer as render
 from utils import timer
 import time
 
+
+def sample_collision_free(workspace):
+    extends = workspace.box.extends()
+    while True:
+        p = extends.sample_uniform()
+        dist = workspace.min_dist(p)[0]
+        if dist > 0.05:
+            print "dist : ", dist
+            return p
+
+
 workspace = Workspace()
 radius = .1
 nb_points = 24
 workspace.obstacles.append(Circle(np.array([0.1, 0.1]), radius))
 workspace.obstacles.append(Circle(np.array([-.1, 0.1]), radius))
-phi = SimplePotential2D(SignedDistanceWorkspaceMap(workspace))
+phi = CostGridPotential2D(SignedDistanceWorkspaceMap(workspace), 10., 10.)
 costmap = phi(workspace.box.stacked_meshgrid(nb_points))
 print costmap
 average_cost = True
@@ -41,31 +52,30 @@ graph = converter.convert()
 if average_cost:
     assert check_symmetric(graph)
 
-viewer = render.WorkspaceDrawer(workspace)
+
 time_0 = time.time()
 predecessors = shortest_paths(graph)
-
+pixel_map = workspace.pixel_map(nb_points)
 np.random.seed(1)
 for i in range(100):
-    s_i = int(23 * np.random.random())
-    s_j = int(23 * np.random.random())
-    t_i = int(23 * np.random.random())
-    t_j = int(23 * np.random.random())
-    print "querry : ({}, {}) ({},{})".format(s_i, s_j, t_i, t_j)
-    path = converter.shortest_path(predecessors, s_i, s_j, t_i, t_j)
-    pixel_map = workspace.pixel_map(nb_points)
+    s_w = sample_collision_free(workspace)
+    t_w = sample_collision_free(workspace)
+    s = pixel_map.world_to_grid(s_w)
+    t = pixel_map.world_to_grid(t_w)
+    print "querry : ({}, {}) ({},{})".format(s[0], s[1], t[0], t[1])
+    path = converter.shortest_path(predecessors, s[0], s[1], t[0], t[1])
+
     trajectory = [None] * len(path)
     for i, p in enumerate(path):
         trajectory[i] = pixel_map.grid_to_world(np.array(p))
 
+    viewer = render.WorkspaceDrawer(workspace)
     viewer.init()
     viewer.draw_ws_background(phi, nb_points)
     viewer.draw_ws_obstacles()
     viewer.draw_ws_line(trajectory)
+    viewer.draw_ws_point(s_w)
+    viewer.draw_ws_point(t_w)
     viewer.show_once()
 print "took t : {} sec.".format(time.time() - time_0)
 print path
-
-
-
-

@@ -102,10 +102,11 @@ class WorkspaceRender(Viewer):
 
 class WorkspaceDrawer:
 
-    def __init__(self, workspace, display=None):
+    def __init__(self, workspace, wait_for_keyboard=False):
         self._workspace = workspace
         self._extends = workspace.box.extends()
         self._plot3d = False
+        self._wait_for_keyboard = wait_for_keyboard
         self.init()
 
     def init(self):
@@ -133,10 +134,12 @@ class WorkspaceDrawer:
         im = plt.imshow(Z,
                         extent=self._workspace.box.box_extends(),
                         origin='lower',
-                        interpolation='none',
+                        interpolation='nearest',
+                        vmin=0,
+                        vmax=100,
                         cmap=color_style)
         plt.colorbar(im, fraction=0.05, pad=0.02)
-        cs = plt.contour(X, Y, Z, 16, cmap=color_style)
+        # cs = plt.contour(X, Y, Z, 16, cmap=color_style)
 
         if self._plot3d:
             fig = plt.figure()
@@ -148,6 +151,9 @@ class WorkspaceDrawer:
         for q in line:
             plt.plot(q[0], q[1], 'ro')
 
+    def draw_ws_point(self, point):
+        plt.plot(point[0], point[1], 'bx')
+
     def show(self):
         plt.show()
 
@@ -155,6 +161,8 @@ class WorkspaceDrawer:
         plt.show(block=False)
         plt.draw()
         plt.pause(0.0001)
+        if self._wait_for_keyboard:
+            raw_input("Press Enter to continue...")
         plt.close(self._fig)
 
 

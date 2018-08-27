@@ -35,6 +35,13 @@ class Extends:
     def y(self):
         return self.y_max - self.y_min
 
+    def sample_uniform(self):
+        """ Sample uniformly point in extend"""
+        pt = np.random.random(2)  # \in [0, 1]^2
+        pt[0] = self.x() * pt[0] + self.x_min
+        pt[1] = self.y() * pt[1] + self.y_min
+        return pt
+
 
 class PixelMap:
     """
@@ -61,7 +68,7 @@ class PixelMap:
 
     def world_to_grid(self, x):
         """ grid coordinates of a point in world coordinates."""
-        return np.floor((x - self.origin_minus) / self.resolution)
+        return np.floor((x - self.origin_minus) / self.resolution).astype(int)
 
     def grid_to_world(self, p):
         """world coorindates of the center of a grid cell"""

@@ -100,6 +100,10 @@ def test_obstacle_potential():
     print "Checkint Simple Potential"
     assert check_jacobian_against_finite_difference(phi)
 
+    phi = CostGridPotential2D(sdf, 10, 0.1, 1.)
+    print "Checkint Grid Potential"
+    assert check_jacobian_against_finite_difference(phi)
+
 
 def calculate_analytical_gradient_speedup(f, nb_points=10):
     samples = np.random.rand(nb_points, f.input_dimension())
