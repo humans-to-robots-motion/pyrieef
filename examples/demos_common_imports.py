@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 driectory = os.path.abspath(os.path.dirname(__file__))
-sys.path.insert(0, driectory + os.sep + "../src")
+sys.path.insert(0, driectory + os.sep + "..")
 
 
 def plot_line(line, color, width=2.):

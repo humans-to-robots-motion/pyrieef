@@ -18,12 +18,12 @@
 # Jim Mainprice on Sunday June 17 2018
 
 import demos_common_imports
-from motion.motion_optimization import *
+from pyrieef.motion.motion_optimization import *
+from pyrieef.rendering import workspace_renderer
+from pyrieef.rendering import opengl
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from mpl_toolkits.mplot3d import Axes3D
-from rendering import workspace_renderer
-from rendering import opengl
 import time
 
 use_matplotlib = True

@@ -20,12 +20,12 @@
 from demos_common_imports import *
 import numpy as np
 import matplotlib.pyplot as plt
-from geometry.workspace import *
-from geometry.charge_simulation import *
-from geometry.pixel_map import *
-from geometry.geodesics import *
-from geometry.diffeomorphisms import *
-from geometry.utils import *
+from pyrieef.geometry.workspace import *
+from pyrieef.geometry.charge_simulation import *
+from pyrieef.geometry.pixel_map import *
+from pyrieef.geometry.geodesics import *
+from pyrieef.geometry.diffeomorphisms import *
+from pyrieef.geometry.utils import *
 import itertools
 
 # phi = ElectricCircle()

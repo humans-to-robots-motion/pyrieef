@@ -18,12 +18,12 @@
 # Jim Mainprice on Sunday June 17 2017
 
 from demos_common_imports import *
-from graph.shortest_path import *
 import numpy as np
 from numpy.testing import assert_allclose
-from geometry.workspace import *
-from motion.cost_terms import *
-import rendering.workspace_renderer as render
+from pyrieef.graph.shortest_path import *
+from pyrieef.geometry.workspace import *
+from pyrieef.motion.cost_terms import *
+import pyrieef.rendering.workspace_renderer as render
 from utils import timer
 import time
 

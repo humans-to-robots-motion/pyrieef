@@ -20,8 +20,8 @@
 from demos_common_imports import *
 import numpy as np
 from numpy.testing import assert_allclose
-from motion.cost_terms import *
-from geometry.workspace import *
+from pyrieef.motion.cost_terms import *
+from pyrieef.geometry.workspace import *
 import matplotlib.pyplot as plt
 
 
@@ -38,13 +38,17 @@ workspace.obstacles.append(Circle(np.array([0., 0.]), 0.1))
 
 fig = plt.figure(figsize=(7, 6.5))
 
-obst_cost = CostGridPotential2D(SignedDistanceWorkspaceMap(workspace), 10., 1.)
+obst_cost = CostGridPotential2D(SignedDistanceWorkspaceMap(workspace), 
+    10., .1, 1.)
 plot(obst_cost, "10")
-obst_cost = CostGridPotential2D(SignedDistanceWorkspaceMap(workspace), 20., 1.)
+obst_cost = CostGridPotential2D(SignedDistanceWorkspaceMap(workspace), 
+    20., .1, 1.)
 plot(obst_cost, "20")
-obst_cost = CostGridPotential2D(SignedDistanceWorkspaceMap(workspace), 30., 1.)
+obst_cost = CostGridPotential2D(SignedDistanceWorkspaceMap(workspace), 
+    30., .1,  1.)
 plot(obst_cost, "30")
-obst_cost = CostGridPotential2D(SignedDistanceWorkspaceMap(workspace), 40., 1.)
+obst_cost = CostGridPotential2D(SignedDistanceWorkspaceMap(workspace), 
+    40., .1,  1.)
 plot(obst_cost, "40")
 
 plt.legend()

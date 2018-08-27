@@ -3,7 +3,7 @@ import numpy as np
 from scipy.interpolate import RectBivariateSpline
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-from geometry.differentiable_geometry import *
+from rieef.geometry.differentiable_geometry import *
 
 
 class ExpF(DifferentiableMap):

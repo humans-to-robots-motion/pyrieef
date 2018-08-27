@@ -1,5 +1,5 @@
 import demos_common_imports
-from motion.motion_optimization import *
+from pyrieef.motion.motion_optimization import *
 import matplotlib.pyplot as plt
 
 motion = MotionOptimization2DCostMap(100, 1)
