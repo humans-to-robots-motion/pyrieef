@@ -40,15 +40,18 @@ def collision_check_interpolation(workspace, p_init, p_goal):
     return False
 
 
-def compute_demonstration(ws, box):
-
+def load_circles_workspace(ws, box):
     workspace = Workspace(box)
-
     for i in range(ws[0].shape[0]):
         center = ws[0][i]
         radius = ws[1][i][0]
         if radius > 0:
             workspace.add_circle(center, radius)
+    return workspace
+
+
+def compute_demonstration(
+        workspace, converter, nb_points, show_result, average_cost):
 
     phi = CostGridPotential2D(SignedDistanceWorkspaceMap(workspace),
                               10., .03, 10.)
@@ -64,12 +67,7 @@ def compute_demonstration(ws, box):
         s = pixel_map.world_to_grid(s_w)
         t = pixel_map.world_to_grid(t_w)
         try:
-            # converter.update_costmap(costmap)
-            # predecessors = shortest_paths(converter.convert())
-            path = converter.dijkstra_on_map(costmap,
-                                             s[0], s[1], t[0], t[1])
-            # path = converter.shortest_path_on_map(costmap,
-            #    s[0], s[1], t[0], t[1])
+            path = converter.dijkstra_on_map(costmap, s[0], s[1], t[0], t[1])
         except:
             resample = True
 
@@ -102,7 +100,7 @@ if __name__ == '__main__':
     y_max = data_ws.lims[1, 1]
     box = box_from_limits(x_min, x_max, y_min, y_max)
 
-    show_result = True
+    show_result = False
     average_cost = False
     nb_points = 24
     converter = CostmapToSparseGraph(
@@ -111,4 +109,8 @@ if __name__ == '__main__':
     np.random.seed(1)
 
     for k, ws in enumerate(tqdm(data_ws.datasets)):
-        compute_demonstration(ws, box)
+        compute_demonstration(load_circles_workspace(ws, box),
+                              converter,
+                              nb_points=nb_points,
+                              show_result=show_result,
+                              average_cost=average_cost)
