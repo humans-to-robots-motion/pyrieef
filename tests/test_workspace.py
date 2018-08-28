@@ -69,7 +69,24 @@ def test_meshgrid():
         assert_allclose(p_meshgrid, p_world)
 
 
+def test_sdf_grid():
+    nb_points = 24
+    workspace = Workspace()
+    for center, radius in sample_circles(nb_circles=10):
+        workspace.obstacles.append(Circle(center, radius))
+    sdf = SignedDistanceWorkspaceMap(workspace)
+    pixel_map = workspace.pixel_map(nb_points)
+    # WARNING !!!
+    # Here we need to transpose the costmap
+    # otherwise the grid representation do not match
+    sdfmap = sdf(workspace.box.stacked_meshgrid(nb_points)).transpose()
+    for i, j in product(range(nb_points), range(nb_points)):
+        p = pixel_map.grid_to_world(np.array([i, j]))
+        assert_allclose(sdf(p), sdfmap[i, j])
+
+
 test_ellipse()
 test_sdf_jacobians()
 test_sdf_workspace()
 test_meshgrid()
+test_sdf_grid()
