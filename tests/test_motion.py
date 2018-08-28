@@ -16,7 +16,7 @@
 # PERFORMANCE OF THIS SOFTWARE.
 #
 # Jim Mainprice on Sunday June 17 2018
-import __init__
+from __init__ import *
 from motion.trajectory import *
 from motion.cost_terms import *
 from motion.motion_optimization import *
@@ -84,6 +84,18 @@ def test_trajectory():
     print "final configuration (ones) : "
     traj.final_configuration()[:] = np.ones(2)
     print traj.final_configuration()
+
+
+def test_continuous_trajectory():
+    q_init = np.random.random(2)
+    q_goal = np.random.random(2)
+    trajectory_1 = linear_interpolation_trajectory(q_init, q_goal, 10)
+    trajectory_2 = ContinuousTrajectory(10, 2)
+    trajectory_2.set(trajectory_1.x())
+    for k, s in enumerate(np.linspace(0., 1., 11)):
+        q_1 = trajectory_2.configuration_at_parameter(s)
+        q_2 = trajectory_1.configuration(k)
+        assert_allclose(q_1, q_2)
 
 
 def test_obstacle_potential():
@@ -170,6 +182,7 @@ def test_optimize():
 
 if __name__ == "__main__":
     test_trajectory()
+    test_continuous_trajectory()
     test_cliques()
     test_finite_differences()
     test_obstacle_potential()

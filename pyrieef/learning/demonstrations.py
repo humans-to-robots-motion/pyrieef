@@ -65,6 +65,10 @@ def save_trajectories_to_file(trajectories):
     write_dictionary_to_file(data, filename='trajectories_1k_small.hdf5')
 
 
+def optimize(trajectory):
+    resample()
+
+
 def compute_demonstration(
         workspace, converter, nb_points, show_result, average_cost):
     phi = CostGridPotential2D(

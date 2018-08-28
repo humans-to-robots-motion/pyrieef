@@ -91,7 +91,7 @@ class CliquesFunctionNetwork(FunctionNetwork):
         return value
 
     def jacobian(self, x):
-        """ 
+        """
             The jacboian matrix is of dimension m x n
                 m (rows) : output size
                 n (cols) : input size
@@ -151,9 +151,11 @@ class CliquesFunctionNetwork(FunctionNetwork):
 
 
 class Trajectory:
-    """ 
-        Implement a trajectory as a single vector of 
+    """
+        Implement a trajectory as a single vector of
         configuration, returns cliques of configurations
+        Note there is T active configuration in the trajectory
+        indices 0 and T + 1 are not supposed to be active
     """
 
     def __init__(self, T=0, n=2):
@@ -177,15 +179,16 @@ class Trajectory:
         return self.configuration(self._T)
 
     def configuration(self, i):
-        """ To get a mutable part : 
+        """ To get a mutable part :
             traj.configuration(3)[:] = np.ones(2)
         """
+        assert i >= 0 and i < (self._T + 2)
         beg_idx = self._n * i
         end_idx = self._n * (i + 1)
         return self._x[beg_idx:end_idx]
 
     def clique(self, i):
-        assert i > 0
+        assert i >= 0 and i < (self._T + 2)
         beg_idx = self._n * (i - 1)
         end_idx = self._n * (i + 2)
         return self._x[beg_idx:end_idx]
@@ -193,6 +196,41 @@ class Trajectory:
     def set(self, x):
         assert x.shape[0] == self._n * (2 + self._T)
         self._x = x
+
+
+class ContinuousTrajectory(Trajectory):
+    """ Implements a trajectory that can be continously interpolated """
+
+    def configuration_at_parameter(self, s):
+        """ The trajectory is indexed by s \in [0, 1] """
+        d_param = s * self.length()
+        q_prev = self.configuration(0)
+        dist = 0.
+        for i in range(1, self._T + 2):
+            q_curr = self.configuration(i)
+            d = np.linalg.norm(q_curr - q_prev)
+            if d_param <= (dist + d):
+                return self.interpolate(q_prev, q_curr, d_param - dist, d)
+            dist += d
+            q_prev = q_curr
+        return None
+
+    def length(self):
+        """ length in configuration space """
+        length = 0.
+        q_prev = self.configuration(0)
+        for i in range(1, self._T + 2):
+            q_curr = self.configuration(i)
+            length += np.linalg.norm(q_curr - q_prev)
+            q_prev = q_curr
+        print("length : ", length)
+        return length
+
+    @staticmethod
+    def interpolate(q_1, q_2, d_param, dist):
+        """ interpolate between configurations """
+        alpha = d_param / dist
+        return (1 - alpha) * q_1 + alpha * q_2
 
 
 def linear_interpolation_trajectory(q_init, q_goal, T):
