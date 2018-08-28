@@ -16,10 +16,8 @@
 # PERFORMANCE OF THIS SOFTWARE.
 #
 # Jim Mainprice on Sunday June 17 2017
-import __init__
-import numpy as np
+from __init__ import *
 from graph.shortest_path import *
-from numpy.testing import assert_allclose
 from geometry.workspace import *
 from motion.cost_terms import *
 from utils import timer
@@ -79,9 +77,11 @@ def test_workspace_to_graph():
     nb_points = 24
     workspace.obstacles.append(Circle(np.array([0.1, 0.1]), radius))
     workspace.obstacles.append(Circle(np.array([-.1, 0.1]), radius))
-    np.set_printoptions(suppress=True, linewidth=200, precision=2)
     pixel_map = workspace.pixel_map(nb_points)
     phi = SimplePotential2D(SignedDistanceWorkspaceMap(workspace))
+    # WARNING !!!
+    # Here we need to transpose the costmap
+    # otherwise the grid representation do not match
     costmap = phi(workspace.box.stacked_meshgrid(nb_points)).transpose()
     converter = CostmapToSparseGraph(costmap, average_cost=False)
     graph = converter.convert()
@@ -91,12 +91,10 @@ def test_workspace_to_graph():
                 c1 = converter.edge_cost(n1_i, n1_j, n2_i, n2_j)
                 c2 = converter.graph_edge_cost(n1_i, n1_j, n2_i, n2_j)
                 p = pixel_map.grid_to_world(np.array([n2_i, n2_j]))
-                print p
                 c3 = phi(p)
                 assert c2 == c2
                 assert c2 == costmap[n2_i, n2_j]
-                print "c2 : {}, c3 : {}".format(c2, c3)
-                # assert c2 == c3, "c2 : {} and c3 {}".format(c2, c3)
+                assert_allclose(c2, c3)
 
 
 def test_workspace_to_shortest_path():

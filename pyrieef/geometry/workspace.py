@@ -182,6 +182,10 @@ class Box:
         return np.sqrt(self.dim[0] ** 2 + self.dim[1]**2)
 
     def meshgrid(self, nb_points=100):
+        """ This mesh grid definition matches the one in the PixelMap class
+            Note that it is only defined for squared boxes.
+            simply takes as input the number of points which corresponds
+            to the number of cells for the PixelMap"""
         assert self.dim[0] == self.dim[1]
         resolution = self.dim[0] / nb_points
         extends = self.extends()
@@ -195,8 +199,6 @@ class Box:
 
     def stacked_meshgrid(self, nb_points=100):
         X, Y = self.meshgrid(nb_points)
-        print X
-        print Y
         return np.stack([X, Y])
 
     def __str__(self):
