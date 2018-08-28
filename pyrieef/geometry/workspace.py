@@ -150,6 +150,60 @@ class Segment(Shape):
         return points
 
 
+class SignedDistance2DMap(DifferentiableMap):
+    """
+        This class of wraps the shape class in a
+        differentiable map
+    """
+
+    def __init__(self, shape):
+        self._shape = shape
+
+    def output_dimension(self):
+        return 1
+
+    def input_dimension(self):
+        return 2
+
+    def forward(self, x):
+        return self._shape.dist_from_border(x)
+
+    def jacobian(self, x):
+        return np.matrix(self._shape.dist_gradient(x)).reshape((1, 2))
+
+
+class SignedDistanceWorkspaceMap(DifferentiableMap):
+    """
+        This class of wraps the workspace class in a
+        differentiable map
+    """
+
+    def __init__(self, workspace):
+        self._workspace = workspace
+
+    def output_dimension(self):
+        return 1
+
+    def input_dimension(self):
+        return 2
+
+    def forward(self, x):
+        return self._workspace.min_dist(x)[0]
+
+    def jacobian(self, x):
+        """ Warning: this gradient is ill defined
+            it has a kink when two objects are at the same distance """
+        return np.matrix(self._workspace.min_dist_gradient(x)).reshape((1, 2))
+
+    def evaluate(self, x):
+        """ Warning: this gradient is ill defined
+            it has a kink when two objects are at the same distance """
+        [mindist, minid] = self._workspace.min_dist(x)
+        g_mindist = self._workspace.obstacles[minid].dist_gradient(x)
+        J_mindist = np.matrix(g_mindist).reshape((1, 2))
+        return [mindist, J_mindist]
+
+
 class Box:
     """
         A box is defined by an origin, which is its center.
@@ -211,60 +265,6 @@ def box_from_limits(x_min, x_max, y_min, y_max):
     return Box(
         origin=np.array([(x_min + x_max) / 2., (y_min + y_max) / 2.]),
         dim=np.array([x_max - x_min, y_max - y_min]))
-
-
-class SignedDistance2DMap(DifferentiableMap):
-    """
-        This class of wraps the shape class in a
-        differentiable map
-    """
-
-    def __init__(self, shape):
-        self._shape = shape
-
-    def output_dimension(self):
-        return 1
-
-    def input_dimension(self):
-        return 2
-
-    def forward(self, x):
-        return self._shape.dist_from_border(x)
-
-    def jacobian(self, x):
-        return np.matrix(self._shape.dist_gradient(x)).reshape((1, 2))
-
-
-class SignedDistanceWorkspaceMap(DifferentiableMap):
-    """
-        This class of wraps the workspace class in a
-        differentiable map
-    """
-
-    def __init__(self, workspace):
-        self._workspace = workspace
-
-    def output_dimension(self):
-        return 1
-
-    def input_dimension(self):
-        return 2
-
-    def forward(self, x):
-        return self._workspace.min_dist(x)[0]
-
-    def jacobian(self, x):
-        """ Warning: this gradient is ill defined
-            it has a kink when two objects are at the same distance """
-        return np.matrix(self._workspace.min_dist_gradient(x)).reshape((1, 2))
-
-    def evaluate(self, x):
-        """ Warning: this gradient is ill defined
-            it has a kink when two objects are at the same distance """
-        [mindist, minid] = self._workspace.min_dist(x)
-        g_mindist = self._workspace.obstacles[minid].dist_gradient(x)
-        J_mindist = np.matrix(g_mindist).reshape((1, 2))
-        return [mindist, J_mindist]
 
 
 class Workspace:

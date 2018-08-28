@@ -126,7 +126,6 @@ def random_environments(opt):
         resolution = resolution_x
 
     # Create a bunch of datasets
-    maxnobjs = 3
     datasets = [None] * numdatasets
     dataws = [None] * numdatasets
     k = 0
@@ -153,7 +152,8 @@ def random_environments(opt):
         # Create empty workspace.
         workspace = Workspace(box)
         numtries = 0  # Initialize num tries
-        nobj = int(ceil(random() * maxnobjs))
+        # nobj = int(ceil(random() * maxnobjs))
+        nobj = maxnobjs
         while True:
             r = minrad + random() * (maxrad - minrad)
             c = samplerandpt(lims)
@@ -221,13 +221,13 @@ if __name__ == '__main__':
                       default=24, type="int", dest='ysize',
                       help='Size of the y-dimension (in pixels). Y values go from 0-1')
     parser.add_option('--maxnumobjs',
-                      default=4, type="int", dest='maxnumobjs',
+                      default=5, type="int", dest='maxnumobjs',
                       help='Maximum number of obst. per scene (ranges from 1-this number)')
     parser.add_option('--minobjrad',
-                      default=0.1, type="float", dest='minobjrad',
+                      default=0.05, type="float", dest='minobjrad',
                       help='Minimum radius of any obstacle (in m)')
     parser.add_option('--maxobjrad',
-                      default=0.25, type="float", dest='maxobjrad',
+                      default=0.15, type="float", dest='maxobjrad',
                       help='Maximum radius of any obstacle (in m)')
     parser.add_option('--epsilon',
                       default=0.1, type="float", dest='epsilon',

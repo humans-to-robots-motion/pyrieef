@@ -28,30 +28,37 @@ from tqdm import tqdm
 import time
 
 
+def collision_check_interpolation(workspace, p_init, p_goal):
+    """ Check interior interpolation for collision """
+    delta = workspace.box.diag() / 100.
+    nb_points = int(np.linalg.norm(p_init - p_goal) / delta)
+    for i in range(1, nb_points):
+        alpha = float(i) / float(nb_points)
+        p = (1. - alpha) * p_init + alpha * p_goal
+        if workspace.in_collision(p):
+            return True
+    return False
+
+
 def compute_demonstration(ws, box):
 
     workspace = Workspace(box)
 
-    center_0 = ws[0][0]
-    radius_0 = ws[1][0][0]
-    center_1 = ws[0][1]
-    radius_1 = ws[1][1][0]
-    center_2 = ws[0][2]
-    radius_2 = ws[1][2][0]
-    if radius_0 > 0:
-        workspace.add_circle(center_0, radius_0)
-    if radius_1 > 0:
-        workspace.add_circle(center_1, radius_1)
-    if radius_2 > 0:
-        workspace.add_circle(center_2, radius_2)
+    for i in range(ws[0].shape[0]):
+        center = ws[0][i]
+        radius = ws[1][i][0]
+        if radius > 0:
+            workspace.add_circle(center, radius)
 
     phi = CostGridPotential2D(SignedDistanceWorkspaceMap(workspace),
-                              10., .1, 10.)
+                              10., .03, 10.)
     costmap = phi(workspace.box.stacked_meshgrid(nb_points)).transpose()
     resample = True
     while resample:
         s_w = sample_collision_free(workspace)
         t_w = sample_collision_free(workspace)
+        if not collision_check_interpolation(workspace, s_w, t_w):
+            continue
         resample = False
         pixel_map = workspace.pixel_map(nb_points)
         s = pixel_map.world_to_grid(s_w)
@@ -71,14 +78,14 @@ def compute_demonstration(ws, box):
         trajectory[i] = pixel_map.grid_to_world(np.array(p))
 
     if show_result:
-        viewer = render.WorkspaceDrawer(workspace, wait_for_keyboard=True)
+        viewer = render.WorkspaceDrawer(workspace, wait_for_keyboard=False)
         viewer.draw_ws_background(phi, nb_points)
         viewer.draw_ws_obstacles()
         viewer.draw_ws_line(trajectory)
         viewer.draw_ws_point(s_w)
         viewer.draw_ws_point(t_w)
         viewer.show_once()
-        time.sleep(.5)
+        time.sleep(.4)
 
 if __name__ == '__main__':
 
@@ -105,4 +112,3 @@ if __name__ == '__main__':
 
     for k, ws in enumerate(tqdm(data_ws.datasets)):
         compute_demonstration(ws, box)
-
