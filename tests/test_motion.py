@@ -90,8 +90,8 @@ def test_continuous_trajectory():
     q_init = np.random.random(2)
     q_goal = np.random.random(2)
     trajectory_1 = linear_interpolation_trajectory(q_init, q_goal, 10)
-    trajectory_2 = ContinuousTrajectory(10, 2)
-    trajectory_2.set(trajectory_1.x())
+    trajectory_2 = ContinuousTrajectory(7, 2)
+    trajectory_2.set(linear_interpolation_trajectory(q_init, q_goal, 7).x())
     for k, s in enumerate(np.linspace(0., 1., 11)):
         q_1 = trajectory_2.configuration_at_parameter(s)
         q_2 = trajectory_1.configuration(k)

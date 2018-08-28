@@ -70,7 +70,7 @@ class WorkspaceRender(Viewer):
         circ.set_color(0, 1, 0)
         self.add_onetime(circ)
 
-    def draw_ws_line(self, p1, p2):
+    def draw_ws_line(self, p1, p2, color=(1, 0, 0)):
         corner = np.array([self._extends.x_min, self._extends.y_min])
         p1_ws = self._scale * (p1 - corner)
         p2_ws = self._scale * (p2 - corner)
@@ -147,9 +147,9 @@ class WorkspaceDrawer:
             ax.plot_surface(X, Y, Z, cmap=color_style,
                             linewidth=0, antialiased=False)
 
-    def draw_ws_line(self, line):
+    def draw_ws_line(self, line, color='r'):
         for q in line:
-            plt.plot(q[0], q[1], 'ro')
+            plt.plot(q[0], q[1], color + 'o')
 
     def draw_ws_point(self, point):
         plt.plot(point[0], point[1], 'bx')

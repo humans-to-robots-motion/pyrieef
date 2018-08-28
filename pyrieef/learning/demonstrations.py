@@ -23,6 +23,7 @@ from learning.dataset import *
 from learning.utils import *
 from geometry.workspace import *
 from motion.cost_terms import *
+from motion.trajectory import *
 import rendering.workspace_renderer as render
 from tqdm import tqdm
 import time
@@ -89,21 +90,29 @@ def compute_demonstration(
         except:
             resample = True
 
-    trajectory = [None] * len(path)
+    traj = [None] * len(path)
+    trajectory = ContinuousTrajectory(len(path) - 1, 2)
     for i, p in enumerate(path):
-        trajectory[i] = pixel_map.grid_to_world(np.array(p))
+        traj[i] = pixel_map.grid_to_world(np.array(p))
+        trajectory.configuration(i)[:] = traj[i]
+
+    nb_config = 20
+    interpolated_traj = [None] * nb_config
+    for i, s in enumerate(np.linspace(0, 1, nb_config)):
+        interpolated_traj[i] = trajectory.configuration_at_parameter(s)
 
     if show_result:
-        viewer = render.WorkspaceDrawer(workspace, wait_for_keyboard=False)
+        viewer = render.WorkspaceDrawer(workspace, wait_for_keyboard=True)
         viewer.draw_ws_background(phi, nb_points)
         viewer.draw_ws_obstacles()
-        viewer.draw_ws_line(trajectory)
+        viewer.draw_ws_line(interpolated_traj, color="r")
+        viewer.draw_ws_line(traj, color="b")
         viewer.draw_ws_point(s_w)
         viewer.draw_ws_point(t_w)
         viewer.show_once()
         time.sleep(.4)
 
-    return trajectory
+    return interpolated_traj
 
 if __name__ == '__main__':
 

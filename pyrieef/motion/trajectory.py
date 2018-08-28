@@ -182,13 +182,13 @@ class Trajectory:
         """ To get a mutable part :
             traj.configuration(3)[:] = np.ones(2)
         """
-        assert i >= 0 and i < (self._T + 2)
+        assert i >= 0 and i <= (self._T + 1)
         beg_idx = self._n * i
         end_idx = self._n * (i + 1)
         return self._x[beg_idx:end_idx]
 
     def clique(self, i):
-        assert i >= 0 and i < (self._T + 2)
+        assert i >= 0 and i <= (self._T + 1)
         beg_idx = self._n * (i - 1)
         end_idx = self._n * (i + 2)
         return self._x[beg_idx:end_idx]
@@ -206,7 +206,7 @@ class ContinuousTrajectory(Trajectory):
         d_param = s * self.length()
         q_prev = self.configuration(0)
         dist = 0.
-        for i in range(1, self._T + 2):
+        for i in range(1, self._T + 1):
             q_curr = self.configuration(i)
             d = np.linalg.norm(q_curr - q_prev)
             if d_param <= (dist + d):
@@ -219,18 +219,18 @@ class ContinuousTrajectory(Trajectory):
         """ length in configuration space """
         length = 0.
         q_prev = self.configuration(0)
-        for i in range(1, self._T + 2):
+        for i in range(1, self._T + 1):
             q_curr = self.configuration(i)
             length += np.linalg.norm(q_curr - q_prev)
             q_prev = q_curr
-        print("length : ", length)
         return length
 
     @staticmethod
     def interpolate(q_1, q_2, d_param, dist):
         """ interpolate between configurations """
-        alpha = d_param / dist
-        return (1 - alpha) * q_1 + alpha * q_2
+        alpha = min(d_param / dist, 1.)
+        assert alpha >= 0 and alpha <= 1., "alpha : {}".format(alpha)
+        return (1. - alpha) * q_1 + alpha * q_2
 
 
 def linear_interpolation_trajectory(q_init, q_goal, T):
