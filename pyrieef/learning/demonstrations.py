@@ -24,6 +24,7 @@ from learning.utils import *
 from geometry.workspace import *
 from motion.cost_terms import *
 from motion.trajectory import *
+from motion.motion_optimization import *
 import rendering.workspace_renderer as render
 from tqdm import tqdm
 import time
@@ -66,8 +67,22 @@ def save_trajectories_to_file(trajectories):
     write_dictionary_to_file(data, filename='trajectories_1k_small.hdf5')
 
 
-def optimize(trajectory):
-    resample()
+def optimize(path, workspace):
+    T = len(path) - 1
+    trajectory = Trajectory(T, 2)
+    for i, p in enumerate(path):
+        trajectory.configuration(i)[:] = path[i]
+    optimizer = MotionOptimization2DCostMap(
+        T=T,
+        n=2,
+        extends=workspace.box.extends(),
+        signed_distance_field=SignedDistanceWorkspaceMap(workspace))
+    [dist, traj, gradient, deltas] = optimizer.optimize(
+        trajectory.configuration(0), 100, trajectory)
+    result = [None] * len(path)
+    for i in range(len(result)):
+        result[i] = trajectory.configuration(i)
+    return result
 
 
 def compute_demonstration(
@@ -101,18 +116,21 @@ def compute_demonstration(
     for i, s in enumerate(np.linspace(0, 1, nb_config)):
         interpolated_traj[i] = trajectory.configuration_at_parameter(s)
 
+    result = optimize(interpolated_traj, workspace)
+
     if show_result:
         viewer = render.WorkspaceDrawer(workspace, wait_for_keyboard=True)
         viewer.draw_ws_background(phi, nb_points)
         viewer.draw_ws_obstacles()
         viewer.draw_ws_line(interpolated_traj, color="r")
         viewer.draw_ws_line(traj, color="b")
+        viewer.draw_ws_line(result, color="g")
         viewer.draw_ws_point(s_w)
         viewer.draw_ws_point(t_w)
         viewer.show_once()
         time.sleep(.4)
 
-    return interpolated_traj
+    return result
 
 if __name__ == '__main__':
 
@@ -129,7 +147,7 @@ if __name__ == '__main__':
     y_max = data_ws.lims[1, 1]
     box = box_from_limits(x_min, x_max, y_min, y_max)
 
-    show_result = False
+    show_result = True
     average_cost = False
     nb_points = 24
     converter = CostmapToSparseGraph(

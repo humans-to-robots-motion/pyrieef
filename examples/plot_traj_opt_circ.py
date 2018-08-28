@@ -26,7 +26,7 @@ import matplotlib.cm as cm
 from mpl_toolkits.mplot3d import Axes3D
 import time
 
-use_matplotlib = True
+use_matplotlib = False
 
 workspace = Workspace()
 workspace.obstacles.append(Circle(np.array([0.2, .0]), .1))
@@ -100,7 +100,7 @@ else:
     for i in range(100):
         [dist, trajectory, gradient, deltas] = motion_optimization.optimize(
             x_init, 1, trajectory)
-        g_traj.set(-.00002 * gradient + trajectory.x()[:])
+        g_traj.set(-.01 * gradient + trajectory.x()[:])
         for k in range(motion_optimization.T + 1):
             q = trajectory.configuration(k)
             viewer.draw_ws_circle(.01, q)
