@@ -50,11 +50,25 @@ def load_circles_workspace(ws, box):
     return workspace
 
 
+def save_trajectories_to_file(trajectories):
+    max_length = 0
+    for t in trajectories:
+        if len(t) > max_length:
+            max_length = len(t)
+    trajectories_data = [-1000. * np.ones((max_length, 2))] * len(trajectories)
+    for i, t in enumerate(trajectories):
+        for k, q in enumerate(t):
+            trajectories_data[i][k] = q
+
+    data = {}
+    data["datasets"] = np.stack(trajectories_data)
+    write_dictionary_to_file(data, filename='trajectories_1k_small.hdf5')
+
+
 def compute_demonstration(
         workspace, converter, nb_points, show_result, average_cost):
-
-    phi = CostGridPotential2D(SignedDistanceWorkspaceMap(workspace),
-                              10., .03, 10.)
+    phi = CostGridPotential2D(
+        SignedDistanceWorkspaceMap(workspace), 10., .03, 10.)
     costmap = phi(workspace.box.stacked_meshgrid(nb_points)).transpose()
     resample = True
     while resample:
@@ -85,6 +99,8 @@ def compute_demonstration(
         viewer.show_once()
         time.sleep(.4)
 
+    return trajectory
+
 if __name__ == '__main__':
 
     data_ws = dict_to_object(
@@ -108,9 +124,12 @@ if __name__ == '__main__':
     converter.convert()
     np.random.seed(1)
 
+    trajectories = [None] * len(data_ws.datasets)
     for k, ws in enumerate(tqdm(data_ws.datasets)):
-        compute_demonstration(load_circles_workspace(ws, box),
-                              converter,
-                              nb_points=nb_points,
-                              show_result=show_result,
-                              average_cost=average_cost)
+        trajectories[k] = compute_demonstration(
+            load_circles_workspace(ws, box),
+            converter,
+            nb_points=nb_points,
+            show_result=show_result,
+            average_cost=average_cost)
+    save_trajectories_to_file(trajectories)
