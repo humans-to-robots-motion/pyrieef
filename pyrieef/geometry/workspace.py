@@ -182,13 +182,21 @@ class Box:
         return np.sqrt(self.dim[0] ** 2 + self.dim[1]**2)
 
     def meshgrid(self, nb_points=100):
+        assert self.dim[0] == self.dim[1]
+        resolution = self.dim[0] / nb_points
         extends = self.extends()
-        x = np.linspace(extends.x_min, extends.x_max, nb_points)
-        y = np.linspace(extends.y_min, extends.y_max, nb_points)
+        x_min = extends.x_min + 0.5 * resolution
+        x_max = extends.x_max - 0.5 * resolution
+        y_min = extends.y_min + 0.5 * resolution
+        y_max = extends.y_max - 0.5 * resolution
+        x = np.linspace(x_min, x_max, nb_points)
+        y = np.linspace(y_min, y_max, nb_points)
         return np.meshgrid(x, y)
 
     def stacked_meshgrid(self, nb_points=100):
         X, Y = self.meshgrid(nb_points)
+        print X
+        print Y
         return np.stack([X, Y])
 
     def __str__(self):

@@ -48,7 +48,21 @@ def test_coordinates():
         assert converter.graph_id(c_id[0], c_id[1]) == g_id
 
 
-def test_costmap_to_graph():
+def test_graph_edge_cost():
+    nb_points = 10
+    costmap = np.random.random((nb_points, nb_points))
+    converter = CostmapToSparseGraph(costmap, average_cost=False)
+    graph = converter.convert()
+    for (n1_i, n1_j), c_ij in np.ndenumerate(costmap):
+        for (n2_i, n2_j) in converter.neiborghs(n1_i, n1_j):
+            if converter.is_in_costmap(n2_i, n2_j):
+                c1 = converter.edge_cost(n1_i, n1_j, n2_i, n2_j)
+                c2 = converter.graph_edge_cost(n1_i, n1_j, n2_i, n2_j)
+                assert c2 == c2
+                assert c2 == costmap[n2_i, n2_j]
+
+
+def test_costmap_to_graph_symmetry():
     costmap = np.random.random((5, 5))
     converter = CostmapToSparseGraph(costmap, average_cost=True)
     graph = converter.convert()
@@ -60,6 +74,32 @@ def test_costmap_to_graph():
 
 
 def test_workspace_to_graph():
+    workspace = Workspace()
+    radius = .1
+    nb_points = 24
+    workspace.obstacles.append(Circle(np.array([0.1, 0.1]), radius))
+    workspace.obstacles.append(Circle(np.array([-.1, 0.1]), radius))
+    np.set_printoptions(suppress=True, linewidth=200, precision=2)
+    pixel_map = workspace.pixel_map(nb_points)
+    phi = SimplePotential2D(SignedDistanceWorkspaceMap(workspace))
+    costmap = phi(workspace.box.stacked_meshgrid(nb_points)).transpose()
+    converter = CostmapToSparseGraph(costmap, average_cost=False)
+    graph = converter.convert()
+    for (n1_i, n1_j), c_ij in np.ndenumerate(costmap):
+        for (n2_i, n2_j) in converter.neiborghs(n1_i, n1_j):
+            if converter.is_in_costmap(n2_i, n2_j):
+                c1 = converter.edge_cost(n1_i, n1_j, n2_i, n2_j)
+                c2 = converter.graph_edge_cost(n1_i, n1_j, n2_i, n2_j)
+                p = pixel_map.grid_to_world(np.array([n2_i, n2_j]))
+                print p
+                c3 = phi(p)
+                assert c2 == c2
+                assert c2 == costmap[n2_i, n2_j]
+                print "c2 : {}, c3 : {}".format(c2, c3)
+                # assert c2 == c3, "c2 : {} and c3 {}".format(c2, c3)
+
+
+def test_workspace_to_shortest_path():
     workspace = Workspace()
     radius = .1
     workspace.obstacles.append(Circle(np.array([0.1, 0.1]), radius))
@@ -98,6 +138,8 @@ def test_breadth_first_search():
 if __name__ == "__main__":
     test_symetrize()
     test_coordinates()
-    test_costmap_to_graph()
+    test_graph_edge_cost()
+    test_costmap_to_graph_symmetry()
     test_workspace_to_graph()
+    test_workspace_to_shortest_path()
     test_breadth_first_search()

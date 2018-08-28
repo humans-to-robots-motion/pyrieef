@@ -30,7 +30,7 @@ class CostmapToSparseGraph:
         that should be passed to initialize the class."""
 
     def __init__(self, costmap, average_cost=False):
-        self.costmap = costmap.transpose()
+        self.costmap = costmap
         self.average_cost = average_cost
         self.init = False
         self._graph_dense = None
@@ -50,6 +50,20 @@ class CostmapToSparseGraph:
             i >= 0 and i < self.costmap.shape[0] and
             j >= 0 and j < self.costmap.shape[1])
 
+    def graph_edge_cost(self, n1_i, n1_j, n2_i, n2_j):
+        """ return the value of an edge in the graph 
+            from n1 to n2"""
+        n1_id = self.graph_id(n1_i, n1_j)
+        n2_id = self.graph_id(n2_i, n2_j)
+        return self._graph_dense[n1_id, n2_id]
+
+    def edge_cost(self, c_i, c_j, n_i, n_j):
+        cost_c = self.costmap[c_i, c_j]
+        cost_n = self.costmap[n_i, n_j]
+        if self.average_cost:
+            return 0.5 * (cost_c + cost_n)
+        return cost_n
+
     @staticmethod
     def neiborghs(i, j):
         """ returns the costmap coordinates of all neighbor nodes """
@@ -63,13 +77,6 @@ class CostmapToSparseGraph:
         coord[6] = (i - 1, j - 1)
         coord[7] = (i - 1, j + 1)
         return coord
-
-    def edge_cost(self, c_i, c_j, n_i, n_j):
-        cost_c = self.costmap[c_i, c_j]
-        cost_n = self.costmap[n_i, n_j]
-        if self.average_cost:
-            return 0.5 * (cost_c + cost_n)
-        return cost_n
 
     def convert(self):
         """ Converts a costmap to a compressed sparse graph
@@ -194,7 +201,7 @@ class CostmapToSparseGraph:
             s_i, s_j : source coordinate on the costmap
             t_i, t_j : target coordinate on the costmap
         """
-        self.update_graph(costmap.transpose())
+        self.update_graph(costmap)
         return self.dijkstra(self._graph_dense, s_i, s_j, t_i, t_j)
 
     def shortest_path_on_map(self, costmap, s_i, s_j, t_i, t_j):
@@ -203,6 +210,6 @@ class CostmapToSparseGraph:
             this is the most efficient implementation for single
             querry graph search on a 2D costmap with scipy"""
 
-        self.update_graph(costmap.transpose())
+        self.update_graph(costmap)
         return self.shortest_path(shortest_paths(self._graph_dense),
                                   s_i, s_j, t_i, t_j)
