@@ -17,9 +17,8 @@
 #
 #                                        Jim Mainprice on Sunday June 17 2017
 
-import __init__
+from __init__ import *
 from geometry.workspace import *
-from itertools import product
 
 
 def test_ellipse():
@@ -57,20 +56,17 @@ def test_sdf_workspace():
 
 
 def test_meshgrid():
-    nb_points = 3
+    nb_points = 10
     workspace = Workspace()
     pixel_map = workspace.pixel_map(nb_points)
     X, Y = workspace.box.meshgrid(nb_points)
     print "pm -- resolution : {}".format(pixel_map.resolution)
     print "pm -- origin : {}".format(pixel_map.origin)
     for i, j in product(range(nb_points), range(nb_points)):
-        print "i : {}, j : {}".format(i, j)
         p_meshgrid = np.array([X[i, j], Y[i, j]])
-        p_grid = pixel_map.world_to_grid(p_meshgrid + 1.e-4 * np.ones(2))
+        p_grid = pixel_map.world_to_grid(p_meshgrid)
         p_world = pixel_map.grid_to_world(p_grid)
-        print p_meshgrid
-        print p_world
-        # assert_allclose(p_meshgrid, p_world, 1e-8)
+        assert_allclose(p_meshgrid, p_world)
 
 
 test_ellipse()

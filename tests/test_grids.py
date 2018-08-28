@@ -16,10 +16,8 @@
 # PERFORMANCE OF THIS SOFTWARE.
 #
 # Jim Mainprice on Sunday June 17 2017
-import __init__
+from __init__ import *
 from geometry.pixel_map import *
-from itertools import product
-from numpy.testing import assert_allclose
 
 
 def test_pixelmap_random():
