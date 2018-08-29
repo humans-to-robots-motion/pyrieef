@@ -55,7 +55,7 @@ class NaturalGradientDescent(UnconstraintedOptimizer):
         UnconstraintedOptimizer.__init__(self, f)
         # self.A_inv = np.eye(A.shape[0])
         self.A_inv = np.linalg.inv(A)
-        np.savetxt('A_inv.txt', self.A_inv, fmt='%.2f')
+        # np.savetxt('A_inv.txt', self.A_inv, fmt='%.2f')
         # self.A_inv = np.eye(self.A_inv.shape[0])
 
     def one_step(self, x):

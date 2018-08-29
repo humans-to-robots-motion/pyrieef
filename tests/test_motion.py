@@ -19,7 +19,7 @@
 from __init__ import *
 from motion.trajectory import *
 from motion.cost_terms import *
-from motion.motion_optimization import *
+from motion.objective import *
 import time
 
 
@@ -133,24 +133,24 @@ def calculate_analytical_gradient_speedup(f, nb_points=10):
 
 def test_motion_optimimization_2d():
     print "Checkint Motion Optimization"
-    motion_optimization = MotionOptimization2DCostMap()
-    trajectory = Trajectory(motion_optimization.T)
-    sum_acceleration = motion_optimization.cost(trajectory)
+    objective = MotionOptimization2DCostMap()
+    trajectory = Trajectory(objective.T)
+    sum_acceleration = objective.cost(trajectory)
     print "sum_acceleration : ", sum_acceleration
     q_init = np.zeros(2)
     q_goal = np.ones(2)
     trajectory = linear_interpolation_trajectory(
-        q_init, q_goal, motion_optimization.T)
+        q_init, q_goal, objective.T)
     print trajectory
     print trajectory.final_configuration()
-    sum_acceleration = motion_optimization.cost(trajectory)
+    sum_acceleration = objective.cost(trajectory)
     print "sum_acceleration : ", sum_acceleration
     assert check_jacobian_against_finite_difference(
-        motion_optimization.objective)
+        objective.objective)
 
     # Calulate speed up.
     # print "Calculat analytic gradient speedup"
-    # calculate_analytical_gradient_speedup(motion_optimization.objective)
+    # calculate_analytical_gradient_speedup(objective.objective)
 
 
 def test_center_of_clique():
@@ -170,15 +170,15 @@ def test_center_of_clique():
 
 def test_motion_optimimization_smoothness_metric():
     print "Checkint Motion Optimization"
-    motion_optimization = MotionOptimization2DCostMap()
-    A = motion_optimization.create_smoothness_metric()
+    objective = MotionOptimization2DCostMap()
+    A = objective.create_smoothness_metric()
 
 
 def test_optimize():
     print "Checkint Motion Optimization"
     q_init = np.zeros(2)
-    motion_optimization = MotionOptimization2DCostMap()
-    motion_optimization.optimize(q_init)
+    objective = MotionOptimization2DCostMap()
+    objective.optimize(q_init)
 
 if __name__ == "__main__":
     test_trajectory()

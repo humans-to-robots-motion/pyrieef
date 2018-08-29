@@ -18,7 +18,7 @@
 # Jim Mainprice on Sunday June 17 2018
 
 # from __future__ import print_function
-from common_imports import *
+from __init__ import *
 from geometry.differentiable_geometry import *
 
 
@@ -69,6 +69,8 @@ class FiniteDifferencesVelocity(AffineMap):
 
 class SimplePotential2D(DifferentiableMap):
 
+    """ obstacle potential class """
+
     def __init__(self, signed_distance_field):
         assert signed_distance_field.input_dimension() == 2
         assert signed_distance_field.output_dimension() == 1
@@ -95,6 +97,8 @@ class SimplePotential2D(DifferentiableMap):
 
 class CostGridPotential2D(SimplePotential2D):
 
+    """ obstacle potential class """
+
     def __init__(self, signed_distance_field, alpha, epsilon, offset):
         SimplePotential2D.__init__(self, signed_distance_field)
         self._alpha = alpha
@@ -107,6 +111,8 @@ class CostGridPotential2D(SimplePotential2D):
 
 
 class ObstaclePotential2D(DifferentiableMap):
+
+    """ obstacle potential class """
 
     def __init__(self, signed_distance_field):
         assert signed_distance_field.input_dimension() == 2

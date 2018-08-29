@@ -17,8 +17,7 @@
 #
 # Jim Mainprice on Sunday June 17 2018
 
-from __future__ import print_function
-from common_imports import *
+from __init__ import *
 from geometry.differentiable_geometry import *
 
 

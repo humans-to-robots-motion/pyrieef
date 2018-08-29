@@ -1,13 +1,13 @@
 import sys
 import os
 import numpy as np
-import matplotlib.pyplot as plt
 
 driectory = os.path.abspath(os.path.dirname(__file__))
 sys.path.insert(0, driectory + os.sep + "..")
 
 
 def plot_line(line, color, width=2.):
+    import matplotlib.pyplot as plt
     X = np.array(line)[:, 0]
     Y = np.array(line)[:, 1]
     plt.plot(X, Y, color, linewidth=1.)

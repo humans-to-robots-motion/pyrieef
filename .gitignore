@@ -17,6 +17,8 @@ geodesic_flow/Makefile
 rieef_data/
 .idea/
 *.pdf
+*.so
+*.c
 
 # test data files
 *.txt

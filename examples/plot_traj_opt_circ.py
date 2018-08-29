@@ -18,33 +18,15 @@
 # Jim Mainprice on Sunday June 17 2018
 
 import demos_common_imports
-from pyrieef.motion.motion_optimization import *
-from pyrieef.rendering import workspace_renderer
-from pyrieef.rendering import opengl
-import matplotlib.pyplot as plt
-import matplotlib.cm as cm
-from mpl_toolkits.mplot3d import Axes3D
+from pyrieef.motion.objective import *
 import time
 
-use_matplotlib = False
 
-workspace = Workspace()
-workspace.obstacles.append(Circle(np.array([0.2, .0]), .1))
-workspace.obstacles.append(Circle(np.array([-.2, .0]), .1))
-signed_distance_field = SignedDistanceWorkspaceMap(workspace)
-extends = workspace.box.extends()
-motion_optimization = MotionOptimization2DCostMap(
-    T=20, n=2, extends=extends, signed_distance_field=signed_distance_field)
+def plot_results(workspace, x_init, x_goal, trajectory, optimizer):
 
-trajectory = Trajectory(motion_optimization.T)
-g_traj = Trajectory(motion_optimization.T)
-x_init = np.array([-.3, -.3])
-x_goal = np.array([+.4, .1])
-
-trajectory = linear_interpolation_trajectory(
-    x_init, x_goal, motion_optimization.T)
-
-if use_matplotlib:
+    import matplotlib.pyplot as plt
+    import matplotlib.cm as cm
+    from mpl_toolkits.mplot3d import Axes3D
     plt.figure(figsize=(7, 6.5))
     plt.axis('equal')
     plt.axis(workspace.box.box_extends())
@@ -62,7 +44,7 @@ if use_matplotlib:
 
     nb_points = 100
     X, Y = workspace.box.meshgrid(nb_points)
-    Z = signed_distance_field(np.stack([X, Y]))
+    Z = optimizer.sdf(np.stack([X, Y]))
     color_style = plt.cm.hot
     color_style = plt.cm.bone
     color_style = plt.cm.magma
@@ -81,30 +63,63 @@ if use_matplotlib:
         ax.plot_surface(X, Y, Z, cmap=color_style,
                         linewidth=0, antialiased=False)
 
-    # Plot trajectory
-    for i in range(100):
-        [dist, trajectory, gradient, deltas] = motion_optimization.optimize(
-            x_init, 1, trajectory)
-    for k in range(motion_optimization.T + 1):
+    for k in range(optimizer.T + 1):
         q = trajectory.configuration(k)
         plt.plot(q[0], q[1], 'ro')
         # plt.show(block=False)
         # plt.draw()
         # plt.pause(0.0001)
     plt.show()
-else:
-    viewer = workspace_renderer.WorkspaceRender(workspace)
-    viewer.draw_ws_background(motion_optimization.obstacle_cost_map())
-    # viewer.draw_ws_obstacles()
-    # motion_optimization.set_eta(step_size)
-    for i in range(100):
-        [dist, trajectory, gradient, deltas] = motion_optimization.optimize(
-            x_init, 1, trajectory)
-        g_traj.set(-.01 * gradient + trajectory.x()[:])
-        for k in range(motion_optimization.T + 1):
-            q = trajectory.configuration(k)
-            viewer.draw_ws_circle(.01, q)
-            viewer.draw_ws_line(q, g_traj.configuration(k))
-        viewer.render()
-        time.sleep(0.02)
-    raw_input("Press Enter to continue...")
+
+
+def trajectory_optimization():
+
+    use_matplotlib = True
+
+    workspace = Workspace()
+    workspace.obstacles.append(Circle(np.array([0.2, .0]), .1))
+    workspace.obstacles.append(Circle(np.array([-.2, .0]), .1))
+    signed_distance_field = SignedDistanceWorkspaceMap(workspace)
+    extends = workspace.box.extends()
+    optimizer = MotionOptimization2DCostMap(
+        T=20, n=2, extends=extends,
+        signed_distance_field=signed_distance_field)
+
+    trajectory = Trajectory(optimizer.T)
+    g_traj = Trajectory(optimizer.T)
+    x_init = np.array([-.3, -.3])
+    x_goal = np.array([+.4, .1])
+
+    trajectory = linear_interpolation_trajectory(
+        x_init, x_goal, optimizer.T)
+
+    if use_matplotlib:
+        t_start = time .time()
+        [dist, trajectory, gradient, deltas] = optimizer.optimize(
+                x_init, 100, trajectory)
+        print "optimization took : {} sec.".format(time.time() - t_start)
+        # Plot trajectory
+        # plot_results(workspace, x_init, x_goal, trajectory, optimizer)
+    else:
+        from pyrieef.rendering import workspace_renderer
+        from pyrieef.rendering import opengl
+        viewer = workspace_renderer.WorkspaceRender(workspace)
+        viewer.draw_ws_background(optimizer.obstacle_cost_map())
+        # viewer.draw_ws_obstacles()
+        # optimizer.set_eta(step_size)
+        for i in range(100):
+            [dist, trajectory, gradient, deltas] = optimizer.optimize(
+                x_init, 1, trajectory)
+            g_traj.set(-.01 * gradient + trajectory.x()[:])
+            for k in range(optimizer.T + 1):
+                q = trajectory.configuration(k)
+                viewer.draw_ws_circle(.01, q)
+                viewer.draw_ws_line(q, g_traj.configuration(k))
+            viewer.render()
+            time.sleep(0.02)
+        raw_input("Press Enter to continue...")
+
+if __name__ == "__main__":
+    trajectory_optimization()
+    # import cProfile
+    # cProfile.run('trajectory_optimization()')

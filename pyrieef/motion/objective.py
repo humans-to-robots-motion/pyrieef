@@ -17,7 +17,7 @@
 #
 # Jim Mainprice on Sunday June 17 2018
 
-import common_imports
+from __init__ import *
 from motion.trajectory import *
 from motion.cost_terms import *
 from optimization.optimization import *
@@ -158,9 +158,9 @@ class MotionOptimization2DCostMap:
             trajectory.x()[:] = xi
             dist = np.linalg.norm(
                 trajectory.final_configuration() - self.q_goal)
-            print "dist[{}] : {}, objective : {}, gnorm {}".format(
-                i, dist, optimizer.objective(xi),
-                np.linalg.norm(optimizer.gradient(xi)))
+            # print "dist[{}] : {}, objective : {}, gnorm {}".format(
+            #     i, dist, optimizer.objective(xi),
+            #     np.linalg.norm(optimizer.gradient(xi)))
         return [dist < 1.e-3,
                 trajectory,
                 optimizer.gradient(xi),

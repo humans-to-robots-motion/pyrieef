@@ -17,11 +17,25 @@
 #
 #                                        Jim Mainprice on Sunday June 17 2018
 
-import __init__
+from __init__ import *
+from scipy import optimize
+import scipy
+print(scipy.__version__)
+import numpy as np
 
 
-def test_gradient_descent():
-    return True
+def test_optimization_module():
+    x0 = [1.3, 0.7, 0.8, 1.9, 1.2]
+    res = optimize.minimize(optimize.rosen, x0,
+                            method='BFGS',
+                            jac=optimize.rosen_der,
+                            options={'gtol': 1e-6, 'disp': True})
+    print res
+    assert_allclose(res.jac, np.array(
+        [9.93918700e-07,   4.21980188e-07, 2.23775033e-07,
+         -6.10304485e-07,   1.34057054e-07]))
+    return res.fun
+
 
 if __name__ == "__main__":
-    test_gradient_descent()
+    test_optimization_module()
