@@ -27,20 +27,30 @@ from geometry.workspace import *
 
 class MotionOptimization2DCostMap:
 
-    def __init__(self, T=10, n=2, extends=None, signed_distance_field=None):
+    def __init__(self, T=10, n=2,
+                 extends=None,
+                 signed_distance_field=None,
+                 q_init=None,
+                 q_goal=None):
         self.config_space_dim = n       # nb of dofs
         self.T = T                      # time steps
-        self.dt = .1                    # sample rate
+        self.dt = 0.1                   # sample rate
         self.trajectory_space_dim = (self.config_space_dim * (self.T + 2))
         self.extends = extends
-        self.q_goal = .3 * np.ones(2)
+
         self.workspace = None
         self.objective = None
 
+        self.q_goal = q_goal if q_goal is not None else .3 * np.ones(2)
+        self.q_init = q_init if q_init is not None else np.zeros(2)
+
         self._eta = 10.
-        self._obstacle_scalar = .1
-        self._term_potential_scalar = 0.0
-        self._smoothness_scalar = 1.
+        self._obstacle_scalar = 50.
+        self._init_potential_scalar = 1000000.0
+        self._term_potential_scalar = 1000000.0
+        # self._init_potential_scalar = 0.0
+        # self._term_potential_scalar = 0.0
+        self._smoothness_scalar = 7.
 
         # We only need the signed distance field
         # to create a trajectory optimization problem
@@ -120,12 +130,19 @@ class MotionOptimization2DCostMap:
         self.objective.register_function_for_all_cliques(
             Scale(squared_norm_acc, self._smoothness_scalar))
 
+        # Init term.
+        initial_potential = Compose(
+            SquaredNorm(self.q_init),
+            self.objective.left_most_of_clique_map())
+        self.objective.register_function_for_clique(
+            0, Scale(initial_potential, self._init_potential_scalar))
+
         # Terminal term.
-        # terminal_potential = Compose(
-        #     SquaredNorm(self.q_goal),
-        #     self.objective.center_of_clique_map())
-        # self.objective.register_function_last_clique(
-        #     Scale(terminal_potential, self._term_potential_scalar))
+        terminal_potential = Compose(
+            SquaredNorm(self.q_goal),
+            self.objective.center_of_clique_map())
+        self.objective.register_function_last_clique(
+            Scale(terminal_potential, self._term_potential_scalar))
 
         # Obstacle term.
         obstacle_potential = Compose(

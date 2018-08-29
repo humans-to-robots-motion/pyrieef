@@ -119,7 +119,7 @@ class CliquesFunctionNetwork(FunctionNetwork):
 
     def register_function_for_clique(self, t, f):
         """ Register function f for clique i """
-        assert f.input_dimension() == self._clique_size
+        assert f.input_dimension() == self._clique_dim
         self._functions[t].append(f)
 
     def register_function_for_all_cliques(self, f):
@@ -133,6 +133,13 @@ class CliquesFunctionNetwork(FunctionNetwork):
         assert f.input_dimension() == self._clique_dim
         T = self._nb_cliques - 1
         self._functions[T].append(f)
+
+    def left_most_of_clique_map(self):
+        """ x_{t-1} """
+        dim = self._clique_element_dim
+        return RangeSubspaceMap(
+            dim * self._nb_clique_elements,
+            range(dim))
 
     def center_of_clique_map(self):
         """ x_{t} """
@@ -170,6 +177,9 @@ class Trajectory:
         ss += " - x : \n" + str(self._x) + "\n"
         ss += " - x.shape : " + str(self._x.shape)
         return ss
+
+    def T(self):
+        return self._T
 
     def x(self):
         return self._x

@@ -254,7 +254,7 @@ class QuadricFunction(DifferentiableMap):
 
 
 class SquaredNorm(DifferentiableMap):
-    """ Simple squared norm : f(x)= | x | ^2 """
+    """ Simple squared norm : f(x)= | x - x_0 | ^2 """
 
     def __init__(self, x_0):
         self.x_0 = x_0

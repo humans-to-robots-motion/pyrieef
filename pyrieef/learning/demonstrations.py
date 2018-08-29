@@ -24,7 +24,7 @@ from learning.utils import *
 from geometry.workspace import *
 from motion.cost_terms import *
 from motion.trajectory import *
-from motion.motion_optimization import *
+from motion.objective import *
 import rendering.workspace_renderer as render
 from tqdm import tqdm
 import time
@@ -77,8 +77,10 @@ def optimize(path, workspace):
         n=2,
         extends=workspace.box.extends(),
         signed_distance_field=SignedDistanceWorkspaceMap(workspace))
+    t_start = time.time()
     [dist, traj, gradient, deltas] = optimizer.optimize(
         trajectory.configuration(0), 100, trajectory)
+    print "time : {}".format(time.time() - t_start)
     result = [None] * len(path)
     for i in range(len(result)):
         result[i] = trajectory.configuration(i)
@@ -130,7 +132,7 @@ def compute_demonstration(
         viewer.show_once()
         time.sleep(.4)
 
-    return result
+    return path
 
 if __name__ == '__main__':
 

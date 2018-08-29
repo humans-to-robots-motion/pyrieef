@@ -74,7 +74,7 @@ def plot_results(workspace, x_init, x_goal, trajectory, optimizer):
 
 def trajectory_optimization():
 
-    use_matplotlib = True
+    use_matplotlib = False
 
     workspace = Workspace()
     workspace.obstacles.append(Circle(np.array([0.2, .0]), .1))
@@ -106,11 +106,12 @@ def trajectory_optimization():
         viewer = workspace_renderer.WorkspaceRender(workspace)
         viewer.draw_ws_background(optimizer.obstacle_cost_map())
         # viewer.draw_ws_obstacles()
-        # optimizer.set_eta(step_size)
+        step_size = 1.
+        optimizer.set_eta(step_size)
         for i in range(100):
             [dist, trajectory, gradient, deltas] = optimizer.optimize(
                 x_init, 1, trajectory)
-            g_traj.set(-.01 * gradient + trajectory.x()[:])
+            g_traj.set(-4. * gradient + trajectory.x()[:])
             for k in range(optimizer.T + 1):
                 q = trajectory.configuration(k)
                 viewer.draw_ws_circle(.01, q)

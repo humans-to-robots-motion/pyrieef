@@ -23,6 +23,7 @@ import scipy
 print(scipy.__version__)
 import numpy as np
 from geometry.differentiable_geometry import *
+from motion.objective import *
 
 
 def test_optimization_module():
@@ -51,13 +52,44 @@ def test_quadric():
     gtol = 1e-6
     x0 = [1.3, 0.7, 0.8]
     res = optimize.minimize(
-        f, x0, method='BFGS', jac=f.gradient,
+        f,
+        x0,
+        method='BFGS',
+        jac=f.gradient,
         options={'gtol': gtol, 'disp': True})
     print "- res.jac : {}".format(res.jac.shape)
     print "-   zeros : {}".format(np.zeros(dim).shape)
     assert_allclose(res.jac, np.zeros(dim), atol=gtol)
 
 
+def test_motion_optimimization_2d():
+    print "Checkint Motion Optimization"
+    trajectory = linear_interpolation_trajectory(
+        q_init=np.zeros(2), q_goal=np.ones(2), T=20)
+    objective = MotionOptimization2DCostMap(
+        T=trajectory.T(),
+        q_init=trajectory.configuration(0),
+        q_goal=trajectory.final_configuration())
+    gtol = 1e-10
+    assert check_jacobian_against_finite_difference(
+        objective.objective, verbose=False)
+    res = optimize.minimize(
+        objective.objective,
+        trajectory.x(),
+        method='BFGS',
+        jac=objective.objective.gradient,
+        options={'gtol': gtol, 'disp': True})
+    # objective.optimize(q_init=np.zeros(2), trajectory=trajectory)
+    print trajectory.x().shape
+    print res.x.shape
+    print res
+    print trajectory.x()
+    # print "- res.jac : {}".format(res.jac.shape)
+    print "max : ", max(res.jac)
+    print "jac : ", res.jac
+    assert_allclose(res.jac, np.zeros(res.jac.size), atol=1e-1)
+
 if __name__ == "__main__":
     test_optimization_module()
     test_quadric()
+    test_motion_optimimization_2d()
