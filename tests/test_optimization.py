@@ -22,14 +22,15 @@ from scipy import optimize
 import scipy
 print(scipy.__version__)
 import numpy as np
+from geometry.differentiable_geometry import *
 
 
 def test_optimization_module():
     x0 = [1.3, 0.7, 0.8, 1.9, 1.2]
-    res = optimize.minimize(optimize.rosen, x0,
-                            method='BFGS',
-                            jac=optimize.rosen_der,
-                            options={'gtol': 1e-6, 'disp': True})
+    res = optimize.minimize(
+        optimize.rosen, x0, method='BFGS',
+        jac=optimize.rosen_der,
+        options={'gtol': 1e-6, 'disp': True})
     print res
     assert_allclose(res.jac, np.array(
         [9.93918700e-07,   4.21980188e-07, 2.23775033e-07,
@@ -37,5 +38,26 @@ def test_optimization_module():
     return res.fun
 
 
+def test_quadric():
+    np.random.seed(0)
+    dim = 3
+    # Symetric positive definite case
+    k = np.matrix(np.random.rand(dim, dim))
+    f = QuadricFunction(                # g = x'Ax + b'x + c
+        k.transpose() * k,              # A
+        np.random.rand(dim),            # b
+        1.)                             # c
+
+    gtol = 1e-6
+    x0 = [1.3, 0.7, 0.8]
+    res = optimize.minimize(
+        f, x0, method='BFGS', jac=f.gradient,
+        options={'gtol': gtol, 'disp': True})
+    print "- res.jac : {}".format(res.jac.shape)
+    print "-   zeros : {}".format(np.zeros(dim).shape)
+    assert_allclose(res.jac, np.zeros(dim), atol=gtol)
+
+
 if __name__ == "__main__":
     test_optimization_module()
+    test_quadric()
