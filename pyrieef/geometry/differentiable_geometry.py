@@ -51,8 +51,18 @@ class DifferentiableMap:
         assert self.output_dimension() == 1
         return np.array(self.jacobian(q)).reshape(self.input_dimension())
 
+    def hessian(self, x):
+        """ Should return the hessian matrix
+                n x n : input x input (dimensions)
+            by default the method returns the finite difference hessian
+            that relies on the jacobian function.
+            This method would be a third order tensor
+            in the case of multiple output, we exclude this case for now.
+            WARNING the object returned by this function is a numpy matrix."""
+        return finite_difference_hessian(self, q)
+
     def jacobian(self, q):
-        """ Should return a matrix or single value of 
+        """ Should return a matrix or single value of
                 m x n : ouput x input (dimensions)
             by default the method returns the finite difference jacobian.
             WARNING the object returned by this function is a numpy matrix.
@@ -134,6 +144,9 @@ class Scale(DifferentiableMap):
     def jacobian(self, q):
         return self._alpha * self._f.jacobian(q)
 
+    def hessian(self, q):
+        return self._alpha * self._f.hessian(q)
+
 
 class RangeSubspaceMap(DifferentiableMap):
     """Take only some outputs"""
@@ -156,6 +169,9 @@ class RangeSubspaceMap(DifferentiableMap):
     def jacobian(self, q):
         I = np.matrix(np.eye(self._dim))
         return I[self._indices, :]
+
+    def hessian(self, q):
+        return np.matrix(np.zeros((self._dim), (self._dim)))
 
 
 class ProductFunction(DifferentiableMap):
@@ -191,6 +207,16 @@ class ProductFunction(DifferentiableMap):
         J2 = self._h.jacobian(x)
         return v1 * J2 + v2 * J1
 
+    def hessian(self, x):
+        assert self.output_dimension() == 1
+        v1 = self._g.forward(x)
+        v2 = self._h.forward(x)
+        H1 = self._g.hessian(x)
+        H2 = self._h.hessian(x)
+        g1 = self._g.jacobian(x)
+        g2 = self._h.jacobian(x)
+        return v1 * H2 + v2 * H1 + g1 * g2.transpose() + g2 * g1.transpose()
+
 
 class AffineMap(DifferentiableMap):
     """Simple map of the form: f(x)=ax + b"""
@@ -213,6 +239,10 @@ class AffineMap(DifferentiableMap):
 
     def jacobian(self, x):
         return self._a
+
+    def hessian(self, x):
+        assert self.output_dimension() == 1
+        return np.zeros(self.input_dimension(), self.input_dimension())
 
 
 class QuadricFunction(DifferentiableMap):
@@ -251,6 +281,10 @@ class QuadricFunction(DifferentiableMap):
         else:
             a_term = 0.5 * (self._a + self._a.transpose()) * x_tmp
         return (a_term + self._b).transpose()
+
+    def hessian(self, x):
+        assert self.output_dimension() == 1
+        return self._a
 
 
 class SquaredNorm(DifferentiableMap):
@@ -292,6 +326,10 @@ class IdentityMap(DifferentiableMap):
     def jacobian(self, q):
         return np.matrix(np.eye(self._dim))
 
+    def hessian(self, x):
+        assert self.output_dimension() == 1
+        return np.zeros((self.input_dimension(), self.input_dimension()))
+
 
 class ZeroMap(DifferentiableMap):
     """Simple identity map : f(x)=0"""
@@ -312,10 +350,15 @@ class ZeroMap(DifferentiableMap):
     def jacobian(self, q):
         return np.matrix(np.zeros((self._m, self._n)))
 
+    def hessian(self, x):
+        assert self.output_dimension() == 1
+        return np.zeros((self._n, self._n))
+
 
 def finite_difference_jacobian(f, q):
     """ Takes an object f that has a forward method returning
     a numpy array when querried. """
+    assert q.size == f.input_dimension()
     dt = 1e-4
     dt_half = dt / 2.
     J = np.zeros((
@@ -331,9 +374,29 @@ def finite_difference_jacobian(f, q):
     return np.matrix(J)
 
 
+def finite_difference_hessian(f, q):
+    """ Takes an object f that has a forward method returning
+    a numpy array when querried. """
+    assert q.size == f.input_dimension()
+    assert f.output_dimension() == 1
+    dt=1e-4
+    dt_half=dt / 2.
+    H=np.zeros((
+        f.input_dimension(), f.input_dimension()))
+    for j in range(q.size):
+        q_up=copy.deepcopy(q)
+        q_up[j] += dt_half
+        g_up=f.gradient(q_up)
+        q_down=copy.deepcopy(q)
+        q_down[j] -= dt_half
+        g_down=f.gradient(q_down)
+        H[:, j]=(g_up - g_down) / dt
+    return np.matrix(H)
+
+
 def check_is_close(a, b, tolerance=1e-10):
     """ Returns True of all variable are close."""
-    results = np.isclose(
+    results=np.isclose(
         np.array(a),
         np.array(b),
         atol=tolerance)
@@ -342,9 +405,9 @@ def check_is_close(a, b, tolerance=1e-10):
 
 def check_jacobian_against_finite_difference(phi, verbose=True):
     """ Makes sure the jacobian is close to the finite difference """
-    q = np.random.rand(phi.input_dimension())
-    J = phi.jacobian(q)
-    J_diff = finite_difference_jacobian(phi, q)
+    q=np.random.rand(phi.input_dimension())
+    J=phi.jacobian(q)
+    J_diff=finite_difference_jacobian(phi, q)
     if verbose:
         print "J : "
         print J
