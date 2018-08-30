@@ -51,6 +51,14 @@ class DifferentiableMap:
         assert self.output_dimension() == 1
         return np.array(self.jacobian(q)).reshape(self.input_dimension())
 
+    def jacobian(self, q):
+        """ Should return a matrix or single value of
+                m x n : ouput x input (dimensions)
+            by default the method returns the finite difference jacobian.
+            WARNING the object returned by this function is a numpy matrix.
+            Thhe Jacobian matrix is allways a numpy matrix object."""
+        return finite_difference_jacobian(self, q)
+
     def hessian(self, x):
         """ Should return the hessian matrix
                 n x n : input x input (dimensions)
@@ -60,14 +68,6 @@ class DifferentiableMap:
             in the case of multiple output, we exclude this case for now.
             WARNING the object returned by this function is a numpy matrix."""
         return finite_difference_hessian(self, q)
-
-    def jacobian(self, q):
-        """ Should return a matrix or single value of
-                m x n : ouput x input (dimensions)
-            by default the method returns the finite difference jacobian.
-            WARNING the object returned by this function is a numpy matrix.
-            Thhe Jacobian matrix is allways a numpy matrix object."""
-        return finite_difference_jacobian(self, q)
 
     def evaluate(self, q):
         """ Evaluates the map and jacobian simultaneously. The default
@@ -211,11 +211,19 @@ class ProductFunction(DifferentiableMap):
         assert self.output_dimension() == 1
         v1 = self._g.forward(x)
         v2 = self._h.forward(x)
+
         H1 = self._g.hessian(x)
         H2 = self._h.hessian(x)
-        g1 = self._g.jacobian(x)
-        g2 = self._h.jacobian(x)
-        return v1 * H2 + v2 * H1 + g1 * g2.transpose() + g2 * g1.transpose()
+
+        g1 = self._g.gradient(x)
+        g2 = self._h.gradient(x)
+        K = np.outer(g1, g2) + np.outer(g2, g1)
+        print "K : ", K
+        print H1.shape
+        print H2.shape
+        print v1
+        print v2
+        return v1 * H2 + v2 * H1 + K
 
 
 class AffineMap(DifferentiableMap):
@@ -242,7 +250,7 @@ class AffineMap(DifferentiableMap):
 
     def hessian(self, x):
         assert self.output_dimension() == 1
-        return np.zeros(self.input_dimension(), self.input_dimension())
+        return np.matrix(np.zeros(self._a.shape[1], self._a.shape[1]))
 
 
 class QuadricFunction(DifferentiableMap):
@@ -266,25 +274,25 @@ class QuadricFunction(DifferentiableMap):
 
     def forward(self, x):
         x_tmp = np.matrix(x.reshape(self._b.size, 1))
-        v = (0.5 *
-             x_tmp.transpose() * self._a * x_tmp +
-             self._b.transpose() * x_tmp +
-             self._c)
+        v = np.asscalar(0.5 *
+                        x_tmp.transpose() * self._a * x_tmp +
+                        self._b.transpose() * x_tmp +
+                        self._c)
         return v
 
     def jacobian(self, x):
         """ when the matrix is positive this can be simplified
             see matrix cookbook """
         x_tmp = np.matrix(x.reshape(self._b.size, 1))
-        if self._symmetric and self._posdef:
-            a_term = self._a.transpose() * x_tmp
-        else:
-            a_term = 0.5 * (self._a + self._a.transpose()) * x_tmp
-        return (a_term + self._b).transpose()
+        return (self.hessian(x) * x_tmp + self._b).transpose()
 
     def hessian(self, x):
-        assert self.output_dimension() == 1
-        return self._a
+        """ when the matrix is positive this can be simplified
+            see matrix cookbook """
+        if self._symmetric and self._posdef:
+            return self._a.transpose()
+        else:
+            return 0.5 * (self._a + self._a.transpose())
 
 
 class SquaredNorm(DifferentiableMap):
@@ -307,6 +315,10 @@ class SquaredNorm(DifferentiableMap):
         delta_x = x - self.x_0
         return np.matrix(delta_x)
 
+    def hessian(self, x):
+        assert self.output_dimension() == 1
+        return np.matrix(np.eye(self.x_0.size, self.x_0.size))
+
 
 class IdentityMap(DifferentiableMap):
     """Simple identity map : f(x)=x"""
@@ -328,11 +340,11 @@ class IdentityMap(DifferentiableMap):
 
     def hessian(self, x):
         assert self.output_dimension() == 1
-        return np.zeros((self.input_dimension(), self.input_dimension()))
+        return np.matrix(np.zeros((self._dim, self._dim)))
 
 
 class ZeroMap(DifferentiableMap):
-    """Simple identity map : f(x)=0"""
+    """Simple zero map : f(x)=0"""
 
     def __init__(self, m, n):
         self._n = n
@@ -352,7 +364,7 @@ class ZeroMap(DifferentiableMap):
 
     def hessian(self, x):
         assert self.output_dimension() == 1
-        return np.zeros((self._n, self._n))
+        return np.matrix(np.zeros((self._n, self._n)))
 
 
 def finite_difference_jacobian(f, q):
@@ -379,24 +391,24 @@ def finite_difference_hessian(f, q):
     a numpy array when querried. """
     assert q.size == f.input_dimension()
     assert f.output_dimension() == 1
-    dt=1e-4
-    dt_half=dt / 2.
-    H=np.zeros((
+    dt = 1e-4
+    dt_half = dt / 2.
+    H = np.zeros((
         f.input_dimension(), f.input_dimension()))
     for j in range(q.size):
-        q_up=copy.deepcopy(q)
+        q_up = copy.deepcopy(q)
         q_up[j] += dt_half
-        g_up=f.gradient(q_up)
-        q_down=copy.deepcopy(q)
+        g_up = f.gradient(q_up)
+        q_down = copy.deepcopy(q)
         q_down[j] -= dt_half
-        g_down=f.gradient(q_down)
-        H[:, j]=(g_up - g_down) / dt
+        g_down = f.gradient(q_down)
+        H[:, j] = (g_up - g_down) / dt
     return np.matrix(H)
 
 
 def check_is_close(a, b, tolerance=1e-10):
     """ Returns True of all variable are close."""
-    results=np.isclose(
+    results = np.isclose(
         np.array(a),
         np.array(b),
         atol=tolerance)
@@ -405,12 +417,25 @@ def check_is_close(a, b, tolerance=1e-10):
 
 def check_jacobian_against_finite_difference(phi, verbose=True):
     """ Makes sure the jacobian is close to the finite difference """
-    q=np.random.rand(phi.input_dimension())
-    J=phi.jacobian(q)
-    J_diff=finite_difference_jacobian(phi, q)
+    q = np.random.rand(phi.input_dimension())
+    J = phi.jacobian(q)
+    J_diff = finite_difference_jacobian(phi, q)
     if verbose:
         print "J : "
         print J
         print "J_diff : "
         print J_diff
     return check_is_close(J, J_diff, 1e-4)
+
+
+def check_hessian_against_finite_difference(phi, verbose=True):
+    """ Makes sure the hessuaian is close to the finite difference """
+    q = np.random.rand(phi.input_dimension())
+    H = phi.hessian(q)
+    H_diff = finite_difference_hessian(phi, q)
+    if verbose:
+        print "H : "
+        print H
+        print "H_diff : "
+        print H_diff
+    return check_is_close(H, H_diff, 1e-4)

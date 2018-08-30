@@ -27,15 +27,15 @@ def test_finite_difference():
     [x, J] = identity.evaluate(q)
     J_eye = np.eye(dim)
 
-    print "----------------------"
-    print "Check identity (J implementation) : "
-    assert check_jacobian_against_finite_difference(identity)
-
     print "Check identity (x) 1 : "
     assert check_is_close(q, x)
 
     print "Check identity (J) 2 : "
     assert check_is_close(J, J_eye)
+
+    print "----------------------"
+    print "Check identity (J implementation) : "
+    assert check_jacobian_against_finite_difference(identity)
 
 
 def test_zero():
@@ -78,6 +78,10 @@ def test_square_norm():
     # success = check_is_close(J, J_zero)
     # print "Check square_norm (J) 2 : ", success
 
+    print "----------------------"
+    print "Check zero (H implementation) : "
+    assert check_hessian_against_finite_difference(norm)
+
 
 def test_affine():
     dim = 3
@@ -111,6 +115,9 @@ def test_quadric():
     print "Check quadric (J implementation) : "
     assert check_jacobian_against_finite_difference(f)
 
+    print "Check quadric (H implementation) : "
+    assert check_hessian_against_finite_difference(f)
+
     # Symetric positive definite case
     k = np.matrix(np.random.rand(dim, dim))
     f = QuadricFunction(                # g = x'Ax + b'x + c
@@ -119,6 +126,12 @@ def test_quadric():
         1.)                             # c
     print "Check quadric (J implementation) : "
     assert check_jacobian_against_finite_difference(f)
+
+    print "Check quadric (H implementation) : "
+    assert check_hessian_against_finite_difference(f)
+
+    print "Check scale quadric (H implementation) : "
+    assert check_hessian_against_finite_difference(Scale(f, .3))
 
 
 def test_composition():
@@ -177,9 +190,15 @@ def test_product():
         np.random.rand(dim),            # b
         .3)                             # c
 
+    assert check_hessian_against_finite_difference(g)
+    assert check_hessian_against_finite_difference(h)
+
     f = ProductFunction(g, h)
     print "Check ProductFunction (J implementation) : "
     assert check_jacobian_against_finite_difference(f)
+
+    print "Check ProductFunction (H implementation) : "
+    assert check_hessian_against_finite_difference(f)
 
 
 if __name__ == "__main__":
@@ -188,7 +207,6 @@ if __name__ == "__main__":
     test_square_norm()
     test_affine()
     test_scale()
-    test_regressed_grid()
     test_quadric()
     test_composition()
     test_rangesubspace()
