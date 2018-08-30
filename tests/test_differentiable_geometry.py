@@ -92,6 +92,16 @@ def test_affine():
     print "Check AffineMap (J implementation) : "
     assert check_jacobian_against_finite_difference(f)
 
+    a = np.random.rand(1, dim)
+    b = np.random.rand(1)
+    f = AffineMap(a, b)
+
+    print "Check AffineMap (function) (J implementation) : "
+    assert check_jacobian_against_finite_difference(f)
+
+    print "Check AffineMap (function) (H implementation) : "
+    assert check_hessian_against_finite_difference(f)
+
 
 def test_scale():
     dim = 3

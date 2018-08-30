@@ -217,13 +217,8 @@ class ProductFunction(DifferentiableMap):
 
         g1 = self._g.gradient(x)
         g2 = self._h.gradient(x)
-        K = np.outer(g1, g2) + np.outer(g2, g1)
-        print "K : ", K
-        print H1.shape
-        print H2.shape
-        print v1
-        print v2
-        return v1 * H2 + v2 * H1 + K
+
+        return v1 * H2 + v2 * H1 + np.outer(g1, g2) + np.outer(g2, g1)
 
 
 class AffineMap(DifferentiableMap):
@@ -250,7 +245,7 @@ class AffineMap(DifferentiableMap):
 
     def hessian(self, x):
         assert self.output_dimension() == 1
-        return np.matrix(np.zeros(self._a.shape[1], self._a.shape[1]))
+        return np.matrix(np.zeros((self._a.shape[1], self._a.shape[1])))
 
 
 class QuadricFunction(DifferentiableMap):
@@ -281,8 +276,6 @@ class QuadricFunction(DifferentiableMap):
         return v
 
     def jacobian(self, x):
-        """ when the matrix is positive this can be simplified
-            see matrix cookbook """
         x_tmp = np.matrix(x.reshape(self._b.size, 1))
         return (self.hessian(x) * x_tmp + self._b).transpose()
 
