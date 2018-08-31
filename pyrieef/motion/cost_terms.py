@@ -20,34 +20,12 @@
 # from __future__ import print_function
 from __init__ import *
 from geometry.differentiable_geometry import *
-
-
-class FiniteDifferencesAcceleration(AffineMap):
-
-    """ This class allows to define accelerations"""
-
-    def __init__(self, dim, dt):
-        self._a = np.matrix(np.zeros((dim, 3 * dim)))
-        self._b = np.matrix(np.zeros((dim, 1)))
-        self._initialize_matrix(dim, dt)
-        print "input dimension : ", self.input_dimension()
-        print "output dimension : ", self.output_dimension()
-
-    def _initialize_matrix(self, dim, dt):
-        # Acceleration = [ x_{t+1} + x_{t-1} - 2 * x_t ] / dt^2
-        I = np.eye(dim)
-        self._a[0:dim, 0:dim] = I
-        self._a[0:dim, dim:(2 * dim)] = -2 * I
-        self._a[0:dim, (2 * dim):(3 * dim)] = I
-        self._a /= (dt * dt)
-
-    def a(self):
-        return self._a.copy()
+from abc import ABCMeta, abstractproperty
 
 
 class FiniteDifferencesVelocity(AffineMap):
 
-    """ This class allows to define velocities"""
+    """ Define velocities where clique = [x_t ; x_{t+1} ] """
 
     def __init__(self, dim, dt):
         self._a = np.matrix(np.zeros((dim, 2 * dim)))
@@ -57,14 +35,77 @@ class FiniteDifferencesVelocity(AffineMap):
         print "output dimension : ", self.output_dimension()
 
     def _initialize_matrix(self, dim, dt):
-        # Acceleration = [ x_{t+1} - x_{t} ] / dt
+        # Velocity = [ x_{t+1} - x_{t} ] / dt
         I = np.eye(dim)
         self._a[0:dim, 0:dim] = -I
         self._a[0:dim, dim:(2 * dim)] = I
         self._a /= dt
 
-    def a(self):
-        return self._a.copy()
+
+class FiniteDifferencesAcceleration(AffineMap):
+
+    """ Define accelerations where clique = [x_{t-1} ; x_{t} ; x_{t+1} ] """
+
+    def __init__(self, dim, dt):
+        self._a = np.matrix(np.zeros((dim, 3 * dim)))
+        self._b = np.matrix(np.zeros((dim, 1)))
+        self._initialize_matrix(dim, dt)
+        print "input dimension : ", self.input_dimension()
+        print "output dimension : ", self.output_dimension()
+
+    def _initialize_matrix(self, dim, dt):
+        # Acceleration = [ x_{t+1} + x_{t-1} - 2 * x_{t} ] / dt^2
+        I = np.eye(dim)
+        self._a[0:dim, 0:dim] = I
+        self._a[0:dim, dim:(2 * dim)] = -2 * I
+        self._a[0:dim, (2 * dim):(3 * dim)] = I
+        self._a /= (dt * dt)
+
+
+class SquaredNormDerivative(DifferentiableMap):
+
+    """ Define any norm of derivatives clique = [x_t ; x_{t+1} ; ... ] """
+
+    def __init__(self, dim):
+        self._sq_norm = SquaredNorm(np.zeros(dim))
+        return
+
+    @abstractproperty
+    def _derivative(self):
+        pass
+
+    def output_dimension(self):
+        return 1
+
+    def input_dimension(self):
+        return self._derivative.input_dimension()
+
+    def forward(self, clique):
+        return self._sq_norm(self._derivative(clique))
+
+    def jacobian(self, clique):
+        return self._derivative(clique) * self._derivative.a()
+
+    def hessian(self, clique):
+        return self._derivative.a().transpose() * self._derivative.a()
+
+
+class SquaredNormVelocity(SquaredNormDerivative):
+
+    """ Defines SN of velocities where clique = [x_t ; x_{t+1} ] """
+
+    def __init__(self, dim, dt):
+        SquaredNormDerivative.__init__(self, dim)
+        self._derivative = FiniteDifferencesVelocity(dim, dt)
+
+
+class SquaredNormAcceleration(SquaredNormDerivative):
+
+    """ Defines SN of acceleration clique = [x_{t-1} ; x_{t} ; x_{t+1} ] """
+
+    def __init__(self, dim, dt):
+        SquaredNormDerivative.__init__(self, dim)
+        self._derivative = FiniteDifferencesAcceleration(dim, dt)
 
 
 class SimplePotential2D(DifferentiableMap):
@@ -93,6 +134,9 @@ class SimplePotential2D(DifferentiableMap):
         d_obs = sdf - self._epsilon
         rho = self._rho_scaling * np.exp(-self._alpha * d_obs)
         return -self._alpha * rho * J_sdf
+
+    def hessian(self, x):
+        return NotImplementedError()
 
 
 class CostGridPotential2D(SimplePotential2D):

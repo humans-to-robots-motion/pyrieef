@@ -269,7 +269,7 @@ def box_from_limits(x_min, x_max, y_min, y_max):
 
 class Workspace:
     """
-        Contains obstacles.
+       Contains obstacles.
     """
 
     def __init__(self, box=Box()):

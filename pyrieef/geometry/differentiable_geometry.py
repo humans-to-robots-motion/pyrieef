@@ -234,6 +234,9 @@ class AffineMap(DifferentiableMap):
     def input_dimension(self):
         return self._a.shape[1]
 
+    def a(self):
+        return self._a
+
     def forward(self, x):
         x_tmp = x.reshape(self.input_dimension(), 1)
         tmp = self._a * x_tmp

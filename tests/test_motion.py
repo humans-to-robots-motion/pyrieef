@@ -116,6 +116,25 @@ def test_obstacle_potential():
     assert check_jacobian_against_finite_difference(phi)
 
 
+def test_squared_norm_derivatives():
+
+    f = SquaredNormVelocity(2, dt=0.1)
+
+    print "Check SquaredNormVelocity (J implementation) : "
+    assert check_jacobian_against_finite_difference(f)
+
+    print "Check SquaredNormVelocity (H implementation) : "
+    assert check_hessian_against_finite_difference(f)
+
+    f = SquaredNormAcceleration(2, dt=0.1)
+
+    print "Check SquaredNormAcceleration (J implementation) : "
+    assert check_jacobian_against_finite_difference(f)
+
+    print "Check SquaredNormAcceleration (H implementation) : "
+    assert check_hessian_against_finite_difference(f)
+
+
 def calculate_analytical_gradient_speedup(f, nb_points=10):
     samples = np.random.rand(nb_points, f.input_dimension())
     time1 = time.time()
@@ -185,6 +204,7 @@ if __name__ == "__main__":
     test_continuous_trajectory()
     test_cliques()
     test_finite_differences()
+    test_squared_norm_derivatives()
     test_obstacle_potential()
     test_motion_optimimization_2d()
     test_motion_optimimization_smoothness_metric()
