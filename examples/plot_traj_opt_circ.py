@@ -99,7 +99,7 @@ def trajectory_optimization():
                 x_init, 100, trajectory)
         print "optimization took : {} sec.".format(time.time() - t_start)
         # Plot trajectory
-        # plot_results(workspace, x_init, x_goal, trajectory, optimizer)
+        plot_results(workspace, x_init, x_goal, trajectory, optimizer)
     else:
         from pyrieef.rendering import workspace_renderer
         from pyrieef.rendering import opengl

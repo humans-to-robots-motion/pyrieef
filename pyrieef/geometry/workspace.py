@@ -48,6 +48,10 @@ class Shape:
         raise NotImplementedError()
 
     @abstractmethod
+    def dist_hessian(self, x):
+        raise NotImplementedError()
+
+    @abstractmethod
     def sampled_points(self):
         raise NotImplementedError()
 
@@ -77,6 +81,15 @@ class Circle(Shape):
         x_center[1] = x[1] - self.origin[1]
         d = np.sqrt(x_center[0]**2 + x_center[1]**2)
         return x_center / d
+
+    def dist_hessian(self, x):
+        h = np.zeros((x.size, x.size))
+        x_center = np.zeros(x.shape)
+        x_center[0] = x[0] - self.origin[0]
+        x_center[1] = x[1] - self.origin[1]
+        d = np.sqrt(x_center[0]**2 + x_center[1]**2)
+        phi = d * np.eye(x.size) - np.outer(x_center, x_center) / d
+        return phi / d**2
 
     def sampled_points(self):
         points = []
@@ -152,8 +165,7 @@ class Segment(Shape):
 
 class SignedDistance2DMap(DifferentiableMap):
     """
-        This class of wraps the shape class in a
-        differentiable map
+        This class of wraps the shape class in a differentiable map
     """
 
     def __init__(self, shape):
@@ -170,6 +182,9 @@ class SignedDistance2DMap(DifferentiableMap):
 
     def jacobian(self, x):
         return np.matrix(self._shape.dist_gradient(x)).reshape((1, 2))
+
+    def hessian(self, x):
+        return np.matrix(self._shape.dist_hessian(x))
 
 
 class SignedDistanceWorkspaceMap(DifferentiableMap):

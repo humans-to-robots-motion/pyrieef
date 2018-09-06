@@ -36,7 +36,7 @@ def test_ellipse():
     assert np.fabs(dist - 0.1) < 1.e-06
 
 
-def test_sdf_jacobians():
+def test_sdf_derivatives():
     verbose = False
     circles = []
     for center, radius in sample_circles(nb_circles=10):
@@ -45,6 +45,8 @@ def test_sdf_jacobians():
         signed_distance_field = SignedDistance2DMap(c)
         assert check_jacobian_against_finite_difference(
             signed_distance_field, verbose)
+        assert check_hessian_against_finite_difference(
+            signed_distance_field)
 
 
 def test_sdf_workspace():
@@ -79,14 +81,15 @@ def test_sdf_grid():
     # WARNING !!!
     # Here we need to transpose the costmap
     # otherwise the grid representation do not match
-    sdfmap = sdf(workspace.box.stacked_meshgrid(nb_points)).transpose()
+    grid = workspace.box.stacked_meshgrid(nb_points)
+    sdfmap = sdf(grid).transpose()
     for i, j in product(range(nb_points), range(nb_points)):
         p = pixel_map.grid_to_world(np.array([i, j]))
         assert_allclose(sdf(p), sdfmap[i, j])
 
 
 test_ellipse()
-test_sdf_jacobians()
+test_sdf_derivatives()
 test_sdf_workspace()
 test_meshgrid()
 test_sdf_grid()
