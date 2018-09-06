@@ -83,13 +83,11 @@ class Circle(Shape):
         return x_center / d
 
     def dist_hessian(self, x):
-        h = np.zeros((x.size, x.size))
         x_center = np.zeros(x.shape)
         x_center[0] = x[0] - self.origin[0]
         x_center[1] = x[1] - self.origin[1]
-        d = np.sqrt(x_center[0]**2 + x_center[1]**2)
-        phi = d * np.eye(x.size) - np.outer(x_center, x_center) / d
-        return phi / d**2
+        d_inv = 1. / np.sqrt(x_center[0]**2 + x_center[1]**2)
+        return d_inv * np.eye(x.size) - d_inv**3 * np.outer(x_center, x_center)
 
     def sampled_points(self):
         points = []
