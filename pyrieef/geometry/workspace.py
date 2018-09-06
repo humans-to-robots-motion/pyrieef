@@ -208,6 +208,12 @@ class SignedDistanceWorkspaceMap(DifferentiableMap):
             it has a kink when two objects are at the same distance """
         return np.matrix(self._workspace.min_dist_gradient(x)).reshape((1, 2))
 
+    def hessian(self, x):
+        """ Warning: this hessian is ill defined
+            it has a kink when two objects are at the same distance """
+        [mindist, minid] = self._workspace.min_dist(x)
+        return np.matrix(self._workspace.obstacles[minid].dist_hessian(x))
+
     def evaluate(self, x):
         """ Warning: this gradient is ill defined
             it has a kink when two objects are at the same distance """

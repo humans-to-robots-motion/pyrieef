@@ -108,8 +108,11 @@ def test_obstacle_potential():
     assert check_jacobian_against_finite_difference(phi)
 
     phi = SimplePotential2D(sdf)
-    print "Checkint Simple Potential"
+    print "Checkint Simple Potential Gradient"
     assert check_jacobian_against_finite_difference(phi)
+
+    print "Checkint Simple Potential Hessian"
+    assert check_hessian_against_finite_difference(phi)
 
     phi = CostGridPotential2D(sdf, 10, 0.1, 1.)
     print "Checkint Grid Potential"

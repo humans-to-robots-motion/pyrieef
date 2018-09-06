@@ -136,7 +136,11 @@ class SimplePotential2D(DifferentiableMap):
         return -self._alpha * rho * J_sdf
 
     def hessian(self, x):
-        return NotImplementedError()
+        [sdf, J_sdf] = self._sdf.evaluate(x)
+        H_sdf = self._sdf.hessian(x)
+        rho = self.forward(x)
+        J_sdf_sq = J_sdf.transpose() * J_sdf
+        return rho * (self._alpha**2 * J_sdf_sq - self._alpha * H_sdf)
 
 
 class CostGridPotential2D(SimplePotential2D):

@@ -55,6 +55,7 @@ def test_sdf_workspace():
         workspace.obstacles.append(Circle(center, radius))
     signed_distance_field = SignedDistanceWorkspaceMap(workspace)
     assert check_jacobian_against_finite_difference(signed_distance_field)
+    assert check_hessian_against_finite_difference(signed_distance_field)
 
 
 def test_meshgrid():
