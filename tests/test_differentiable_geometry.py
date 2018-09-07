@@ -173,6 +173,18 @@ def test_composition():
     print "Check quadric (J implementation) : "
     assert check_jacobian_against_finite_difference(Compose(f, g))
 
+    dim = 3
+    dim_i = 1
+    g = AffineMap(                      # g = Ax + b
+        np.random.rand(dim_i, dim),     # A
+        np.random.rand(dim_i))          # b
+    dim_o = 1
+    f = AffineMap(                      # f = Ax + b
+        np.random.rand(dim_o, dim_i),   # A
+        np.random.rand(dim_o))          # b
+
+    print "Check quadric (H implementation) : "
+    assert check_hessian_against_finite_difference(Compose(f, g))
 
 def test_rangesubspace():
     dim = 10

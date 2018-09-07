@@ -108,6 +108,21 @@ class Compose(DifferentiableMap):
         [y, J] = self.evaluate(q)
         return J
 
+    def hessian(self, q):
+        """  d^2/dq^2 f(g(q)), applies chain rule.
+
+            https://en.wikipedia.org/wiki/Chain_rule (Higher derivatives)
+            WARNING: J_f is assumed to be a jacobian np.matrix object
+        """
+        x = self._g(q)
+        J_g = self._g.jacobian(q)
+        H_g = self._g.hessian(q)
+        J_f = self._f.jacobian(x)
+        H_f = self._f.hessian(x)
+        a_x = H_f * (J_g * J_g.transpose())
+        b_x = J_f * np.ones(self.input_dimension()) * H_g
+        return a_x + b_x
+
     def evaluate(self, q):
         """  d/dq f(g(q)), applies chain rule.
 
