@@ -181,7 +181,7 @@ def calculate_analytical_gradient_speedup(f, nb_points=10):
 def test_motion_optimimization_2d():
 
     np.random.seed(0)
-    
+
     print "Check Motion Optimization (Derivatives)"
     objective = MotionOptimization2DCostMap()
     trajectory = Trajectory(objective.T)
@@ -200,7 +200,7 @@ def test_motion_optimimization_2d():
     assert check_jacobian_against_finite_difference(
         objective.objective, False)
 
-    # TODO finish debugging this test.
+    # Check the hessian of the trajectory
     print "Test H for trajectory"
     is_close = check_hessian_against_finite_difference(
         objective.objective, False)

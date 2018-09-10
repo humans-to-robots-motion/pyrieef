@@ -27,6 +27,8 @@ from motion.objective import *
 
 
 def test_optimization_module():
+    print "**********************************************"
+    print  "TEST BFGS"
     x0 = [1.3, 0.7, 0.8, 1.9, 1.2]
     res = optimize.minimize(
         optimize.rosen, x0, method='BFGS',
@@ -36,6 +38,22 @@ def test_optimization_module():
     assert_allclose(res.jac, np.array(
         [9.93918700e-07,   4.21980188e-07, 2.23775033e-07,
          -6.10304485e-07,   1.34057054e-07]))
+    return res.fun
+
+
+def test_optimization_trust():
+    print "**********************************************"
+    print "TEST Newton trust region "
+    x0 = [1.3, 0.7, 0.8, 1.9, 1.2]
+    res = optimize.minimize(
+        optimize.rosen, x0, method='trust-ncg',
+        jac=optimize.rosen_der,
+        hess=optimize.rosen_hess,
+        options={'gtol': 1e-8, 'disp': True})
+    print res.x
+    print optimize.rosen(x0).shape
+    print optimize.rosen_der(x0).shape
+    print optimize.rosen_hess(x0).shape
     return res.fun
 
 
@@ -91,5 +109,6 @@ def test_motion_optimimization_2d():
 
 if __name__ == "__main__":
     test_optimization_module()
+    test_optimization_trust()
     test_quadric()
     test_motion_optimimization_2d()

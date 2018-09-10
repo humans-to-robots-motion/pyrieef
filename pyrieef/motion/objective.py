@@ -45,12 +45,12 @@ class MotionOptimization2DCostMap:
         self.q_init = q_init if q_init is not None else np.zeros(2)
 
         self._eta = 10.
-        self._obstacle_scalar = 50.
-        self._init_potential_scalar = 1000000.0
-        self._term_potential_scalar = 1000000.0
+        self._obstacle_scalar = 0.1
+        self._init_potential_scalar = 10000000.
+        self._term_potential_scalar = 10000000.
         # self._init_potential_scalar = 0.0
         # self._term_potential_scalar = 0.0
-        self._smoothness_scalar = 7.
+        self._smoothness_scalar = 25000.
 
         # We only need the signed distance field
         # to create a trajectory optimization problem
@@ -71,7 +71,10 @@ class MotionOptimization2DCostMap:
 
     def obstacle_cost_map(self):
         # return SimplePotential2D(self.sdf)
-        return CostGridPotential2D(self.sdf, 10., .03, 10.)
+        return CostGridPotential2D(self.sdf,
+                                   alpha=10.,
+                                   margin=.03,
+                                   offset=1.)
 
     def cost(self, trajectory):
         """ compute sum of acceleration """
@@ -123,17 +126,10 @@ class MotionOptimization2DCostMap:
             self.trajectory_space_dim,
             self.config_space_dim)
 
-        # Smoothness term.
-        squared_norm_acc = Pullback(
-            SquaredNorm(np.zeros(self.config_space_dim)),
-            FiniteDifferencesAcceleration(self.config_space_dim, self.dt))
-        self.objective.register_function_for_all_cliques(
-            Scale(squared_norm_acc, self._smoothness_scalar))
-
         # Init term.
         initial_potential = Pullback(
             SquaredNorm(self.q_init),
-            self.objective.left_most_of_clique_map())
+            self.objective.center_of_clique_map())
         self.objective.register_function_for_clique(
             0, Scale(initial_potential, self._init_potential_scalar))
 
@@ -143,6 +139,13 @@ class MotionOptimization2DCostMap:
             self.objective.center_of_clique_map())
         self.objective.register_function_last_clique(
             Scale(terminal_potential, self._term_potential_scalar))
+
+        # Smoothness term.
+        squared_norm_acc = Pullback(
+            SquaredNorm(np.zeros(self.config_space_dim)),
+            FiniteDifferencesAcceleration(self.config_space_dim, self.dt))
+        self.objective.register_function_for_all_cliques(
+            Scale(squared_norm_acc, self._smoothness_scalar))
 
         # Obstacle term.
         obstacle_potential = Pullback(
@@ -175,9 +178,9 @@ class MotionOptimization2DCostMap:
             trajectory.x()[:] = xi
             dist = np.linalg.norm(
                 trajectory.final_configuration() - self.q_goal)
-            # print "dist[{}] : {}, objective : {}, gnorm {}".format(
-            #     i, dist, optimizer.objective(xi),
-            #     np.linalg.norm(optimizer.gradient(xi)))
+            print "dist[{}] : {}, objective : {}, gnorm {}".format(
+                i, dist, optimizer.objective(xi),
+                np.linalg.norm(optimizer.gradient(xi)))
         return [dist < 1.e-3,
                 trajectory,
                 optimizer.gradient(xi),

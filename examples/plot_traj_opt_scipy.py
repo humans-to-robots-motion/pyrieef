@@ -40,37 +40,45 @@ class TrajectoryOptimizationViewer:
         self.viewer.draw_ws_background(self.objective.obstacle_cost_map())
 
     def evaluate(self, x):
-        if self.viewer is not None:
+        v = self.objective.objective(x)
+        # print "value shape : ", v.shape
+        return v
+
+    def gradient(self, x, draw=True):
+        if draw and self.viewer is not None:
             trajectory = Trajectory(self.objective.T)
             trajectory.set(x)
             g_traj = Trajectory(self.objective.T)
-            g_traj.set(-1. * self.gradient(x) + trajectory.x()[:])
+            g_traj.set(-0.001 * self.objective.objective.gradient(x) +
+                       trajectory.x()[:])
             for k in range(self.objective.T + 1):
                 q = trajectory.configuration(k)
                 self.viewer.draw_ws_circle(.01, q)
                 self.viewer.draw_ws_line(q, g_traj.configuration(k))
             self.viewer.render()
-            time.sleep(0.02)
-        return self.objective.objective(x)
-
-    def gradient(self, x):
-        return self.objective.objective.gradient(x)
+            time.sleep(0.1)
+        # print "gradient shape : ", self.objective.objective.jacobian(x).shape
+        # return self.objective.objective.jacobian(x)
+        g = self.objective.objective.gradient(x)
+        # print "jacobian shape : ", g.shape
+        return g
 
     def hessian(self, x):
-        return self.objective.metric
+        # print "hessian shape : ", self.objective.objective.hessian(x).shape
+        return np.array(self.objective.objective.hessian(x))
         # return np.eye(self.objective.metric.shape[0])
 
 
 def motion_optimimization():
     print "Checkint Motion Optimization"
     trajectory = linear_interpolation_trajectory(
-        q_init=-.2 * np.ones(2),
+        q_init=-.22 * np.ones(2),
         q_goal=.3 * np.ones(2),
         T=22
     )
     objective = MotionOptimization2DCostMap(
         T=trajectory.T(),
-        q_init=trajectory.configuration(0),
+        q_init=trajectory.configuration(1),
         q_goal=trajectory.final_configuration()
     )
     gtol = 1e-07
@@ -78,12 +86,16 @@ def motion_optimimization():
         objective.objective, verbose=False)
     f = TrajectoryOptimizationViewer(objective, draw=True)
     t_start = time.time()
+    x = trajectory.x()
+    # print "x.shape : ", x.shape
     res = optimize.minimize(
         f.evaluate,
-        trajectory.x(),
-        method='BFGS',
+        x0=x,
+        method='trust-ncg',
         jac=f.gradient,
-        options={'gtol': gtol, 'disp': False})
+        hess=f.hessian
+        # hessp=f.hessian_product
+    )
     print "optimization done in {} sec.".format(time.time() - t_start)
     # objective.optimize(q_init=np.zeros(2), trajectory=trajectory)
     # print trajectory.x().shape
@@ -97,5 +109,6 @@ def motion_optimimization():
 
 if __name__ == "__main__":
     motion_optimimization()
+    raw_input("Press Enter to continue...")
     # import cProfile
     # cProfile.run('motion_optimimization()')

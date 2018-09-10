@@ -106,9 +106,9 @@ def trajectory_optimization():
         viewer = workspace_renderer.WorkspaceRender(workspace)
         viewer.draw_ws_background(optimizer.obstacle_cost_map())
         # viewer.draw_ws_obstacles()
-        step_size = 1.
+        step_size = 20.
         optimizer.set_eta(step_size)
-        for i in range(100):
+        for i in range(1000):
             [dist, trajectory, gradient, deltas] = optimizer.optimize(
                 x_init, 1, trajectory)
             g_traj.set(-4. * gradient + trajectory.x()[:])

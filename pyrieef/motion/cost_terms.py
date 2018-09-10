@@ -144,7 +144,7 @@ class SimplePotential2D(DifferentiableMap):
 
 class CostGridPotential2D(SimplePotential2D):
 
-    """ obstacle potential class """
+    """ obstacle potential class with margin and offset"""
 
     def __init__(self, signed_distance_field, alpha, margin, offset):
         SimplePotential2D.__init__(self, signed_distance_field)
