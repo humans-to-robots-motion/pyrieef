@@ -138,6 +138,27 @@ def test_squared_norm_derivatives():
     assert check_hessian_against_finite_difference(f)
 
 
+def test_center_of_clique():
+    config_dim = 2
+    nb_way_points = 10
+    trajectory = linear_interpolation_trajectory(
+        q_init=np.zeros(2),
+        q_goal=np.ones(2),
+        T=nb_way_points)
+    network = CliquesFunctionNetwork(trajectory.x().size, config_dim)
+    center_of_clique = network.center_of_clique_map()
+    network.register_function_for_all_cliques(center_of_clique)
+    for t, x_t in enumerate(network.all_cliques(trajectory.x())):
+        assert (np.linalg.norm(network.function_on_clique(t, x_t) -
+                               x_t[2:4]) < 1.e-10)
+
+
+def test_motion_optimimization_smoothness_metric():
+    print "Checkint Motion Optimization"
+    objective = MotionOptimization2DCostMap()
+    A = objective.create_smoothness_metric()
+
+
 def calculate_analytical_gradient_speedup(f, nb_points=10):
     samples = np.random.rand(nb_points, f.input_dimension())
     time1 = time.time()
@@ -167,33 +188,19 @@ def test_motion_optimimization_2d():
     print trajectory.final_configuration()
     sum_acceleration = objective.cost(trajectory)
     print "sum_acceleration : ", sum_acceleration
+
+    print "Test J for trajectory"
     assert check_jacobian_against_finite_difference(
         objective.objective)
+
+    # TODO finish debugging this test.
+    # print "Test H for trajectory"
+    # assert check_hessian_against_finite_difference(
+    #     objective.objective)
 
     # Calulate speed up.
     # print "Calculat analytic gradient speedup"
     # calculate_analytical_gradient_speedup(objective.objective)
-
-
-def test_center_of_clique():
-    config_dim = 2
-    nb_way_points = 10
-    trajectory = linear_interpolation_trajectory(
-        q_init=np.zeros(2),
-        q_goal=np.ones(2),
-        T=nb_way_points)
-    network = CliquesFunctionNetwork(trajectory.x().size, config_dim)
-    center_of_clique = network.center_of_clique_map()
-    network.register_function_for_all_cliques(center_of_clique)
-    for t, x_t in enumerate(network.all_cliques(trajectory.x())):
-        assert (np.linalg.norm(network.function_on_clique(t, x_t) -
-                               x_t[2:4]) < 1.e-10)
-
-
-def test_motion_optimimization_smoothness_metric():
-    print "Checkint Motion Optimization"
-    objective = MotionOptimization2DCostMap()
-    A = objective.create_smoothness_metric()
 
 
 def test_optimize():

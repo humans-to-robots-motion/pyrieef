@@ -108,6 +108,21 @@ class CliquesFunctionNetwork(FunctionNetwork):
                 J[0, t:self._clique_dim + t] += f.jacobian(x_t)
         return J
 
+    def hessian(self, x):
+        """
+            The hessian matrix is of dimension m x m
+                m (rows) : input size
+                m (cols) : input size
+        """
+        H = np.matrix(np.zeros((
+            self.input_dimension(),
+            self.input_dimension())))
+        for t, x_t in enumerate(self.all_cliques(x)):
+            for f in self._functions[t]:
+                dim = self._clique_dim
+                H[t:dim + t, t:dim + t] += f.hessian(x_t)
+        return H
+
     def all_cliques(self, x):
         """ returns a dictionary of cliques """
         # print("x : ", len(x))
@@ -154,11 +169,6 @@ class CliquesFunctionNetwork(FunctionNetwork):
         return RangeSubspaceMap(
             dim * self._nb_clique_elements,
             range(dim, self._nb_clique_elements * dim))
-
-    def pull_pos_term(self, t, function):
-        return 
-
-
 
 
 class Trajectory:

@@ -59,7 +59,7 @@ class DifferentiableMap:
             Thhe Jacobian matrix is allways a numpy matrix object."""
         return finite_difference_jacobian(self, q)
 
-    def hessian(self, x):
+    def hessian(self, q):
         """ Should return the hessian matrix
                 n x n : input x input (dimensions)
             by default the method returns the finite difference hessian
@@ -154,7 +154,7 @@ class Pullback(Compose):
     def __init__(self, f, g):
         """
             f round g
-               with approximate hessian. Is fullhessian when H_h = 0
+               with approximate hessian. Is fullhessian when H_h = 0 
         """
         Compose.__init__(self, f, g)
 

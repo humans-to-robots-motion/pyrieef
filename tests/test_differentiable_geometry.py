@@ -189,6 +189,11 @@ def test_composition():
 
 def test_pullback():
 
+    # Test the jacobian and hessian of the following frunction
+    # phi : f round g (x) = | Ax + b |^2
+    # J_phi = 2Ax + b (TODO verify)
+    # H_phi = A'A
+
     # Test constant Jacobian.
     dim_o = 4
     dim_i = 3
@@ -197,13 +202,15 @@ def test_pullback():
         np.random.rand(dim_o))          # b
 
     # Test function hessian (gradient)
-    f = SquaredNorm(np.random.rand(dim_o))
+    f = SquaredNorm(np.zeros(dim_o))
 
     print "Check Composition (J implementation) : "
     assert check_jacobian_against_finite_difference(Pullback(f, g))
 
     # Test function hessian (gradient)
-    print "Check Composition (H implementation) : "
+    print "Check Composition (H implementation) : *** "
+    print f.hessian(np.random.random(dim_o))
+    print Pullback(f, g).hessian(np.random.random(dim_i))
     assert check_jacobian_against_finite_difference(Pullback(f, g))
 
 

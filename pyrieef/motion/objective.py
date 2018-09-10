@@ -124,33 +124,33 @@ class MotionOptimization2DCostMap:
             self.config_space_dim)
 
         # Smoothness term.
-        squared_norm_acc = Compose(
+        squared_norm_acc = Pullback(
             SquaredNorm(np.zeros(self.config_space_dim)),
             FiniteDifferencesAcceleration(self.config_space_dim, self.dt))
         self.objective.register_function_for_all_cliques(
             Scale(squared_norm_acc, self._smoothness_scalar))
 
         # Init term.
-        initial_potential = Compose(
+        initial_potential = Pullback(
             SquaredNorm(self.q_init),
             self.objective.left_most_of_clique_map())
         self.objective.register_function_for_clique(
             0, Scale(initial_potential, self._init_potential_scalar))
 
         # Terminal term.
-        terminal_potential = Compose(
+        terminal_potential = Pullback(
             SquaredNorm(self.q_goal),
             self.objective.center_of_clique_map())
         self.objective.register_function_last_clique(
             Scale(terminal_potential, self._term_potential_scalar))
 
         # Obstacle term.
-        obstacle_potential = Compose(
+        obstacle_potential = Pullback(
             self.obstacle_cost_map(),
             self.objective.center_of_clique_map())
-        squared_norm_vel = Compose(
+        squared_norm_vel = Pullback(
             SquaredNorm(np.zeros(self.config_space_dim)),
-            Compose(
+            Pullback(
                 FiniteDifferencesVelocity(self.config_space_dim, self.dt),
                 self.objective.right_of_clique_map())
         )
