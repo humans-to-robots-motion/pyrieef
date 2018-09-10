@@ -473,7 +473,8 @@ def check_jacobian_against_finite_difference(phi, verbose=True):
     return check_is_close(J, J_diff, 1e-4)
 
 
-def check_hessian_against_finite_difference(phi, verbose=True):
+def check_hessian_against_finite_difference(phi, verbose=True, 
+    tolerance=1e-4):
     """ Makes sure the hessuaian is close to the finite difference """
     q = np.random.rand(phi.input_dimension())
     H = phi.hessian(q)
@@ -483,4 +484,4 @@ def check_hessian_against_finite_difference(phi, verbose=True):
         print H
         print "H_diff : "
         print H_diff
-    return check_is_close(H, H_diff, 1e-4)
+    return check_is_close(H, H_diff, tolerance)

@@ -120,6 +120,7 @@ class CliquesFunctionNetwork(FunctionNetwork):
         for t, x_t in enumerate(self.all_cliques(x)):
             for f in self._functions[t]:
                 dim = self._clique_dim
+
                 H[t:dim + t, t:dim + t] += f.hessian(x_t)
         return H
 

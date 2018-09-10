@@ -70,11 +70,11 @@ class MotionOptimization2DCostMap:
         self._eta = eta
 
     def obstacle_cost_map(self):
-        # return SimplePotential2D(self.sdf)
-        return CostGridPotential2D(self.sdf,
-                                   alpha=10.,
-                                   margin=.03,
-                                   offset=1.)
+        return SimplePotential2D(self.sdf)
+        # return CostGridPotential2D(self.sdf,
+        #                            alpha=10.,
+        #                            margin=.03,
+        #                            offset=1.)
 
     def cost(self, trajectory):
         """ compute sum of acceleration """
@@ -178,9 +178,9 @@ class MotionOptimization2DCostMap:
             trajectory.x()[:] = xi
             dist = np.linalg.norm(
                 trajectory.final_configuration() - self.q_goal)
-            print "dist[{}] : {}, objective : {}, gnorm {}".format(
-                i, dist, optimizer.objective(xi),
-                np.linalg.norm(optimizer.gradient(xi)))
+            # print "dist[{}] : {}, objective : {}, gnorm {}".format(
+            #     i, dist, optimizer.objective(xi),
+            #     np.linalg.norm(optimizer.gradient(xi)))
         return [dist < 1.e-3,
                 trajectory,
                 optimizer.gradient(xi),

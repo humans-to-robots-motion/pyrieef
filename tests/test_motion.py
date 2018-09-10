@@ -203,7 +203,7 @@ def test_motion_optimimization_2d():
     # Check the hessian of the trajectory
     print "Test H for trajectory"
     is_close = check_hessian_against_finite_difference(
-        objective.objective, False)
+        objective.objective, False, tolerance=1e-2)
 
     xi = np.random.rand(objective.objective.input_dimension())
     H = objective.objective.hessian(xi)
