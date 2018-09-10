@@ -155,6 +155,11 @@ class CliquesFunctionNetwork(FunctionNetwork):
             dim * self._nb_clique_elements,
             range(dim, self._nb_clique_elements * dim))
 
+    def pull_pos_term(self, t, function):
+        return 
+
+
+
 
 class Trajectory:
     """

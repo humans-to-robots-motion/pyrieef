@@ -186,6 +186,27 @@ def test_composition():
     print "Check quadric (H implementation) : "
     assert check_hessian_against_finite_difference(Compose(f, g))
 
+
+def test_pullback():
+
+    # Test constant Jacobian.
+    dim_o = 4
+    dim_i = 3
+    g = AffineMap(                      # g = Ax + b
+        np.random.rand(dim_o, dim_i),   # A
+        np.random.rand(dim_o))          # b
+
+    # Test function hessian (gradient)
+    f = SquaredNorm(np.random.rand(dim_o))
+
+    print "Check Composition (J implementation) : "
+    assert check_jacobian_against_finite_difference(Pullback(f, g))
+
+    # Test function hessian (gradient)
+    print "Check Composition (H implementation) : "
+    assert check_jacobian_against_finite_difference(Pullback(f, g))
+
+
 def test_rangesubspace():
     dim = 10
     a = np.random.rand(dim, dim)
@@ -231,5 +252,6 @@ if __name__ == "__main__":
     test_scale()
     test_quadric()
     test_composition()
+    test_pullback()
     test_rangesubspace()
     test_product()

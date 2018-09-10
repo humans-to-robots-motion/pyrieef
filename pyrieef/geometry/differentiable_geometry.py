@@ -83,7 +83,8 @@ class Compose(DifferentiableMap):
 
     def __init__(self, f, g):
         """
-            f round g : f(g(x))
+
+            f round g : f(g(q))
 
             This function should be called pullback if we approxiate
             higher order (i.e., hessians) derivaties by pullback, here it's
@@ -105,12 +106,27 @@ class Compose(DifferentiableMap):
         return self._f(self._g(q))
 
     def jacobian(self, q):
+        """  d/dq f(g(q)), applies chain rule.
+
+                * J_f(g(q)) J_g
+
+         If J is the jacobian of a function f(x), J_f = d/dx f(x)
+            then the jacobian of the "pullback" of f defined on the
+            range space of a map g, f(g(q)) is
+                    d/dq f(g(q)) = J_f(g(q)) J_g
+            This method computes and
+            returns this "pullback gradient" J_f (g(q)) J_g(q).
+            WARNING: J_f is assumed to be a jacobian np.matrix object
+        """
         [y, J] = self.evaluate(q)
         return J
 
     def hessian(self, q):
         """  d^2/dq^2 f(g(q)), applies chain rule.
 
+                * J_g' H_f J_g + H_g J_f,
+
+            so far only works if f and g are functions, not maps.
             https://en.wikipedia.org/wiki/Chain_rule (Higher derivatives)
             WARNING: J_f is assumed to be a jacobian np.matrix object
         """
@@ -119,25 +135,42 @@ class Compose(DifferentiableMap):
         H_g = self._g.hessian(q)
         J_f = self._f.jacobian(x)
         H_f = self._f.hessian(x)
-        a_x = H_f * (J_g * J_g.transpose())
+        a_x = J_g.transpose() * H_f * J_g
         b_x = J_f * np.ones(self.input_dimension()) * H_g
         return a_x + b_x
 
     def evaluate(self, q):
-        """  d/dq f(g(q)), applies chain rule.
-
-            If J is the jacobian of a function f(x), J_f = d/dx f(x)
-            then the jacobian of the "pullback" of f defined on the
-            range space of a map g, f(g(q)) is
-                    d/dq f(g(q)) = J_f(g(q)) J_g
-            This method computes and
-            returns this "pullback gradient" J_f (g(q)) J_g(q).
-            WARNING: J_f is assumed to be a jacobian np.matrix object
+        """
+            d/dq f(g(q)), applies chain rule.
         """
         x = self._g(q)
         [y, J_f] = self._f.evaluate(x)
         J = J_f * self._g.jacobian(q)
         return [y, J]
+
+
+class Pullback(Compose):
+
+    def __init__(self, f, g):
+        """
+            f round g
+               with approximate hessian. Is fullhessian when H_h = 0
+        """
+        Compose.__init__(self, f, g)
+
+    def hessian(self, q):
+        """  d^2/dq^2 f(g(q)), applies chain rule.
+
+                * J_g' H_f J_g + H_g J_f,
+
+            here we dropout the higher order term of g
+            this cooresponds to the full hessian when H_g = 0
+            WARNING: f still has to be a function for now.
+        """
+        x = self._g(q)
+        J_g = self._g.jacobian(q)
+        H_f = self._f.hessian(x)
+        return J_g.transpose() * H_f * J_g
 
 
 class Scale(DifferentiableMap):
@@ -263,7 +296,8 @@ class AffineMap(DifferentiableMap):
 
     def hessian(self, x):
         assert self.output_dimension() == 1
-        return np.matrix(np.zeros((self._a.shape[1], self._a.shape[1])))
+        return np.matrix(np.zeros((
+            self.input_dimension(), self.input_dimension())))
 
 
 class QuadricFunction(DifferentiableMap):
