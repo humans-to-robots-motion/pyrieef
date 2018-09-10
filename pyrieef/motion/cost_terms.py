@@ -125,18 +125,18 @@ class SimplePotential2D(DifferentiableMap):
     def forward(self, x):
         return self._rho_scaling * np.exp(-self._alpha * self._sdf.forward(x))
 
-    def jacobian_sdf(self, x):
-        [sdf, J_sdf] = self._sdf.evaluate(x)
+    def _sdf_jacobian(self, x):
+        sdf, J_sdf = self._sdf.evaluate(x)
         d_obs = sdf - self._margin
         rho = self._rho_scaling * np.exp(-self._alpha * d_obs)
         return J_sdf, rho
 
     def jacobian(self, x):
-        J_sdf, rho = self.jacobian_sdf(x)
+        J_sdf, rho = self._sdf_jacobian(x)
         return -self._alpha * rho * J_sdf
 
     def hessian(self, x):
-        J_sdf, rho = self.jacobian_sdf(x)
+        J_sdf, rho = self._sdf_jacobian(x)
         H_sdf = self._sdf.hessian(x)
         J_sdf_sq = J_sdf.transpose() * J_sdf
         return rho * (self._alpha**2 * J_sdf_sq - self._alpha * H_sdf)
