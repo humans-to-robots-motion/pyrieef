@@ -160,7 +160,7 @@ class MotionOptimization2DCostMap:
         self.objective.register_function_for_all_cliques(
             Scale(isometric_obstacle_cost, self._obstacle_scalar))
 
-        print self.objective.nb_cliques()
+        # print self.objective.nb_cliques()
 
     def optimize(self, q_init, nb_steps=100, trajectory=None):
         if trajectory is None:

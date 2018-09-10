@@ -99,6 +99,9 @@ def test_continuous_trajectory():
 
 
 def test_obstacle_potential():
+
+    # np.random.seed(0)
+
     workspace = Workspace()
     for center, radius in sample_circles(nb_circles=10):
         workspace.obstacles.append(Circle(center, radius))
@@ -110,13 +113,14 @@ def test_obstacle_potential():
     phi = SimplePotential2D(sdf)
     print "Checkint Simple Potential Gradient"
     assert check_jacobian_against_finite_difference(phi)
-
     print "Checkint Simple Potential Hessian"
     assert check_hessian_against_finite_difference(phi)
 
     phi = CostGridPotential2D(sdf, 10, 0.1, 1.)
-    print "Checkint Grid Potential"
+    print "Checkint Grid Potential Gradient"
     assert check_jacobian_against_finite_difference(phi)
+    print "Checkint Grid Potential Hessian"
+    assert check_hessian_against_finite_difference(phi)
 
 
 def test_squared_norm_derivatives():
@@ -175,7 +179,10 @@ def calculate_analytical_gradient_speedup(f, nb_points=10):
 
 
 def test_motion_optimimization_2d():
-    print "Checkint Motion Optimization"
+
+    np.random.seed(0)
+    
+    print "Check Motion Optimization (Derivatives)"
     objective = MotionOptimization2DCostMap()
     trajectory = Trajectory(objective.T)
     sum_acceleration = objective.cost(trajectory)
@@ -191,12 +198,21 @@ def test_motion_optimimization_2d():
 
     print "Test J for trajectory"
     assert check_jacobian_against_finite_difference(
-        objective.objective)
+        objective.objective, False)
 
     # TODO finish debugging this test.
-    # print "Test H for trajectory"
-    # assert check_hessian_against_finite_difference(
-    #     objective.objective)
+    print "Test H for trajectory"
+    is_close = check_hessian_against_finite_difference(
+        objective.objective, False)
+
+    xi = np.random.rand(objective.objective.input_dimension())
+    H = objective.objective.hessian(xi)
+    H_diff = finite_difference_hessian(objective.objective, xi)
+    H_delta = H - H_diff
+    print " - H_delta dist = ", np.linalg.norm(H_delta, ord='fro')
+    print " - H_delta maxi = ", np.max(np.absolute(H_delta))
+
+    assert is_close
 
     # Calulate speed up.
     # print "Calculat analytic gradient speedup"
@@ -204,7 +220,7 @@ def test_motion_optimimization_2d():
 
 
 def test_optimize():
-    print "Checkint Motion Optimization"
+    print "Check Motion Optimization (optimize)"
     q_init = np.zeros(2)
     objective = MotionOptimization2DCostMap()
     objective.optimize(q_init)

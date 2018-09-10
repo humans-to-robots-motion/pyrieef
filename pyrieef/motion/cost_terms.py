@@ -31,11 +31,9 @@ class FiniteDifferencesVelocity(AffineMap):
         self._a = np.matrix(np.zeros((dim, 2 * dim)))
         self._b = np.matrix(np.zeros((dim, 1)))
         self._initialize_matrix(dim, dt)
-        print "input dimension : ", self.input_dimension()
-        print "output dimension : ", self.output_dimension()
 
     def _initialize_matrix(self, dim, dt):
-        # Velocity = [ x_{t+1} - x_{t} ] / dt
+        """ Velocity = [ x_{t+1} - x_{t} ] / dt """
         I = np.eye(dim)
         self._a[0:dim, 0:dim] = -I
         self._a[0:dim, dim:(2 * dim)] = I
@@ -50,11 +48,9 @@ class FiniteDifferencesAcceleration(AffineMap):
         self._a = np.matrix(np.zeros((dim, 3 * dim)))
         self._b = np.matrix(np.zeros((dim, 1)))
         self._initialize_matrix(dim, dt)
-        print "input dimension : ", self.input_dimension()
-        print "output dimension : ", self.output_dimension()
 
     def _initialize_matrix(self, dim, dt):
-        # Acceleration = [ x_{t+1} + x_{t-1} - 2 * x_{t} ] / dt^2
+        """ Acceleration = [ x_{t+1} + x_{t-1} - 2 * x_{t} ] / dt^2 """
         I = np.eye(dim)
         self._a[0:dim, 0:dim] = I
         self._a[0:dim, dim:(2 * dim)] = -2 * I
@@ -118,7 +114,7 @@ class SimplePotential2D(DifferentiableMap):
         self._sdf = signed_distance_field
         self._rho_scaling = 100.
         self._alpha = 10.
-        self._epsilon = 0.
+        self._margin = 0.
 
     def output_dimension(self):
         return 1
@@ -129,16 +125,19 @@ class SimplePotential2D(DifferentiableMap):
     def forward(self, x):
         return self._rho_scaling * np.exp(-self._alpha * self._sdf.forward(x))
 
-    def jacobian(self, x):
+    def jacobian_sdf(self, x):
         [sdf, J_sdf] = self._sdf.evaluate(x)
-        d_obs = sdf - self._epsilon
+        d_obs = sdf - self._margin
         rho = self._rho_scaling * np.exp(-self._alpha * d_obs)
+        return J_sdf, rho
+
+    def jacobian(self, x):
+        J_sdf, rho = self.jacobian_sdf(x)
         return -self._alpha * rho * J_sdf
 
     def hessian(self, x):
-        [sdf, J_sdf] = self._sdf.evaluate(x)
+        J_sdf, rho = self.jacobian_sdf(x)
         H_sdf = self._sdf.hessian(x)
-        rho = self.forward(x)
         J_sdf_sq = J_sdf.transpose() * J_sdf
         return rho * (self._alpha**2 * J_sdf_sq - self._alpha * H_sdf)
 
@@ -147,14 +146,14 @@ class CostGridPotential2D(SimplePotential2D):
 
     """ obstacle potential class """
 
-    def __init__(self, signed_distance_field, alpha, epsilon, offset):
+    def __init__(self, signed_distance_field, alpha, margin, offset):
         SimplePotential2D.__init__(self, signed_distance_field)
         self._alpha = alpha
-        self._epsilon = epsilon
+        self._margin = margin
         self._offset = offset
 
     def forward(self, x):
-        d_obs = self._sdf.forward(x) - self._epsilon
+        d_obs = self._sdf.forward(x) - self._margin
         return self._rho_scaling * np.exp(-self._alpha * d_obs) + self._offset
 
 
