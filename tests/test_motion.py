@@ -219,8 +219,9 @@ def test_motion_optimimization_2d():
     # calculate_analytical_gradient_speedup(objective.objective)
 
 
-def test_init_goal_potential():
-
+def test_interpolation_optimal_potential():
+    """ makes sure that the start and goal potentials
+        are applied at the correct place """
     trajectory = linear_interpolation_trajectory(
         q_init=np.zeros(2),
         q_goal=np.ones(2),
@@ -228,15 +229,27 @@ def test_init_goal_potential():
     )
     objective = MotionOptimization2DCostMap(
         T=trajectory.T(),
-        q_init=trajectory.configuration(1),
+        q_init=trajectory.initial_configuration(),
         q_goal=trajectory.final_configuration()
     )
+    print "q_init  : ", trajectory.initial_configuration()
+    print "q_goal  : ", trajectory.final_configuration()
     objective.create_clique_network()
     objective.add_init_and_terminal_terms()
     v = objective.objective.forward(trajectory.x())
     g = objective.objective.jacobian(trajectory.x())
-    assert abs( v - 0.) < 1.e-10
+    assert abs(v - 0.) < 1.e-10
     assert np.isclose(g, np.zeros(trajectory.x().shape)).all()
+
+    # TODO test velocity profile. Gradient should correspond.
+    # This is currently not the case.
+    objective.create_clique_network()
+    objective.add_smoothness_terms(2)
+    v = objective.objective.forward(trajectory.x())
+    g = objective.objective.jacobian(trajectory.x())
+    print "v : ", v
+    print g
+    assert np.isclose(g, np.zeros(trajectory.x().shape), atol=1e-5).all()
 
 
 def test_optimize():
@@ -256,4 +269,4 @@ if __name__ == "__main__":
     test_motion_optimimization_smoothness_metric()
     test_optimize()
     test_center_of_clique()
-    test_init_goal_potential()
+    test_interpolation_optimal_potential()

@@ -136,28 +136,43 @@ class MotionOptimization2DCostMap:
         self.objective.register_function_last_clique(
             Scale(terminal_potential, self._term_potential_scalar))
 
-    def add_smoothness_terms(self):
-        squared_norm_acc = Pullback(
-            SquaredNorm(np.zeros(self.config_space_dim)),
-            FiniteDifferencesAcceleration(self.config_space_dim, self.dt))
-        self.objective.register_function_for_all_cliques(
-            Scale(squared_norm_acc, self._smoothness_scalar))
+    def add_smoothness_terms(self, deriv_order=2):
 
-    def add_obstacle_terms(self):
-        obstacle_potential = Pullback(
-            self.obstacle_cost_map(),
-            self.objective.center_of_clique_map())
-        squared_norm_vel = Pullback(
-            SquaredNorm(np.zeros(self.config_space_dim)),
-            Pullback(
+        if deriv_order == 1:
+            derivative = Pullback(
                 FiniteDifferencesVelocity(self.config_space_dim, self.dt),
                 self.objective.right_of_clique_map())
-        )
-        isometric_obstacle_cost = ProductFunction(
-            obstacle_potential,
-            squared_norm_vel)
+        elif deriv_order == 2:
+            derivative = FiniteDifferencesAcceleration(
+                self.config_space_dim, self.dt)
+        else:
+            raise ValueError("deriv_order ({}) not suported".format(
+                deriv_order))
         self.objective.register_function_for_all_cliques(
-            Scale(isometric_obstacle_cost, self._obstacle_scalar))
+            Scale(
+                Pullback(SquaredNorm(np.zeros(self.config_space_dim)),
+                         derivative), self._smoothness_scalar))
+
+    def add_obstacle_terms(self, geodesic=False):
+
+        if geodesic:
+            pass
+        else:
+            obstacle_potential = Pullback(
+                self.obstacle_cost_map(),
+                self.objective.center_of_clique_map())
+            squared_norm_vel = Pullback(
+                SquaredNorm(np.zeros(self.config_space_dim)),
+                Pullback(
+                    FiniteDifferencesVelocity(self.config_space_dim, self.dt),
+                    self.objective.right_of_clique_map())
+            )
+            isometric_obstacle_cost = ProductFunction(
+                obstacle_potential,
+                squared_norm_vel)
+
+            self.objective.register_function_for_all_cliques(
+                Scale(isometric_obstacle_cost, self._obstacle_scalar))
 
     def create_clique_network(self):
         """ resets the objective """

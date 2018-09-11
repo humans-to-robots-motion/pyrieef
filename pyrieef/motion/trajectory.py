@@ -165,7 +165,7 @@ class CliquesFunctionNetwork(FunctionNetwork):
             range(dim, (self._nb_clique_elements - 1) * dim))
 
     def right_of_clique_map(self):
-        """ x_{t+1} ; x_{t} """
+        """ x_{t} ; x_{t+1} """
         dim = self._clique_element_dim
         return RangeSubspaceMap(
             dim * self._nb_clique_elements,
@@ -177,7 +177,13 @@ class Trajectory:
         Implement a trajectory as a single vector of
         configuration, returns cliques of configurations
         Note there is T active configuration in the trajectory
-        indices 0 and T + 1 are not supposed to be active
+        indices 
+                0 and T + 1 
+            are not supposed to be active.
+
+        Note: contrarely to MPI convention, the initial configuration
+              is at index 1 and not 0. First and last configurations
+              are used to compute velocites and accelerations.
     """
 
     def __init__(self, T=0, n=2):
@@ -199,6 +205,9 @@ class Trajectory:
 
     def x(self):
         return self._x
+
+    def initial_configuration(self):
+        return self.configuration(1)
 
     def final_configuration(self):
         return self.configuration(self._T)
@@ -262,8 +271,9 @@ def linear_interpolation_trajectory(q_init, q_goal, T):
     assert q_init.size == q_goal.size
     trajectory = Trajectory(T, q_init.size)
     for i in range(T + 2):
-        alpha = min(float(i) / float(T), 1)
+        alpha = float(i) / float(T)
         trajectory.configuration(i)[:] = (1 - alpha) * q_init + alpha * q_goal
+        print "config[{}] : {}".format(i, trajectory.configuration(i))
     return trajectory
 
 

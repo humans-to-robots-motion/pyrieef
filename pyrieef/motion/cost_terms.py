@@ -189,3 +189,7 @@ class ObstaclePotential2D(DifferentiableMap):
         J[0, :] = -self._alpha * self._rho_scaling * rho * J_sdf
         J[1:3, :] = np.matrix(np.eye(2, 2))
         return J
+
+    def hessian(self, x):
+        J_phi = self.jacobian().transpose()
+        return J_phi.transpose() * J_phi
