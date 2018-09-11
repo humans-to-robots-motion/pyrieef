@@ -61,7 +61,9 @@ class MotionOptimization2DCostMap:
         # Here we combine everything to make an objective
         # TODO see why n==1 doesn't work...
         if self.config_space_dim > 1:
-            self.create_objective()
+            # Creates a differentiable clique function.
+            self.create_clique_network()
+            self.add_all_terms()
 
         # Create metric for natural gradient descent
         self.create_smoothness_metric()
@@ -120,34 +122,28 @@ class MotionOptimization2DCostMap:
         self.metric = A
         return A
 
-    def create_objective(self):
-        # Creates a differentiable clique function.
-        self.objective = CliquesFunctionNetwork(
-            self.trajectory_space_dim,
-            self.config_space_dim)
+    def add_init_and_terminal_terms(self):
 
-        # Init term.
         initial_potential = Pullback(
             SquaredNorm(self.q_init),
             self.objective.center_of_clique_map())
         self.objective.register_function_for_clique(
             0, Scale(initial_potential, self._init_potential_scalar))
 
-        # Terminal term.
         terminal_potential = Pullback(
             SquaredNorm(self.q_goal),
             self.objective.center_of_clique_map())
         self.objective.register_function_last_clique(
             Scale(terminal_potential, self._term_potential_scalar))
 
-        # Smoothness term.
+    def add_smoothness_terms(self):
         squared_norm_acc = Pullback(
             SquaredNorm(np.zeros(self.config_space_dim)),
             FiniteDifferencesAcceleration(self.config_space_dim, self.dt))
         self.objective.register_function_for_all_cliques(
             Scale(squared_norm_acc, self._smoothness_scalar))
 
-        # Obstacle term.
+    def add_obstacle_terms(self):
         obstacle_potential = Pullback(
             self.obstacle_cost_map(),
             self.objective.center_of_clique_map())
@@ -163,6 +159,16 @@ class MotionOptimization2DCostMap:
         self.objective.register_function_for_all_cliques(
             Scale(isometric_obstacle_cost, self._obstacle_scalar))
 
+    def create_clique_network(self):
+        """ resets the objective """
+        self.objective = CliquesFunctionNetwork(
+            self.trajectory_space_dim,
+            self.config_space_dim)
+
+    def add_all_terms(self):
+        self.add_init_and_terminal_terms()
+        self.add_smoothness_terms()
+        self.add_obstacle_terms()
         # print self.objective.nb_cliques()
 
     def optimize(self, q_init, nb_steps=100, trajectory=None):

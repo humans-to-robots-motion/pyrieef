@@ -219,6 +219,26 @@ def test_motion_optimimization_2d():
     # calculate_analytical_gradient_speedup(objective.objective)
 
 
+def test_init_goal_potential():
+
+    trajectory = linear_interpolation_trajectory(
+        q_init=np.zeros(2),
+        q_goal=np.ones(2),
+        T=22
+    )
+    objective = MotionOptimization2DCostMap(
+        T=trajectory.T(),
+        q_init=trajectory.configuration(1),
+        q_goal=trajectory.final_configuration()
+    )
+    objective.create_clique_network()
+    objective.add_init_and_terminal_terms()
+    v = objective.objective.forward(trajectory.x())
+    g = objective.objective.jacobian(trajectory.x())
+    assert abs( v - 0.) < 1.e-10
+    assert np.isclose(g, np.zeros(trajectory.x().shape)).all()
+
+
 def test_optimize():
     print "Check Motion Optimization (optimize)"
     q_init = np.zeros(2)
@@ -236,3 +256,4 @@ if __name__ == "__main__":
     test_motion_optimimization_smoothness_metric()
     test_optimize()
     test_center_of_clique()
+    test_init_goal_potential()
