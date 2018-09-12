@@ -105,6 +105,7 @@ class CliquesFunctionNetwork(FunctionNetwork):
             self.input_dimension())))
         for t, x_t in enumerate(self.all_cliques(x)):
             for f in self._functions[t]:
+                assert f.output_dimension() == self.output_dimension()
                 J[0, t:self._clique_dim + t] += f.jacobian(x_t)
         return J
 

@@ -238,7 +238,10 @@ def test_linear_interpolation():
 
 def test_linear_interpolation_velocity():
     dim = 2
-    deriv = SquaredNormVelocity(dim, dt=1)
+    dt = 0.1
+    deriv = SquaredNormVelocity(dim, dt)
+    deriv_comp = Pullback(
+        SquaredNorm(np.zeros(dim)), FiniteDifferencesVelocity(dim, dt))
     trajectory = linear_interpolation_trajectory(
         q_init=np.zeros(dim),
         q_goal=np.ones(dim),
@@ -246,6 +249,7 @@ def test_linear_interpolation_velocity():
     )
     q_1 = trajectory.configuration(0)
     q_2 = trajectory.configuration(1)
+    g_traj = np.zeros(trajectory.x().shape)
     clique = np.append(q_1,  q_2)
     velocity = deriv(clique)
     gradient_1 = deriv.gradient(clique)
@@ -255,9 +259,12 @@ def test_linear_interpolation_velocity():
         clique = np.append(q_1,  q_2)
         velocity_next = deriv(clique)
         gradient_2 = deriv.gradient(clique)
+        # g_traj[i + 1: i + 1 + dim] += gradient_2
         print("i = {}, g2 : {}".format(i, gradient_2))
         assert abs(velocity - velocity_next) < 1.e-10
+        assert norm(deriv_comp.gradient(clique) - gradient_2) < 1.e-10
         assert norm(gradient_1[0:2] + gradient_2[2:4]) < 1.e-10
+    print g_traj
 
 
 def test_linear_interpolation_optimal_potential():
@@ -290,6 +297,7 @@ def test_linear_interpolation_optimal_potential():
     g = objective.objective.gradient(trajectory.x())
     assert check_jacobian_against_finite_difference(objective.objective, False)
     print "v : ", v
+    print "x : ", trajectory.x()
     print "g : ", g
     # assert np.isclose(g, np.zeros(trajectory.x().shape), atol=1e-5).all()
 
@@ -298,7 +306,7 @@ def test_optimize():
     print "Check Motion Optimization (optimize)"
     q_init = np.zeros(2)
     objective = MotionOptimization2DCostMap()
-    objective.optimize(q_init)
+    objective.optimize(q_init, nb_steps=5)
 
 if __name__ == "__main__":
     test_trajectory()
@@ -312,5 +320,5 @@ if __name__ == "__main__":
     test_optimize()
     test_center_of_clique()
     test_linear_interpolation()
-    test_linear_interpolation_optimal_potential()
     test_linear_interpolation_velocity()
+    # test_linear_interpolation_optimal_potential()
