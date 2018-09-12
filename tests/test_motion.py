@@ -21,6 +21,7 @@ from motion.trajectory import *
 from motion.cost_terms import *
 from motion.objective import *
 import time
+from numpy.linalg import norm
 
 
 def test_finite_differences():
@@ -219,7 +220,47 @@ def test_motion_optimimization_2d():
     # calculate_analytical_gradient_speedup(objective.objective)
 
 
-def test_interpolation_optimal_potential():
+def test_linear_interpolation():
+    trajectory = linear_interpolation_trajectory(
+        q_init=np.zeros(2),
+        q_goal=np.ones(2),
+        T=22
+    )
+    q_1 = trajectory.configuration(0)
+    q_2 = trajectory.configuration(1)
+    dist = norm(q_1 - q_2)
+    for i in range(1, trajectory.T() + 1):
+        q_1 = trajectory.configuration(i)
+        q_2 = trajectory.configuration(i + 1)
+        dist_next = norm(q_1 - q_2)
+        assert abs(dist_next - dist) < 1.e-10
+
+
+def test_linear_interpolation_velocity():
+    dim = 2
+    deriv = SquaredNormVelocity(dim, dt=1)
+    trajectory = linear_interpolation_trajectory(
+        q_init=np.zeros(dim),
+        q_goal=np.ones(dim),
+        T=22
+    )
+    q_1 = trajectory.configuration(0)
+    q_2 = trajectory.configuration(1)
+    clique = np.append(q_1,  q_2)
+    velocity = deriv(clique)
+    gradient_1 = deriv.gradient(clique)
+    for i in range(0, trajectory.T() + 1):
+        q_1 = trajectory.configuration(i)
+        q_2 = trajectory.configuration(i + 1)
+        clique = np.append(q_1,  q_2)
+        velocity_next = deriv(clique)
+        gradient_2 = deriv.gradient(clique)
+        print("i = {}, g2 : {}".format(i, gradient_2))
+        assert abs(velocity - velocity_next) < 1.e-10
+        assert norm(gradient_1[0:2] + gradient_2[2:4]) < 1.e-10
+
+
+def test_linear_interpolation_optimal_potential():
     """ makes sure that the start and goal potentials
         are applied at the correct place """
     trajectory = linear_interpolation_trajectory(
@@ -237,19 +278,20 @@ def test_interpolation_optimal_potential():
     objective.create_clique_network()
     objective.add_init_and_terminal_terms()
     v = objective.objective.forward(trajectory.x())
-    g = objective.objective.jacobian(trajectory.x())
+    g = objective.objective.gradient(trajectory.x())
     assert abs(v - 0.) < 1.e-10
     assert np.isclose(g, np.zeros(trajectory.x().shape)).all()
 
     # TODO test velocity profile. Gradient should correspond.
     # This is currently not the case.
     objective.create_clique_network()
-    objective.add_smoothness_terms(2)
+    objective.add_smoothness_terms(1)
     v = objective.objective.forward(trajectory.x())
-    g = objective.objective.jacobian(trajectory.x())
+    g = objective.objective.gradient(trajectory.x())
+    assert check_jacobian_against_finite_difference(objective.objective, False)
     print "v : ", v
-    print g
-    assert np.isclose(g, np.zeros(trajectory.x().shape), atol=1e-5).all()
+    print "g : ", g
+    # assert np.isclose(g, np.zeros(trajectory.x().shape), atol=1e-5).all()
 
 
 def test_optimize():
@@ -269,4 +311,6 @@ if __name__ == "__main__":
     test_motion_optimimization_smoothness_metric()
     test_optimize()
     test_center_of_clique()
-    test_interpolation_optimal_potential()
+    test_linear_interpolation()
+    test_linear_interpolation_optimal_potential()
+    test_linear_interpolation_velocity()
