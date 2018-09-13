@@ -153,13 +153,16 @@ class Pullback(Compose):
 
     def __init__(self, f, g):
         """
-            f round g
-               with approximate hessian. Is fullhessian when H_h = 0 
+            f round g (f pullback by g)
+               with approximate hessian. True hessian when H_g = 0
+
+            https://en.wikipedia.org/wiki/Pullback_(differential_geometry)
         """
         Compose.__init__(self, f, g)
 
     def hessian(self, q):
-        """  d^2/dq^2 f(g(q)), applies chain rule.
+        """  
+            d^2/dq^2 f(g(q)), applies chain rule.
 
                 * J_g' H_f J_g + H_g J_f,
 

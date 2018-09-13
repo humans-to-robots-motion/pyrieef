@@ -81,7 +81,10 @@ def motion_optimimization():
     res = optimize.minimize(
         f.evaluate,
         x0=x,
-        method='trust-ncg',
+        method='Newton-CG',
+        # method='trust-exact',
+        # method='trust-ncg',
+        # method='BFGS',
         jac=f.gradient,
         hess=f.hessian,
         options={'maxiter': 100, 'gtol': 1e-05, 'disp': True}
