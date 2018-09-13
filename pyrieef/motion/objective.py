@@ -90,6 +90,7 @@ class MotionOptimization2DCostMap:
         self.sdf = SignedDistanceWorkspaceMap(self.workspace)
 
     def create_smoothness_metric(self):
+        """ TODO this does not seem to work at all... """
         a = FiniteDifferencesAcceleration(1, self.dt).a()
         # print "a : "
         # print a

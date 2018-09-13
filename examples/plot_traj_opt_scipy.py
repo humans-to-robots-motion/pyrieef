@@ -47,7 +47,7 @@ class TrajectoryOptimizationViewer:
         if draw and self.viewer is not None:
             q_init = self.objective.q_init
             trajectory = Trajectory(q_init=q_init, x=x)
-            g_traj = Trajectory(q_init=q_init, x=-0.001 * g + x)
+            g_traj = Trajectory(q_init=q_init, x=-0.01 * g + x)
             for k in range(self.objective.T + 1):
                 q = trajectory.configuration(k)
                 self.viewer.draw_ws_circle(

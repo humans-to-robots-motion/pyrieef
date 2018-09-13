@@ -55,6 +55,7 @@ class NaturalGradientDescent(UnconstraintedOptimizer):
         UnconstraintedOptimizer.__init__(self, f)
         # self.A_inv = np.eye(A.shape[0])
         self.A_inv = np.linalg.inv(A)
+        self.A_inv /= np.max(self.A_inv)
         # np.savetxt('A_inv.txt', self.A_inv, fmt='%.2f')
         # self.A_inv = np.eye(self.A_inv.shape[0])
 
@@ -63,7 +64,8 @@ class NaturalGradientDescent(UnconstraintedOptimizer):
 
     def delta(self, x):
         g = self._f.gradient(x)
-        delta = self.A_inv * np.matrix(g).transpose() / np.linalg.norm(g)
+        g_t = np.matrix(g).transpose()
+        delta = self.A_inv * g_t / np.linalg.norm(g)
         return self._eta * np.array(delta).reshape(x.size)
 
 

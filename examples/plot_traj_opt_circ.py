@@ -106,19 +106,20 @@ def trajectory_optimization():
         viewer = workspace_renderer.WorkspaceRender(workspace)
         viewer.draw_ws_background(optimizer.obstacle_cost_map())
         # viewer.draw_ws_obstacles()
-        step_size = 20.
+        step_size = .01
         optimizer.set_eta(step_size)
         for i in range(1000):
             [dist, trajectory, gradient, deltas] = optimizer.optimize(
                 q_init, 1, trajectory)
-            g_x = -4. * gradient + trajectory.active_segment()
-            g_traj = Trajectory(q_init=np.zeros(2), x=g_x)
-            for k in range(optimizer.T + 1):
-                q = trajectory.configuration(k)
-                viewer.draw_ws_circle(.01, q)
-                viewer.draw_ws_line(q, g_traj.configuration(k))
-            viewer.render()
-            time.sleep(0.02)
+            if i % 1 == 0:
+                g_traj = Trajectory(q_init=q_init, 
+                    x=-30. * deltas + trajectory.active_segment())
+                for k in range(optimizer.T + 1):
+                    q = trajectory.configuration(k)
+                    viewer.draw_ws_circle(.01, q)
+                    viewer.draw_ws_line(q, g_traj.configuration(k))
+                viewer.render()
+                time.sleep(0.02)
         raw_input("Press Enter to continue...")
 
 if __name__ == "__main__":
