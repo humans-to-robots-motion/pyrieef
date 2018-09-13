@@ -25,7 +25,7 @@ from abc import ABCMeta, abstractproperty
 
 class FiniteDifferencesVelocity(AffineMap):
 
-    """ Define velocities where clique = [x_t ; x_{t+1} ] """
+    """ Define velocities where clique = [ x_t ; x_{t+1} ] """
 
     def __init__(self, dim, dt):
         self._a = np.matrix(np.zeros((dim, 2 * dim)))
@@ -38,11 +38,13 @@ class FiniteDifferencesVelocity(AffineMap):
         self._a[0:dim, 0:dim] = -I
         self._a[0:dim, dim:(2 * dim)] = I
         self._a /= dt
+        print "a : "
+        print self._a
 
 
 class FiniteDifferencesAcceleration(AffineMap):
 
-    """ Define accelerations where clique = [x_{t-1} ; x_{t} ; x_{t+1} ] """
+    """ Define accelerations where clique = [ x_{t-1} ; x_{t} ; x_{t+1} ] """
 
     def __init__(self, dim, dt):
         self._a = np.matrix(np.zeros((dim, 3 * dim)))
@@ -80,6 +82,7 @@ class SquaredNormDerivative(DifferentiableMap):
         return self._sq_norm(self._derivative(clique))
 
     def jacobian(self, clique):
+        d = self._derivative(clique)
         return self._derivative(clique) * self._derivative.a()
 
     def hessian(self, clique):

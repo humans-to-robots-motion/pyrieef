@@ -50,7 +50,7 @@ class MotionOptimization2DCostMap:
         self._term_potential_scalar = 10000000.
         # self._init_potential_scalar = 0.0
         # self._term_potential_scalar = 0.0
-        self._smoothness_scalar = 25000.
+        self._smoothness_scalar = 1.
 
         # We only need the signed distance field
         # to create a trajectory optimization problem
@@ -64,6 +64,7 @@ class MotionOptimization2DCostMap:
             # Creates a differentiable clique function.
             self.create_clique_network()
             self.add_all_terms()
+            self.create_objective()
 
         # Create metric for natural gradient descent
         self.create_smoothness_metric()
@@ -80,7 +81,7 @@ class MotionOptimization2DCostMap:
 
     def cost(self, trajectory):
         """ compute sum of acceleration """
-        return self.objective.forward(trajectory.x())
+        return self.objective.forward(trajectory.active_segment())
 
     def create_workspace(self):
         self.workspace = Workspace()
@@ -92,12 +93,12 @@ class MotionOptimization2DCostMap:
         a = FiniteDifferencesAcceleration(1, self.dt).a()
         # print "a : "
         # print a
-        K_dof = np.matrix(np.zeros((self.T + 2, self.T + 2)))
-        for i in range(0, self.T + 2):
+        K_dof = np.matrix(np.zeros((self.T + 1, self.T + 1)))
+        for i in range(0, self.T + 1):
             if i == 0:
                 K_dof[i, i:i + 2] = a[0, 1:3]
                 K_dof[i, i] *= 1000  # No variance at end points
-            elif i == self.T + 1:
+            elif i == self.T:
                 K_dof[i, i - 1:i + 1] = a[0, 0:2]
                 K_dof[i, i] *= 1000  # No variance at end points
             elif i > 0:
@@ -108,8 +109,8 @@ class MotionOptimization2DCostMap:
 
         # represented in the form :  \xi = [q_0 ; q_1; ... ; q_2]
         K_full = np.matrix(np.zeros((
-            self.config_space_dim * (self.T + 2),
-            self.config_space_dim * (self.T + 2))))
+            self.config_space_dim * (self.T + 1),
+            self.config_space_dim * (self.T + 1))))
         for dof in range(self.config_space_dim):
             for (i, j), K_ij in np.ndenumerate(K_dof):
                 id_row = i * self.config_space_dim + dof
@@ -126,59 +127,67 @@ class MotionOptimization2DCostMap:
 
         initial_potential = Pullback(
             SquaredNorm(self.q_init),
-            self.objective.left_most_of_clique_map())
-        self.objective.register_function_for_clique(
+            self.function_network.left_most_of_clique_map())
+        self.function_network.register_function_for_clique(
             0, Scale(initial_potential, self._init_potential_scalar))
 
         terminal_potential = Pullback(
             SquaredNorm(self.q_goal),
-            self.objective.center_of_clique_map())
-        self.objective.register_function_last_clique(
+            self.function_network.center_of_clique_map())
+        self.function_network.register_function_last_clique(
             Scale(terminal_potential, self._term_potential_scalar))
 
     def add_smoothness_terms(self, deriv_order=2):
 
         if deriv_order == 1:
             derivative = Pullback(
-                FiniteDifferencesVelocity(self.config_space_dim, self.dt),
-                self.objective.right_of_clique_map())
+                SquaredNormVelocity(self.config_space_dim, self.dt),
+                self.function_network.left_of_clique_map())
+            self.function_network.register_function_for_all_cliques(derivative)
+            # TODO change the last clique to have 0 velocity change
+            # when linearly interpolating
+
         elif deriv_order == 2:
             derivative = FiniteDifferencesAcceleration(
                 self.config_space_dim, self.dt)
+            self.function_network.register_function_for_all_cliques(
+                Scale(
+                    Pullback(SquaredNorm(np.zeros(self.config_space_dim)),
+                             derivative), self._smoothness_scalar))
         else:
             raise ValueError("deriv_order ({}) not suported".format(
                 deriv_order))
-        self.objective.register_function_for_all_cliques(
-            Scale(
-                Pullback(SquaredNorm(np.zeros(self.config_space_dim)),
-                         derivative), self._smoothness_scalar))
 
     def add_obstacle_terms(self, geodesic=False):
-
         if geodesic:
             pass
         else:
             obstacle_potential = Pullback(
                 self.obstacle_cost_map(),
-                self.objective.center_of_clique_map())
+                self.function_network.center_of_clique_map())
             squared_norm_vel = Pullback(
                 SquaredNorm(np.zeros(self.config_space_dim)),
                 Pullback(
                     FiniteDifferencesVelocity(self.config_space_dim, self.dt),
-                    self.objective.right_of_clique_map())
+                    self.function_network.right_of_clique_map())
             )
             isometric_obstacle_cost = ProductFunction(
                 obstacle_potential,
                 squared_norm_vel)
 
-            self.objective.register_function_for_all_cliques(
+            self.function_network.register_function_for_all_cliques(
                 Scale(isometric_obstacle_cost, self._obstacle_scalar))
 
     def create_clique_network(self):
-        """ resets the objective """
-        self.objective = CliquesFunctionNetwork(
+
+        self.function_network = CliquesFunctionNetwork(
             self.trajectory_space_dim,
             self.config_space_dim)
+
+    def create_objective(self):
+        """ resets the objective """
+        self.objective = TrajectoryObjectiveFunction(
+            self.q_init, self.function_network)
 
     def add_all_terms(self):
         self.add_init_and_terminal_terms()
@@ -192,11 +201,11 @@ class MotionOptimization2DCostMap:
                 q_init, self.q_goal, self.T)
         optimizer = NaturalGradientDescent(self.objective, self.metric)
         optimizer.set_eta(self._eta)
-        xi = trajectory.x()
+        xi = trajectory.active_segment()
         dist = float("inf")
         for i in range(nb_steps):
             xi = optimizer.one_step(xi)
-            trajectory.x()[:] = xi
+            trajectory.active_segment()[:] = xi
             dist = np.linalg.norm(
                 trajectory.final_configuration() - self.q_goal)
             # print "dist[{}] : {}, objective : {}, gnorm {}".format(

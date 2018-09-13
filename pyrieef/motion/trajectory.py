@@ -59,7 +59,7 @@ class CliquesFunctionNetwork(FunctionNetwork):
         self._nb_clique_elements = 3
         self._clique_element_dim = clique_element_dim
         self._clique_dim = self._nb_clique_elements * clique_element_dim
-        self._nb_cliques = self._input_size - self._clique_dim + 1
+        self._nb_cliques = self._input_size / clique_element_dim - 2
         self._functions = self._nb_cliques * [None]
         for i in range(self._nb_cliques):
             self._functions[i] = []
@@ -103,8 +103,9 @@ class CliquesFunctionNetwork(FunctionNetwork):
         J = np.matrix(np.zeros((
             self.output_dimension(),
             self.input_dimension())))
-        for t, x_t in enumerate(self.all_cliques(x)):
-            for f in self._functions[t]:
+        for clique_id, x_t in enumerate(self.all_cliques(x)):
+            t = clique_id * self._clique_element_dim
+            for f in self._functions[clique_id]:
                 assert f.output_dimension() == self.output_dimension()
                 J[0, t:self._clique_dim + t] += f.jacobian(x_t)
         return J
@@ -118,10 +119,10 @@ class CliquesFunctionNetwork(FunctionNetwork):
         H = np.matrix(np.zeros((
             self.input_dimension(),
             self.input_dimension())))
-        for t, x_t in enumerate(self.all_cliques(x)):
-            for f in self._functions[t]:
+        for clique_id, x_t in enumerate(self.all_cliques(x)):
+            t = clique_id * self._clique_element_dim
+            for f in self._functions[clique_id]:
                 dim = self._clique_dim
-
                 H[t:dim + t, t:dim + t] += f.hessian(x_t)
         return H
 
@@ -130,7 +131,10 @@ class CliquesFunctionNetwork(FunctionNetwork):
         # print("x : ", len(x))
         # print("clique size : ", self._clique_size)
         n = self._clique_dim
-        cliques = [x[t:n + t] for t in range(self._nb_cliques)]
+        cliques = []
+        for clique_id in range(self._nb_cliques):
+            t = clique_id * self._clique_element_dim
+            cliques.append(x[t:n + t])
         assert len(cliques) == self._nb_cliques
         return cliques
 
@@ -151,13 +155,6 @@ class CliquesFunctionNetwork(FunctionNetwork):
         T = self._nb_cliques - 1
         self._functions[T].append(f)
 
-    def left_most_of_clique_map(self):
-        """ x_{t-1} """
-        dim = self._clique_element_dim
-        return RangeSubspaceMap(
-            dim * self._nb_clique_elements,
-            range(dim))
-
     def center_of_clique_map(self):
         """ x_{t} """
         dim = self._clique_element_dim
@@ -165,12 +162,34 @@ class CliquesFunctionNetwork(FunctionNetwork):
             dim * self._nb_clique_elements,
             range(dim, (self._nb_clique_elements - 1) * dim))
 
+    def right_most_of_clique_map(self):
+        """ x_{t+1} """
+        dim = self._clique_element_dim
+        return RangeSubspaceMap(
+            dim * self._nb_clique_elements,
+            range((self._nb_clique_elements - 1) * dim,
+                  self._nb_clique_elements * dim))
+
     def right_of_clique_map(self):
         """ x_{t} ; x_{t+1} """
         dim = self._clique_element_dim
         return RangeSubspaceMap(
             dim * self._nb_clique_elements,
             range(dim, self._nb_clique_elements * dim))
+
+    def left_most_of_clique_map(self):
+        """ x_{t-1} """
+        dim = self._clique_element_dim
+        return RangeSubspaceMap(
+            dim * self._nb_clique_elements,
+            range(0, dim))
+
+    def left_of_clique_map(self):
+        """ x_{t-1} ; x_{t} """
+        dim = self._clique_element_dim
+        return RangeSubspaceMap(
+            dim * self._nb_clique_elements,
+            range(0, (self._nb_clique_elements - 1) * dim))
 
 
 class TrajectoryObjectiveFunction(DifferentiableMap):
@@ -193,13 +212,13 @@ class TrajectoryObjectiveFunction(DifferentiableMap):
     def full_vector(self, x_active):
         assert x_active.size == (
             self._function_network.input_dimension() - self._n)
-        x_full = np.array(self._function_network.input_dimension())
+        x_full = np.zeros(self._function_network.input_dimension())
         x_full[:self._n] = self._q_init
         x_full[self._n:] = x_active
         return x_full
 
     def output_dimension(self):
-        return 1
+        return self._function_network.output_dimension()
 
     def input_dimension(self):
         return self._function_network.input_dimension() - self._n
@@ -210,7 +229,7 @@ class TrajectoryObjectiveFunction(DifferentiableMap):
 
     def jacobian(self, x):
         x_full = self.full_vector(x)
-        return self._function_network.jacobian(x_full)[self._n:]
+        return self._function_network.jacobian(x_full)[0, self._n:]
 
     def hessian(self, x):
         x_full = self.full_vector(x)

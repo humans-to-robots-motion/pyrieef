@@ -28,7 +28,7 @@ from motion.objective import *
 
 def test_optimization_module():
     print "**********************************************"
-    print  "TEST BFGS"
+    print "TEST BFGS"
     x0 = [1.3, 0.7, 0.8, 1.9, 1.2]
     res = optimize.minimize(
         optimize.rosen, x0, method='BFGS',
@@ -86,14 +86,18 @@ def test_motion_optimimization_2d():
         q_init=np.zeros(2), q_goal=np.ones(2), T=20)
     objective = MotionOptimization2DCostMap(
         T=trajectory.T(),
-        q_init=trajectory.configuration(0),
+        q_init=trajectory.initial_configuration(),
         q_goal=trajectory.final_configuration())
-    gtol = 1e-10
+    objective.create_clique_network()
+    objective.add_init_and_terminal_terms()
+    objective.add_smoothness_terms(1)
+    objective.create_objective()
+    gtol = 1e-7
     assert check_jacobian_against_finite_difference(
         objective.objective, verbose=False)
     res = optimize.minimize(
         objective.objective,
-        trajectory.x(),
+        trajectory.active_segment(),
         method='BFGS',
         jac=objective.objective.gradient,
         options={'gtol': gtol, 'disp': True})

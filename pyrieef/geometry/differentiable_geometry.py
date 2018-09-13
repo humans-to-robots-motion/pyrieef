@@ -200,10 +200,9 @@ class RangeSubspaceMap(DifferentiableMap):
     """Take only some outputs"""
 
     def __init__(self, n, indices):
-        """n is the input dimension
-           indices are the output"""
-        self._indices = indices
+        """n is the input dimension, indices are the output"""
         self._dim = n
+        self._indices = indices
 
     def output_dimension(self):
         return len(self._indices)
@@ -287,8 +286,7 @@ class AffineMap(DifferentiableMap):
 
     def forward(self, x):
         x_tmp = x.reshape(self.input_dimension(), 1)
-        tmp = self._a * x_tmp
-        y = tmp + self._b
+        y = self._a * x_tmp + self._b
         return np.array(y).reshape(self.output_dimension())
 
     def jacobian(self, x):
@@ -473,8 +471,8 @@ def check_jacobian_against_finite_difference(phi, verbose=True):
     return check_is_close(J, J_diff, 1e-4)
 
 
-def check_hessian_against_finite_difference(phi, verbose=True, 
-    tolerance=1e-4):
+def check_hessian_against_finite_difference(phi, verbose=True,
+                                            tolerance=1e-4):
     """ Makes sure the hessuaian is close to the finite difference """
     q = np.random.rand(phi.input_dimension())
     H = phi.hessian(q)
