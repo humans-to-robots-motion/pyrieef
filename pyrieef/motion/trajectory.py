@@ -194,7 +194,7 @@ class TrajectoryObjectiveFunction(DifferentiableMap):
         assert x_active.size == (
             self._function_network.input_dimension() - self._n)
         x_full = np.array(self._function_network.input_dimension())
-        x_full[0:self._n] = self._q_init
+        x_full[:self._n] = self._q_init
         x_full[self._n:] = x_active
         return x_full
 
@@ -234,7 +234,7 @@ class Trajectory:
             self._n = q_init.size
             self._T = (x.size / q_init.size) - 1
             self._x = np.zeros(self._n * (self._T + 2))
-            self._x[0:self._n] = q_init
+            self._x[:self._n] = q_init
             self._x[self._n:] = x
         else:
             assert T > 0
