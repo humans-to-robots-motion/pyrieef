@@ -62,12 +62,12 @@ class WorkspaceRender(Viewer):
         # Draw WS obstacles
         # self.draw_ws_obstacles()
 
-    def draw_ws_circle(self, radius, origin):
+    def draw_ws_circle(self, radius, origin, color=(0, 1, 0)):
         t = Transform(translation=self._scale * (
             origin - np.array([self._extends.x_min, self._extends.y_min])))
         circ = make_circle(self._scale * radius, 30)
         circ.add_attr(t)
-        circ.set_color(0, 1, 0)
+        circ.set_color(*color)
         self.add_onetime(circ)
 
     def draw_ws_line(self, p1, p2, color=(1, 0, 0)):

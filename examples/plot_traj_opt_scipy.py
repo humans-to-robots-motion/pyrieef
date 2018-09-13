@@ -46,14 +46,14 @@ class TrajectoryOptimizationViewer:
 
     def gradient(self, x, draw=True):
         if draw and self.viewer is not None:
-            trajectory = Trajectory(self.objective.T)
-            trajectory.set(x)
-            g_traj = Trajectory(self.objective.T)
-            g_traj.set(-0.001 * self.objective.objective.gradient(x) +
-                       trajectory.x()[:])
+            trajectory = Trajectory(q_init=self.objective.q_init, x=x)
+            g_traj = Trajectory(
+                q_init=self.objective.q_init,
+                x=-0.001 * self.objective.objective.gradient(x) + x)
             for k in range(self.objective.T + 1):
                 q = trajectory.configuration(k)
-                self.viewer.draw_ws_circle(.01, q)
+                self.viewer.draw_ws_circle(
+                    .01, q, color=(0, 0, 1) if k == 0 else (0, 1, 0))
                 self.viewer.draw_ws_line(q, g_traj.configuration(k))
             self.viewer.render()
             time.sleep(0.1)
@@ -78,23 +78,24 @@ def motion_optimimization():
     )
     objective = MotionOptimization2DCostMap(
         T=trajectory.T(),
-        q_init=trajectory.configuration(1),
+        q_init=trajectory.initial_configuration(),
         q_goal=trajectory.final_configuration()
     )
-    gtol = 1e-07
+    gtol = 1e-05
     assert check_jacobian_against_finite_difference(
         objective.objective, verbose=False)
     f = TrajectoryOptimizationViewer(objective, draw=True)
     t_start = time.time()
-    x = trajectory.x()
+    x = trajectory.active_segment()
     # print "x.shape : ", x.shape
     res = optimize.minimize(
         f.evaluate,
         x0=x,
         method='trust-ncg',
         jac=f.gradient,
-        hess=f.hessian
+        hess=f.hessian,
         # hessp=f.hessian_product
+        options={'maxiter': 100, 'gtol': gtol, 'disp': True}
     )
     print "optimization done in {} sec.".format(time.time() - t_start)
     # objective.optimize(q_init=np.zeros(2), trajectory=trajectory)

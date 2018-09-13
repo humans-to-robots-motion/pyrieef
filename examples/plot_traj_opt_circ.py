@@ -87,11 +87,11 @@ def trajectory_optimization():
 
     trajectory = Trajectory(optimizer.T)
     g_traj = Trajectory(optimizer.T)
-    x_init = np.array([-.3, -.3])
-    x_goal = np.array([+.4, .1])
+    q_init = np.array([-.3, -.3])
+    q_goal = np.array([+.4, .1])
 
     trajectory = linear_interpolation_trajectory(
-        x_init, x_goal, optimizer.T)
+        q_init, q_goal, optimizer.T)
 
     if use_matplotlib:
         t_start = time .time()
@@ -110,8 +110,9 @@ def trajectory_optimization():
         optimizer.set_eta(step_size)
         for i in range(1000):
             [dist, trajectory, gradient, deltas] = optimizer.optimize(
-                x_init, 1, trajectory)
-            g_traj.set(-4. * gradient + trajectory.x()[:])
+                q_init, 1, trajectory)
+            g_x = -4. * gradient + trajectory.active_segment()
+            g_traj = Trajectory(q_init=np.zeros(2), x=g_x)
             for k in range(optimizer.T + 1):
                 q = trajectory.configuration(k)
                 viewer.draw_ws_circle(.01, q)
