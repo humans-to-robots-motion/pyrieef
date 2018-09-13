@@ -23,6 +23,8 @@ from motion.objective import *
 import time
 from numpy.linalg import norm
 
+np.random.seed(0)
+
 
 def test_finite_differences():
     dim = 4
@@ -54,12 +56,13 @@ def test_cliques():
 
 def test_trajectory():
     T = 10
+    n = 2
 
     traj = Trajectory(T)
     print type(traj)
     print traj
 
-    size = 2 * (T + 2)  # This is the formula for n = 2
+    size = n * (T + 2)  # This is the formula for n = 2
 
     traj.set(np.ones(size))
     print type(traj)
@@ -79,12 +82,18 @@ def test_trajectory():
     print traj.clique(3)
 
     print "config 3 (ones) : "
-    traj.configuration(3)[:] = np.ones(2)
+    traj.configuration(3)[:] = np.ones(n)
     print traj.configuration(3)
 
     print "final configuration (ones) : "
-    traj.final_configuration()[:] = np.ones(2)
+    traj.final_configuration()[:] = np.ones(n)
     print traj.final_configuration()
+
+    x_active = np.random.random(n * (T + 1))
+    traj = Trajectory(q_init=np.zeros(n), x=x_active)
+    print("x_active : ", x_active)
+    print("traj.x : ", traj.x)
+    assert traj.x().size == size
 
 
 def test_continuous_trajectory():
@@ -292,7 +301,7 @@ def test_linear_interpolation_optimal_potential():
     # TODO test velocity profile. Gradient should correspond.
     # This is currently not the case.
     objective.create_clique_network()
-    objective.add_smoothness_terms(1)
+    objective.add_smoothness_terms(2)
     v = objective.objective.forward(trajectory.x())
     g = objective.objective.gradient(trajectory.x())
     assert check_jacobian_against_finite_difference(objective.objective, False)
@@ -321,4 +330,4 @@ if __name__ == "__main__":
     test_center_of_clique()
     test_linear_interpolation()
     test_linear_interpolation_velocity()
-    # test_linear_interpolation_optimal_potential()
+    test_linear_interpolation_optimal_potential()

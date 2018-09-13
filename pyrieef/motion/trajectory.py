@@ -181,17 +181,22 @@ class Trajectory:
         indices 
                 0 and T + 1 
             are not supposed to be active.
-
-        Note: contrarely to MPI convention, the initial configuration
-              is at index 1 and not 0. First and last configurations
-              are used to compute velocites and accelerations.
     """
 
-    def __init__(self, T=0, n=2):
-        assert T > 0 and n > 0
-        self._n = n
-        self._T = T
-        self._x = np.zeros(n * (T + 2))
+    def __init__(self, T=0, n=2, q_init=None, x=None):
+        assert n > 0
+        if q_init is not None and x is not None:
+            assert x.size % q_init.size == 0
+            self._n = q_init.size
+            self._T = (x.size / q_init.size) - 1
+            self._x = np.zeros(self._n * (self._T + 2))
+            self._x[0:self._n] = q_init
+            self._x[self._n:] = x
+        else:
+            assert T > 0
+            self._n = n
+            self._T = T
+            self._x = np.zeros(self._n * (self._T + 2))
 
     def __str__(self):
         ss = ""
@@ -207,29 +212,31 @@ class Trajectory:
     def x(self):
         return self._x
 
+    def active_segment(self):
+        return self._x[self._n:]
+
     def initial_configuration(self):
-        return self.configuration(1)
+        return self.configuration(0)
 
     def final_configuration(self):
         return self.configuration(self._T)
 
     def configuration(self, i):
-        """ To get a mutable part :
-            traj.configuration(3)[:] = np.ones(2)
-        """
+        """  mutable : traj.configuration(3)[:] = np.ones(2) """
         assert i >= 0 and i <= (self._T + 1)
         beg_idx = self._n * i
         end_idx = self._n * (i + 1)
         return self._x[beg_idx:end_idx]
 
     def clique(self, i):
+        """ returns a clique of 3 configurations """
         assert i >= 0 and i <= (self._T + 1)
         beg_idx = self._n * (i - 1)
         end_idx = self._n * (i + 2)
         return self._x[beg_idx:end_idx]
 
     def set(self, x):
-        assert x.shape[0] == self._n * (2 + self._T)
+        assert x.shape[0] == self._n * (self._T + 2)
         self._x = x
 
 

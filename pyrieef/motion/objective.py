@@ -126,7 +126,7 @@ class MotionOptimization2DCostMap:
 
         initial_potential = Pullback(
             SquaredNorm(self.q_init),
-            self.objective.center_of_clique_map())
+            self.objective.left_most_of_clique_map())
         self.objective.register_function_for_clique(
             0, Scale(initial_potential, self._init_potential_scalar))
 
