@@ -22,9 +22,9 @@ from geometry.differentiable_geometry import *
 
 
 class FunctionNetwork(DifferentiableMap):
-
-    """ Base class to implement a function network
-        It allows to register functions and evaluates
+    """ 
+        Base class to implement a function network
+        It registers functions and evaluates
         f(x_0, x_1, ... ) = \sum_i f_i(x_0, x_1, ...)
     """
 
@@ -48,10 +48,11 @@ class FunctionNetwork(DifferentiableMap):
 
 
 class CliquesFunctionNetwork(FunctionNetwork):
-    """ Base class to implement a function network
+    """ 
+        Base class to implement a function network
         It allows to register functions and evaluates
         f(x_{i-1}, x_i, x_{i+1}) = \sum_i f_i(x_{i-1}, x_i, x_{i+1})
-        """
+    """
 
     def __init__(self, input_dimension, clique_element_dim):
         FunctionNetwork.__init__(self)
