@@ -40,16 +40,14 @@ class TrajectoryOptimizationViewer:
         self.viewer.draw_ws_background(self.objective.obstacle_cost_map())
 
     def evaluate(self, x):
-        v = self.objective.objective(x)
-        # print "value shape : ", v.shape
-        return v
+        return self.objective.objective(x)
 
     def gradient(self, x, draw=True):
+        g = self.objective.objective.gradient(x)
         if draw and self.viewer is not None:
-            trajectory = Trajectory(q_init=self.objective.q_init, x=x)
-            g_traj = Trajectory(
-                q_init=self.objective.q_init,
-                x=-0.001 * self.objective.objective.gradient(x) + x)
+            q_init = self.objective.q_init
+            trajectory = Trajectory(q_init=q_init, x=x)
+            g_traj = Trajectory(q_init=q_init, x=-0.001 * g + x)
             for k in range(self.objective.T + 1):
                 q = trajectory.configuration(k)
                 self.viewer.draw_ws_circle(
@@ -57,16 +55,10 @@ class TrajectoryOptimizationViewer:
                 self.viewer.draw_ws_line(q, g_traj.configuration(k))
             self.viewer.render()
             time.sleep(0.1)
-        # print "gradient shape : ", self.objective.objective.jacobian(x).shape
-        # return self.objective.objective.jacobian(x)
-        g = self.objective.objective.gradient(x)
-        # print "jacobian shape : ", g.shape
         return g
 
     def hessian(self, x):
-        # print "hessian shape : ", self.objective.objective.hessian(x).shape
         return np.array(self.objective.objective.hessian(x))
-        # return np.eye(self.objective.metric.shape[0])
 
 
 def motion_optimimization():
@@ -81,35 +73,25 @@ def motion_optimimization():
         q_init=trajectory.initial_configuration(),
         q_goal=trajectory.final_configuration()
     )
-    gtol = 1e-05
     assert check_jacobian_against_finite_difference(
         objective.objective, verbose=False)
     f = TrajectoryOptimizationViewer(objective, draw=True)
     t_start = time.time()
     x = trajectory.active_segment()
-    # print "x.shape : ", x.shape
     res = optimize.minimize(
         f.evaluate,
         x0=x,
         method='trust-ncg',
         jac=f.gradient,
         hess=f.hessian,
-        # hessp=f.hessian_product
-        options={'maxiter': 100, 'gtol': gtol, 'disp': True}
+        options={'maxiter': 100, 'gtol': 1e-05, 'disp': True}
     )
     print "optimization done in {} sec.".format(time.time() - t_start)
-    # objective.optimize(q_init=np.zeros(2), trajectory=trajectory)
-    # print trajectory.x().shape
-    # print res.x.shape
-    # print res
-    # print trajectory.x()
-    # print "- res.jac : {}".format(res.jac.shape)
     print "gradient norm : ", np.linalg.norm(res.jac)
-    # print "jac : ", res.jac
-    # assert_allclose(res.jac, np.zeros(res.jac.size), atol=1e-1)
 
 if __name__ == "__main__":
     motion_optimimization()
     raw_input("Press Enter to continue...")
+    # Can do some profiling here
     # import cProfile
     # cProfile.run('motion_optimimization()')
