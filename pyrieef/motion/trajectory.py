@@ -74,7 +74,8 @@ class CliquesFunctionNetwork(FunctionNetwork):
         return self._nb_cliques
 
     def function_on_clique(self, t, x_t):
-        """ calls all functions on one clique """
+        """ calls all functions on one clique 
+            TODO create a test using this function. """
         value = 0.
         for f in self._functions[t]:
             value += f.forward(x_t)
@@ -98,16 +99,16 @@ class CliquesFunctionNetwork(FunctionNetwork):
             of any differentiable map is f(x) = f(x_0) + J(x_0)_f x,
             where x is a collumn vector.
             The sub jacobian of the maps are the sum of clique jacobians
-            each clique function f : R^n -> R, where n is the clique size.
+            each clique function f : R^dim -> R, where dim is the clique size.
         """
         J = np.matrix(np.zeros((
             self.output_dimension(),
             self.input_dimension())))
-        for clique_id, x_t in enumerate(self.all_cliques(x)):
-            t = clique_id * self._clique_element_dim
-            for f in self._functions[clique_id]:
+        for t, x_t in enumerate(self.all_cliques(x)):
+            for f in self._functions[t]:
                 assert f.output_dimension() == self.output_dimension()
-                J[0, t:self._clique_dim + t] += f.jacobian(x_t)
+                c_id = t * self._clique_element_dim
+                J[0, c_id:c_id + self._clique_dim] += f.jacobian(x_t)
         return J
 
     def hessian(self, x):
@@ -119,22 +120,19 @@ class CliquesFunctionNetwork(FunctionNetwork):
         H = np.matrix(np.zeros((
             self.input_dimension(),
             self.input_dimension())))
-        for clique_id, x_t in enumerate(self.all_cliques(x)):
-            t = clique_id * self._clique_element_dim
-            for f in self._functions[clique_id]:
+        for t, x_t in enumerate(self.all_cliques(x)):
+            c_id = t * self._clique_element_dim
+            for f in self._functions[t]:
                 dim = self._clique_dim
-                H[t:dim + t, t:dim + t] += f.hessian(x_t)
+                H[c_id:c_id + dim, c_id:c_id + dim] += f.hessian(x_t)
         return H
 
     def all_cliques(self, x):
-        """ returns a dictionary of cliques """
-        # print("x : ", len(x))
-        # print("clique size : ", self._clique_size)
-        n = self._clique_dim
-        cliques = []
-        for clique_id in range(self._nb_cliques):
-            t = clique_id * self._clique_element_dim
-            cliques.append(x[t:n + t])
+        """ returns a list of all cliques """
+        n = self._clique_element_dim
+        dim = self._clique_dim
+        clique_begin_ids = range(0, n * self._nb_cliques, n)
+        cliques = [x[c_id:c_id + dim] for c_id in clique_begin_ids]
         assert len(cliques) == self._nb_cliques
         return cliques
 
@@ -241,8 +239,8 @@ class Trajectory:
         Implement a trajectory as a single vector of configuration,
         returns cliques of configurations
         Note there is T active configuration in the trajectory
-        indices 
-                0 and T + 1 
+        indices
+                0 and T + 1
             are not supposed to be active.
         """
 
@@ -293,7 +291,7 @@ class Trajectory:
 
     def clique(self, i):
         """ returns a clique of 3 configurations """
-        assert i >= 0 and i <= (self._T + 1)
+        assert i >= 1 and i <= (self._T + 1)
         beg_idx = self._n * (i - 1)
         end_idx = self._n * (i + 2)
         return self._x[beg_idx:end_idx]
