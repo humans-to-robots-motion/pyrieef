@@ -92,8 +92,9 @@ def test_trajectory():
     x_active = np.random.random(n * (T + 1))
     traj = Trajectory(q_init=np.zeros(n), x=x_active)
     print("x_active : ", x_active)
-    print("traj.x : ", traj.x)
+    print("traj.x : ", traj.x())
     assert traj.x().size == size
+    assert np.isclose(traj.x()[:2], np.zeros(n)).all()
 
 
 def test_continuous_trajectory():

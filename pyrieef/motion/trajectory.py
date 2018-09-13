@@ -173,15 +173,59 @@ class CliquesFunctionNetwork(FunctionNetwork):
             range(dim, self._nb_clique_elements * dim))
 
 
+class TrajectoryObjectiveFunction(DifferentiableMap):
+    """ Wraps the active part of the Clique Function Network
+
+        The idea is that the finite differences are approximated using
+        cliques so for the first clique, these values are quite off.
+        Since the first configuration is part of the problem statement
+        we can take it out of the optimization and through away the gradient
+        computed for that configuration.
+
+        TODO Test...
+        """
+
+    def __init__(self, q_init, function_network):
+        self._q_init = q_init
+        self._n = q_init.size
+        self._function_network = function_network
+
+    def full_vector(self, x_active):
+        assert x_active.size == (
+            self._function_network.input_dimension() - self._n)
+        x_full = np.array(self._function_network.input_dimension())
+        x_full[0:self._n] = self._q_init
+        x_full[self._n:] = x_active
+        return x_full
+
+    def output_dimension(self):
+        return 1
+
+    def input_dimension(self):
+        return self._function_network.input_dimension() - self._n
+
+    def forward(self, x):
+        x_full = self.full_vector(x)
+        return self._function_network(x_full)
+
+    def jacobian(self, x):
+        x_full = self.full_vector(x)
+        return self._function_network.jacobian(x_full)[self._n:]
+
+    def hessian(self, x):
+        x_full = self.full_vector(x)
+        return self._function_network.hessian(x_full)[self._n:, self._n:]
+
+
 class Trajectory:
     """
-        Implement a trajectory as a single vector of
-        configuration, returns cliques of configurations
+        Implement a trajectory as a single vector of configuration,
+        returns cliques of configurations
         Note there is T active configuration in the trajectory
         indices 
                 0 and T + 1 
             are not supposed to be active.
-    """
+        """
 
     def __init__(self, T=0, n=2, q_init=None, x=None):
         assert n > 0
