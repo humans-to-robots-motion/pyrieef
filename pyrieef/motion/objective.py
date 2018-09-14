@@ -210,23 +210,49 @@ class MotionOptimization2DCostMap:
         self.add_obstacle_terms()
         # print self.objective.nb_cliques()
 
-    def optimize(self, q_init, nb_steps=100, trajectory=None):
+    def optimize(self,
+                 q_init,
+                 nb_steps=100,
+                 trajectory=None,
+                 optimizer="natural_gradient"):
+
         if trajectory is None:
             trajectory = linear_interpolation_trajectory(
                 q_init, self.q_goal, self.T)
-        optimizer = NaturalGradientDescent(self.objective, self.metric)
-        optimizer.set_eta(self._eta)
+
         xi = trajectory.active_segment()
-        dist = float("inf")
-        for i in range(nb_steps):
-            xi = optimizer.one_step(xi)
-            trajectory.active_segment()[:] = xi
+
+        if optimizer is "natural_gradient":
+            optimizer = NaturalGradientDescent(self.objective, self.metric)
+            optimizer.set_eta(self._eta)
+
+            dist = float("inf")
+            for i in range(nb_steps):
+                xi = optimizer.one_step(xi)
+                trajectory.active_segment()[:] = xi
+                dist = np.linalg.norm(
+                    trajectory.final_configuration() - self.q_goal)
+                # print "dist[{}] : {}, objective : {}, gnorm {}".format(
+                #     i, dist, optimizer.objective(xi),
+                #     np.linalg.norm(optimizer.gradient(xi)))
+                gradient = optimizer.gradient(xi)
+                delta = optimizer.delta(xi)
+
+        elif optimizer is "newton":
+            res = optimize.minimize(
+                x0=np.array(xi),
+                method='Newton-CG',
+                fun=self.objective.forward,
+                jac=self.objective.gradient,
+                hess=self.objective.hessian,
+                options={'maxiter': nb_steps, 'disp': True}
+            )
+            trajectory.active_segment()[:] = res.x
+            gradient = res.jac
+            delta = res.jac
             dist = np.linalg.norm(
                 trajectory.final_configuration() - self.q_goal)
-            # print "dist[{}] : {}, objective : {}, gnorm {}".format(
-            #     i, dist, optimizer.objective(xi),
-            #     np.linalg.norm(optimizer.gradient(xi)))
-        return [dist < 1.e-3,
-                trajectory,
-                optimizer.gradient(xi),
-                optimizer.delta(xi)]
+        else:
+            raise ValueError
+
+        return [dist < 1.e-3, trajectory, gradient, delta]

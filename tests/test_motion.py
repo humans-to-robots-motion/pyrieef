@@ -356,11 +356,20 @@ def test_smoothness_metric():
     assert_allclose(H1, H2)
 
 
+def test_trajectory_objective():
+    q_init = np.zeros(2)
+    optimizer = MotionOptimization2DCostMap(T=10, n=q_init.size)
+    objective = TrajectoryObjectiveFunction(q_init, optimizer.function_network)
+    assert check_jacobian_against_finite_difference(objective, False)
+    assert check_hessian_against_finite_difference(objective, False)
+
+
 def test_optimize():
     print "Check Motion Optimization (optimize)"
     q_init = np.zeros(2)
     objective = MotionOptimization2DCostMap()
-    objective.optimize(q_init, nb_steps=5)
+    objective.optimize(q_init, nb_steps=5, optimizer="natural_gradient")
+    objective.optimize(q_init, nb_steps=5, optimizer="newton")
 
 if __name__ == "__main__":
     # test_trajectory()
@@ -371,9 +380,10 @@ if __name__ == "__main__":
     # test_obstacle_potential()
     # test_motion_optimimization_2d()
     # test_motion_optimimization_smoothness_metric()
-    # test_optimize()
     # test_center_of_clique()
     # test_linear_interpolation()
     # test_linear_interpolation_velocity()
     # test_linear_interpolation_optimal_potential()
-    test_smoothness_metric()
+    # test_smoothness_metric()
+    # test_trajectory_objective()
+    test_optimize()

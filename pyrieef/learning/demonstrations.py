@@ -75,11 +75,14 @@ def optimize(path, workspace):
     optimizer = MotionOptimization2DCostMap(
         T=T,
         n=2,
+        q_init=trajectory.initial_configuration(),
+        q_goal=trajectory.final_configuration(),
         extends=workspace.box.extends(),
         signed_distance_field=SignedDistanceWorkspaceMap(workspace))
     t_start = time.time()
     [dist, traj, gradient, deltas] = optimizer.optimize(
-        trajectory.configuration(0), 100, trajectory)
+        trajectory.configuration(0), 100, trajectory,
+        optimizer="newton")
     print "time : {}".format(time.time() - t_start)
     result = [None] * len(path)
     for i in range(len(result)):

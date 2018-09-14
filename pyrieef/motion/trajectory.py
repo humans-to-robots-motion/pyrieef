@@ -232,7 +232,8 @@ class TrajectoryObjectiveFunction(DifferentiableMap):
 
     def hessian(self, x):
         x_full = self.full_vector(x)
-        return self._function_network.hessian(x_full)[self._n:, self._n:]
+        H = self._function_network.hessian(x_full)[self._n:, self._n:]
+        return np.array(H)
 
 
 class Trajectory:
@@ -346,7 +347,7 @@ def linear_interpolation_trajectory(q_init, q_goal, T):
     for i in range(T + 2):
         alpha = float(i) / float(T)
         trajectory.configuration(i)[:] = (1 - alpha) * q_init + alpha * q_goal
-        print "config[{}] : {}".format(i, trajectory.configuration(i))
+        # print "config[{}] : {}".format(i, trajectory.configuration(i))
     return trajectory
 
 

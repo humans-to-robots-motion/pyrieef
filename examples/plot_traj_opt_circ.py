@@ -88,23 +88,19 @@ def trajectory_optimization():
     optimizer.set_scalars(
         term_potential_scalar=10000.,
         smoothness_scalar=400.
-        )
+    )
     optimizer.create_clique_network()
     optimizer.add_all_terms()
     optimizer.create_objective()
 
-    trajectory = Trajectory(optimizer.T)
-    g_traj = Trajectory(optimizer.T)
     q_init = np.array([-.3, -.3])
     q_goal = np.array([+.4, .1])
-
-    trajectory = linear_interpolation_trajectory(
-        q_init, q_goal, optimizer.T)
+    trajectory = linear_interpolation_trajectory(q_init, q_goal, 20)
 
     if use_matplotlib:
         t_start = time .time()
         [dist, trajectory, gradient, deltas] = optimizer.optimize(
-            x_init, 100, trajectory)
+            q_init=q_init, nb_steps=100, trajectory=trajectory)
         print "optimization took : {} sec.".format(time.time() - t_start)
         # Plot trajectory
         plot_results(workspace, x_init, x_goal, trajectory, optimizer)
@@ -117,7 +113,7 @@ def trajectory_optimization():
 
         for i in range(1000):
             [dist, trajectory, gradient, deltas] = optimizer.optimize(
-                q_init, 1, trajectory)
+                q_init=q_init, nb_steps=1, trajectory=trajectory)
             if i % 1 == 0:
                 dx = -100. * deltas + trajectory.active_segment()
                 g_traj = Trajectory(q_init=q_init, x=dx)
