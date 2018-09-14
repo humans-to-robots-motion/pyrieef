@@ -268,6 +268,9 @@ class Trajectory:
         ss += " - x.shape : " + str(self._x.shape)
         return ss
 
+    def n(self):
+        return self._n
+
     def T(self):
         return self._T
 

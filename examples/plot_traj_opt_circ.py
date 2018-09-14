@@ -84,6 +84,14 @@ def trajectory_optimization():
     optimizer = MotionOptimization2DCostMap(
         T=20, n=2, extends=extends,
         signed_distance_field=signed_distance_field)
+    optimizer.set_eta(.1)
+    optimizer.set_scalars(
+        term_potential_scalar=10000.,
+        smoothness_scalar=400.
+        )
+    optimizer.create_clique_network()
+    optimizer.add_all_terms()
+    optimizer.create_objective()
 
     trajectory = Trajectory(optimizer.T)
     g_traj = Trajectory(optimizer.T)
@@ -96,7 +104,7 @@ def trajectory_optimization():
     if use_matplotlib:
         t_start = time .time()
         [dist, trajectory, gradient, deltas] = optimizer.optimize(
-                x_init, 100, trajectory)
+            x_init, 100, trajectory)
         print "optimization took : {} sec.".format(time.time() - t_start)
         # Plot trajectory
         plot_results(workspace, x_init, x_goal, trajectory, optimizer)
@@ -106,14 +114,13 @@ def trajectory_optimization():
         viewer = workspace_renderer.WorkspaceRender(workspace)
         viewer.draw_ws_background(optimizer.obstacle_cost_map())
         # viewer.draw_ws_obstacles()
-        step_size = .01
-        optimizer.set_eta(step_size)
+
         for i in range(1000):
             [dist, trajectory, gradient, deltas] = optimizer.optimize(
                 q_init, 1, trajectory)
             if i % 1 == 0:
-                g_traj = Trajectory(q_init=q_init, 
-                    x=-30. * deltas + trajectory.active_segment())
+                dx = -100. * deltas + trajectory.active_segment()
+                g_traj = Trajectory(q_init=q_init, x=dx)
                 for k in range(optimizer.T + 1):
                     q = trajectory.configuration(k)
                     viewer.draw_ws_circle(.01, q)

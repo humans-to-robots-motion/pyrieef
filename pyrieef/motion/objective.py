@@ -23,6 +23,7 @@ from motion.cost_terms import *
 from optimization.optimization import *
 from geometry.differentiable_geometry import *
 from geometry.workspace import *
+from scipy import optimize
 
 
 class MotionOptimization2DCostMap:
@@ -69,6 +70,16 @@ class MotionOptimization2DCostMap:
         # Create metric for natural gradient descent
         self.create_smoothness_metric()
 
+    def set_scalars(self,
+                    obstacle_scalar=1.,
+                    init_potential_scalar=0.,
+                    term_potential_scalar=10000000.,
+                    smoothness_scalar=1.):
+        self._obstacle_scalar = obstacle_scalar
+        self._init_potential_scalar = init_potential_scalar
+        self._term_potential_scalar = term_potential_scalar
+        self._smoothness_scalar = smoothness_scalar = 1.
+
     def set_eta(self, eta):
         self._eta = eta
 
@@ -94,14 +105,17 @@ class MotionOptimization2DCostMap:
         a = FiniteDifferencesAcceleration(1, self.dt).a()
         # print "a : "
         # print a
+        no_variance = True
         K_dof = np.matrix(np.zeros((self.T + 1, self.T + 1)))
         for i in range(0, self.T + 1):
             if i == 0:
                 K_dof[i, i:i + 2] = a[0, 1:3]
-                K_dof[i, i] *= 1000  # No variance at end points
+                # if no_variance:
+                #     K_dof[i, i] *= 1000  # No variance at end points
             elif i == self.T:
                 K_dof[i, i - 1:i + 1] = a[0, 0:2]
-                K_dof[i, i] *= 1000  # No variance at end points
+                if no_variance:
+                    K_dof[i, i] *= 1000  # No variance at end points
             elif i > 0:
                 K_dof[i, i - 1:i + 2] = a
         A_dof = K_dof.transpose() * K_dof

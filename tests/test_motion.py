@@ -303,7 +303,8 @@ def test_linear_interpolation_optimal_potential():
 
     # TODO test velocity profile. Gradient should correspond.
     # This is currently not the case.
-    # assert check_jacobian_against_finite_difference(objective.objective, False)
+    # assert check_jacobian_against_finite_difference(objective.objective,
+    # False)
     objective.create_clique_network()
     objective.add_smoothness_terms(2)
     objective.create_objective()
@@ -320,6 +321,41 @@ def test_linear_interpolation_optimal_potential():
         g, np.zeros(trajectory.active_segment().shape), atol=1e-5).all()
 
 
+def test_smoothness_metric():
+    dim = 2
+    trajectory = linear_interpolation_trajectory(
+        q_init=np.zeros(dim),
+        q_goal=np.ones(dim),
+        T=10
+    )
+    objective = MotionOptimization2DCostMap(
+        T=trajectory.T(),
+        n=trajectory.n(),
+        q_init=trajectory.initial_configuration(),
+        q_goal=trajectory.final_configuration()
+    )
+    objective.create_clique_network()
+    objective.add_smoothness_terms(2)
+    objective.create_objective()
+
+    active_size = dim * (trajectory.T() - 1)
+
+    H1 = objective.objective.hessian(trajectory.active_segment())
+    H1 = H1[:active_size, :active_size]
+    np.set_printoptions(suppress=True, linewidth=200, precision=0,
+                        formatter={'float_kind': '{:8.0f}'.format})
+
+    H2 = objective.create_smoothness_metric()
+    H2 = H2[:active_size, :active_size]
+    np.set_printoptions(suppress=True, linewidth=200, precision=0,
+                        formatter={'float_kind': '{:8.0f}'.format})
+
+    print H1[:10, :10]
+    print H2[:10, :10]
+
+    assert_allclose(H1, H2)
+
+
 def test_optimize():
     print "Check Motion Optimization (optimize)"
     q_init = np.zeros(2)
@@ -327,16 +363,17 @@ def test_optimize():
     objective.optimize(q_init, nb_steps=5)
 
 if __name__ == "__main__":
-    test_trajectory()
-    test_continuous_trajectory()
-    test_cliques()
-    test_finite_differences()
-    test_squared_norm_derivatives()
-    test_obstacle_potential()
-    test_motion_optimimization_2d()
-    test_motion_optimimization_smoothness_metric()
-    test_optimize()
-    test_center_of_clique()
-    test_linear_interpolation()
-    test_linear_interpolation_velocity()
-    test_linear_interpolation_optimal_potential()
+    # test_trajectory()
+    # test_continuous_trajectory()
+    # test_cliques()
+    # test_finite_differences()
+    # test_squared_norm_derivatives()
+    # test_obstacle_potential()
+    # test_motion_optimimization_2d()
+    # test_motion_optimimization_smoothness_metric()
+    # test_optimize()
+    # test_center_of_clique()
+    # test_linear_interpolation()
+    # test_linear_interpolation_velocity()
+    # test_linear_interpolation_optimal_potential()
+    test_smoothness_metric()
