@@ -278,6 +278,10 @@ class Trajectory:
     def x(self):
         return self._x
 
+    def set(self, x):
+        assert x.shape[0] == self._n * (self._T + 2)
+        self._x = x
+
     def active_segment(self):
         return self._x[self._n:]
 
@@ -301,9 +305,11 @@ class Trajectory:
         end_idx = self._n * (i + 2)
         return self._x[beg_idx:end_idx]
 
-    def set(self, x):
-        assert x.shape[0] == self._n * (self._T + 2)
-        self._x = x
+    def continuous_trajectory(self):
+        """ returns an object of contunious type """
+        trajectory = ContinuousTrajectory(self.T(), self.n())
+        trajectory._x = self._x
+        return trajectory
 
 
 class ContinuousTrajectory(Trajectory):

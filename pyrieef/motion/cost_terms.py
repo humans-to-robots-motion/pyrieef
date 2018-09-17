@@ -38,8 +38,6 @@ class FiniteDifferencesVelocity(AffineMap):
         self._a[0:dim, 0:dim] = -I
         self._a[0:dim, dim:(2 * dim)] = I
         self._a /= dt
-        print "a : "
-        print self._a
 
 
 class FiniteDifferencesAcceleration(AffineMap):
@@ -105,6 +103,61 @@ class SquaredNormAcceleration(SquaredNormDerivative):
     def __init__(self, dim, dt):
         SquaredNormDerivative.__init__(self, dim)
         self._derivative = FiniteDifferencesAcceleration(dim, dt)
+
+
+class BoundBarrier(DifferentiableMap):
+
+    """ Barrier between values """
+
+    def __init__(self, v_lower, v_upper, margin=1e-10):
+        assert v_lower.size == v_upper.size
+        self._v_lower = v_lower
+        self._v_upper = v_upper
+        self._alpha = 1.
+        self._margin = margin
+
+    def output_dimension(self):
+        return 1
+
+    def input_dimension(self):
+        return self._v_lower.size
+
+    def forward(self, x):
+        value = 0.
+        for i, x_i in enumerate(x):
+            l_dist = x_i - self._v_lower[i]
+            u_dist = self._v_upper[i] - x_i
+            if l_dist < self._margin or u_dist < self._margin:
+                return float("inf")
+            value += -self._alpha * np.log(l_dist)
+            value += -self._alpha * np.log(u_dist)
+        return value
+
+    def jacobian(self, x):
+        J = np.matrix(np.zeros((
+            self.output_dimension(), self.input_dimension())))
+        for i, x_i in enumerate(x):
+            l_dist = x_i - self._v_lower[i]
+            u_dist = self._v_upper[i] - x_i
+            if l_dist < self._margin or u_dist < self._margin:
+                return np.matrix(np.zeros((
+                    self.output_dimension(), self.input_dimension())))
+            J[0, i] += -self._alpha / l_dist
+            J[0, i] += self._alpha / u_dist
+        return J
+
+    def hessian(self, x):
+        H = np.matrix(np.zeros((
+            self.input_dimension(), self.input_dimension())))
+        for i, x_i in enumerate(x):
+            l_dist = x_i - self._v_lower[i]
+            u_dist = self._v_upper[i] - x_i
+            if l_dist < self._margin or u_dist < self._margin:
+                return np.matrix(np.zeros((
+                    self.output_dimension(), self.output_dimension())))
+            H[i, i] += self._alpha / (l_dist ** 2)
+            H[i, i] += self._alpha / (u_dist ** 2)
+        return H
 
 
 class SimplePotential2D(DifferentiableMap):

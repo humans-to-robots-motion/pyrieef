@@ -96,6 +96,10 @@ def test_trajectory():
     assert traj.x().size == size
     assert np.isclose(traj.x()[:2], np.zeros(n)).all()
 
+    traj_continuous = traj.continuous_trajectory()
+    assert traj_continuous.x().size == traj.x().size
+    assert np.isclose(traj.x(), traj_continuous.x()).all()
+
 
 def test_continuous_trajectory():
     q_init = np.random.random(2)
@@ -109,9 +113,24 @@ def test_continuous_trajectory():
         assert_allclose(q_1, q_2)
 
 
+def test_center_of_clique():
+    config_dim = 2
+    nb_way_points = 10
+    trajectory = linear_interpolation_trajectory(
+        q_init=np.zeros(2),
+        q_goal=np.ones(2),
+        T=nb_way_points)
+    network = CliquesFunctionNetwork(trajectory.x().size, config_dim)
+    center_of_clique = network.center_of_clique_map()
+    network.register_function_for_all_cliques(center_of_clique)
+    for t, x_t in enumerate(network.all_cliques(trajectory.x())):
+        assert (np.linalg.norm(network.function_on_clique(t, x_t) -
+                               x_t[2:4]) < 1.e-10)
+
+
 def test_obstacle_potential():
 
-    # np.random.seed(0)
+    np.random.seed(0)
 
     workspace = Workspace()
     for center, radius in sample_circles(nb_circles=10):
@@ -153,19 +172,17 @@ def test_squared_norm_derivatives():
     assert check_hessian_against_finite_difference(f)
 
 
-def test_center_of_clique():
-    config_dim = 2
-    nb_way_points = 10
-    trajectory = linear_interpolation_trajectory(
-        q_init=np.zeros(2),
-        q_goal=np.ones(2),
-        T=nb_way_points)
-    network = CliquesFunctionNetwork(trajectory.x().size, config_dim)
-    center_of_clique = network.center_of_clique_map()
-    network.register_function_for_all_cliques(center_of_clique)
-    for t, x_t in enumerate(network.all_cliques(trajectory.x())):
-        assert (np.linalg.norm(network.function_on_clique(t, x_t) -
-                               x_t[2:4]) < 1.e-10)
+def test_bound_barrier():
+
+    v_lower = np.array([0, 0])
+    v_upper = np.array([1, 1])
+    f = BoundBarrier(v_lower, v_upper)
+
+    print "Check BoundBarrier (J implementation) : "
+    assert check_jacobian_against_finite_difference(f)
+
+    print "Check BoundBarrier (H implementation) : "
+    assert check_hessian_against_finite_difference(f)
 
 
 def test_motion_optimimization_smoothness_metric():
@@ -372,18 +389,19 @@ def test_optimize():
     objective.optimize(q_init, nb_steps=5, optimizer="newton")
 
 if __name__ == "__main__":
-    # test_trajectory()
-    # test_continuous_trajectory()
-    # test_cliques()
-    # test_finite_differences()
-    # test_squared_norm_derivatives()
-    # test_obstacle_potential()
-    # test_motion_optimimization_2d()
-    # test_motion_optimimization_smoothness_metric()
-    # test_center_of_clique()
-    # test_linear_interpolation()
-    # test_linear_interpolation_velocity()
-    # test_linear_interpolation_optimal_potential()
-    # test_smoothness_metric()
-    # test_trajectory_objective()
+    test_trajectory()
+    test_continuous_trajectory()
+    test_cliques()
+    test_finite_differences()
+    test_squared_norm_derivatives()
+    test_bound_barrier()
+    test_obstacle_potential()
+    test_motion_optimimization_2d()
+    test_motion_optimimization_smoothness_metric()
+    test_center_of_clique()
+    test_linear_interpolation()
+    test_linear_interpolation_velocity()
+    test_linear_interpolation_optimal_potential()
+    test_smoothness_metric()
+    test_trajectory_objective()
     test_optimize()

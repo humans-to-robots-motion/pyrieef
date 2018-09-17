@@ -17,6 +17,7 @@
 #
 #                                        Jim Mainprice on Sunday Aug 27 2018
 
+from __future__ import print_function
 import common_imports
 from graph.shortest_path import *
 from learning.dataset import *
@@ -28,18 +29,8 @@ from motion.objective import *
 import rendering.workspace_renderer as render
 from tqdm import tqdm
 import time
-
-
-def collision_check_interpolation(workspace, p_init, p_goal):
-    """ Check interior interpolation for collision """
-    delta = workspace.box.diag() / 100.
-    nb_points = int(np.linalg.norm(p_init - p_goal) / delta)
-    for i in range(1, nb_points):
-        alpha = float(i) / float(nb_points)
-        p = (1. - alpha) * p_init + alpha * p_goal
-        if workspace.in_collision(p):
-            return True
-    return False
+from utils.options import *
+from utils.collision_checking import *
 
 
 def load_circles_workspace(ws, box):
@@ -67,39 +58,48 @@ def save_trajectories_to_file(trajectories):
     write_dictionary_to_file(data, filename='trajectories_1k_small.hdf5')
 
 
-def optimize(path, workspace):
+def optimize(path, workspace, costmap, verbose=False):
     T = len(path) - 1
     trajectory = Trajectory(T, 2)
     for i, p in enumerate(path):
         trajectory.configuration(i)[:] = path[i]
+    sdf = SignedDistanceWorkspaceMap(workspace)
     optimizer = MotionOptimization2DCostMap(
         T=T,
         n=2,
         q_init=trajectory.initial_configuration(),
         q_goal=trajectory.final_configuration(),
         extends=workspace.box.extends(),
-        signed_distance_field=SignedDistanceWorkspaceMap(workspace))
+        signed_distance_field=sdf)
+    optimizer.costmap = CostGridPotential2D(sdf, 20., .03, 1.)
+    optimizer.verbose = verbose
+    optimizer.set_scalars(
+        obstacle_scalar=1.,
+        init_potential_scalar=0.,
+        term_potential_scalar=10000000.,
+        smoothness_scalar=1.)
+    optimizer.create_clique_network()
+    optimizer.add_all_terms()
+    optimizer.create_objective()
     t_start = time.time()
     [dist, traj, gradient, deltas] = optimizer.optimize(
         trajectory.configuration(0), 100, trajectory,
         optimizer="newton")
-    print "time : {}".format(time.time() - t_start)
-    result = [None] * len(path)
-    for i in range(len(result)):
-        result[i] = trajectory.configuration(i)
-    return result
+    if verbose:
+        print("time : {}".format(time.time() - t_start))
+    return trajectory
 
 
 def compute_demonstration(
-        workspace, converter, nb_points, show_result, average_cost):
+        workspace, converter, nb_points, show_result, average_cost, verbose):
     phi = CostGridPotential2D(
-        SignedDistanceWorkspaceMap(workspace), 10., .03, 10.)
+        SignedDistanceWorkspaceMap(workspace), 20., .03, 1.)
     costmap = phi(workspace.box.stacked_meshgrid(nb_points)).transpose()
     resample = True
     while resample:
         s_w = sample_collision_free(workspace)
         t_w = sample_collision_free(workspace)
-        if not collision_check_interpolation(workspace, s_w, t_w):
+        if not collision_check_linear_interpolation(workspace, s_w, t_w):
             continue
         resample = False
         pixel_map = workspace.pixel_map(nb_points)
@@ -121,7 +121,13 @@ def compute_demonstration(
     for i, s in enumerate(np.linspace(0, 1, nb_config)):
         interpolated_traj[i] = trajectory.configuration_at_parameter(s)
 
-    result = optimize(interpolated_traj, workspace)
+    optimized_trajectory = optimize(interpolated_traj, workspace, verbose)
+    if collision_check_trajectory(workspace, optimized_trajectory):
+        print("Warning: has collision !!!")
+
+    result = [None] * nb_config
+    for i in range(len(result)):
+        result[i] = optimized_trajectory.configuration(i)
 
     if show_result:
         viewer = render.WorkspaceDrawer(workspace, wait_for_keyboard=True)
@@ -139,22 +145,29 @@ def compute_demonstration(
 
 if __name__ == '__main__':
 
+    parser = optparse.OptionParser("usage: %prog [options] arg1 arg2")
+    add_boolean_options(parser, ['verbose', 'show_result', 'average_cost'])
+    (options, args) = parser.parse_args()
+    verbose = options.verbose
+    show_result = options.show_result
+    show_demo_id = -1
+    average_cost = options.average_cost
+    nb_points = 24
+
+    print(" -- options : ", options)
+
     data_ws = dict_to_object(
         load_dictionary_from_file(filename='workspaces_1k_small.hdf5'))
-    print " -- size : ", data_ws.size
-    print " -- lims : ", data_ws.lims
-    print " -- datasets.shape : ", data_ws.datasets.shape
-    print " -- data_ws.shape : ", data_ws.datasets.shape
-
+    print(" -- size : ", data_ws.size)
+    print(" -- lims : ", data_ws.lims.flatten())
+    print(" -- datasets.shape : ", data_ws.datasets.shape)
+    print(" -- data_ws.shape : ", data_ws.datasets.shape)
     x_min = data_ws.lims[0, 0]
     x_max = data_ws.lims[0, 1]
     y_min = data_ws.lims[1, 0]
     y_max = data_ws.lims[1, 1]
     box = box_from_limits(x_min, x_max, y_min, y_max)
 
-    show_result = True
-    average_cost = False
-    nb_points = 24
     converter = CostmapToSparseGraph(
         np.ones((nb_points, nb_points)), average_cost)
     converter.convert()
@@ -162,10 +175,16 @@ if __name__ == '__main__':
 
     trajectories = [None] * len(data_ws.datasets)
     for k, ws in enumerate(tqdm(data_ws.datasets)):
+        if verbose:
+            print("Compute demo ", k)
         trajectories[k] = compute_demonstration(
             load_circles_workspace(ws, box),
             converter,
             nb_points=nb_points,
-            show_result=show_result,
-            average_cost=average_cost)
+            # show_result=show_result,
+            show_result=(show_demo_id == k or show_result),
+            average_cost=average_cost,
+            verbose=verbose)
+        if show_demo_id == k and not show_result:
+            break
     save_trajectories_to_file(trajectories)

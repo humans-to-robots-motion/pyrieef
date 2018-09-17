@@ -33,6 +33,7 @@ class MotionOptimization2DCostMap:
                  signed_distance_field=None,
                  q_init=None,
                  q_goal=None):
+        self.verbose = False
         self.config_space_dim = n       # nb of dofs
         self.T = T                      # time steps
         self.dt = 0.1                   # sample rate
@@ -59,6 +60,10 @@ class MotionOptimization2DCostMap:
         if self.sdf is None:
             self.create_workspace()
 
+        # Create metric for natural gradient descent
+        self.create_smoothness_metric()
+        self.costmap = self.obstacle_costmap()
+
         # Here we combine everything to make an objective
         # TODO see why n==1 doesn't work...
         if self.config_space_dim > 1:
@@ -66,9 +71,6 @@ class MotionOptimization2DCostMap:
             self.create_clique_network()
             self.add_all_terms()
             self.create_objective()
-
-        # Create metric for natural gradient descent
-        self.create_smoothness_metric()
 
     def set_scalars(self,
                     obstacle_scalar=1.,
@@ -83,7 +85,7 @@ class MotionOptimization2DCostMap:
     def set_eta(self, eta):
         self._eta = eta
 
-    def obstacle_cost_map(self):
+    def obstacle_costmap(self):
         return SimplePotential2D(self.sdf)
         # return CostGridPotential2D(self.sdf,
         #                            alpha=10.,
@@ -178,7 +180,7 @@ class MotionOptimization2DCostMap:
             pass
         else:
             obstacle_potential = Pullback(
-                self.obstacle_cost_map(),
+                self.costmap,
                 self.function_network.center_of_clique_map())
             squared_norm_vel = Pullback(
                 SquaredNorm(np.zeros(self.config_space_dim)),
@@ -245,7 +247,7 @@ class MotionOptimization2DCostMap:
                 fun=self.objective.forward,
                 jac=self.objective.gradient,
                 hess=self.objective.hessian,
-                options={'maxiter': nb_steps, 'disp': True}
+                options={'maxiter': nb_steps, 'disp': self.verbose}
             )
             trajectory.active_segment()[:] = res.x
             gradient = res.jac
