@@ -107,13 +107,13 @@ class SquaredNormAcceleration(SquaredNormDerivative):
 
 class BoundBarrier(DifferentiableMap):
 
-    """ Barrier between values """
+    """ Barrier between values v_lower and v_upper """
 
-    def __init__(self, v_lower, v_upper, margin=1e-10):
+    def __init__(self, v_lower, v_upper, margin=1e-10, alpha=1.):
         assert v_lower.size == v_upper.size
         self._v_lower = v_lower
         self._v_upper = v_upper
-        self._alpha = 1.
+        self._alpha = alpha
         self._margin = margin
 
     def output_dimension(self):

@@ -29,7 +29,7 @@ from scipy import optimize
 class MotionOptimization2DCostMap:
 
     def __init__(self, T=10, n=2,
-                 extends=None,
+                 box=Box(np.array([0., 0.]), np.array([2., 2.])),
                  signed_distance_field=None,
                  q_init=None,
                  q_goal=None):
@@ -38,8 +38,6 @@ class MotionOptimization2DCostMap:
         self.T = T                      # time steps
         self.dt = 0.1                   # sample rate
         self.trajectory_space_dim = (self.config_space_dim * (self.T + 2))
-        self.extends = extends
-
         self.workspace = None
         self.objective = None
 
@@ -50,12 +48,15 @@ class MotionOptimization2DCostMap:
         self._obstacle_scalar = 1.
         self._init_potential_scalar = 0.
         self._term_potential_scalar = 10000000.
+        self._potential_scalar = 10000.
         # self._init_potential_scalar = 0.0
         # self._term_potential_scalar = 0.0
         self._smoothness_scalar = 1.
 
         # We only need the signed distance field
         # to create a trajectory optimization problem
+        self.box = box
+        self.extends = box.extends()
         self.sdf = signed_distance_field
         if self.sdf is None:
             self.create_workspace()
@@ -97,7 +98,7 @@ class MotionOptimization2DCostMap:
         return self.objective.forward(trajectory.active_segment())
 
     def create_workspace(self):
-        self.workspace = Workspace()
+        self.workspace = Workspace(self.box)
         self.workspace.obstacles.append(Circle(np.array([0.2, .15]), .1))
         self.workspace.obstacles.append(Circle(np.array([-.1, .15]), .1))
         self.sdf = SignedDistanceWorkspaceMap(self.workspace)
@@ -139,6 +140,21 @@ class MotionOptimization2DCostMap:
         A = K_full.transpose() * K_full
         self.metric = A
         return A
+
+    def add_attractor(self, trajectory):
+
+        alphas = np.zeros(trajectory.T())
+        for t in range(1, trajectory.T() + 1):
+            dist = np.linalg.norm(self.q_goal - trajectory.configuration(t))
+            alphas[t - 1] = exp(-dist) / (s ** 2)
+        alphas /= alphas.sum()
+
+        for t in range(1, trajectory.T() + 1):
+            potential = Pullback(
+                Scale(SquaredNorm(self.q_goal), alphas[t - 1]),
+                self.function_network.center_of_clique_map())
+            self.function_network.register_function_for_clique(
+                t, Scale(potential, self._potential_scalar))
 
     def add_init_and_terminal_terms(self):
 
@@ -195,6 +211,15 @@ class MotionOptimization2DCostMap:
             self.function_network.register_function_for_all_cliques(
                 Scale(isometric_obstacle_cost, self._obstacle_scalar))
 
+    def add_box_limits(self):
+        v_lower = np.array([self.extends.x_min, self.extends.y_min])
+        v_upper = np.array([self.extends.x_max, self.extends.y_max])
+        print "v_lower : ", v_lower
+        print "v_upper : ", v_upper
+        box_limits = BoundBarrier(v_lower, v_upper)
+        self.function_network.register_function_for_all_cliques(Pullback(
+            box_limits, self.function_network.center_of_clique_map()))
+
     def create_clique_network(self):
 
         self.function_network = CliquesFunctionNetwork(
@@ -207,9 +232,10 @@ class MotionOptimization2DCostMap:
             self.q_init, self.function_network)
 
     def add_all_terms(self):
-        self.add_init_and_terminal_terms()
         self.add_smoothness_terms(2)
         self.add_obstacle_terms()
+        self.add_box_limits()
+        self.add_init_and_terminal_terms()
         # print self.objective.nb_cliques()
 
     def optimize(self,

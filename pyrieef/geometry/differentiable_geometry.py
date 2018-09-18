@@ -161,7 +161,7 @@ class Pullback(Compose):
         Compose.__init__(self, f, g)
 
     def hessian(self, q):
-        """  
+        """
             d^2/dq^2 f(g(q)), applies chain rule.
 
                 * J_g' H_f J_g + H_g J_f,
