@@ -108,9 +108,21 @@ def test_continuous_trajectory():
     trajectory_1 = linear_interpolation_trajectory(q_init, q_goal, 10)
     trajectory_2 = ContinuousTrajectory(7, 2)
     trajectory_2.set(linear_interpolation_trajectory(q_init, q_goal, 7).x())
-    for k, s in enumerate(np.linspace(0., 1., 11)):
+    for k, s in enumerate(np.linspace(0., 1., trajectory_1.T() + 1)):
         q_1 = trajectory_2.configuration_at_parameter(s)
         q_2 = trajectory_1.configuration(k)
+        assert_allclose(q_1, q_2)
+
+    q_init = np.random.random(2)
+    q_goal = np.random.random(2)
+    trajectory_1 = linear_interpolation_trajectory(q_init, q_goal, 100)
+    trajectory_2 = linear_interpolation_trajectory(q_init, q_goal, 5)
+    trajectory_2 = trajectory_2.continuous_trajectory()
+    for t in range(trajectory_1.T() + 1):
+        s = float(t) / float(trajectory_1.T())
+        print "s : {} , t : {}".format(s, t)
+        q_2 = trajectory_1.configuration(t)
+        q_1 = trajectory_2.configuration_at_parameter(s)
         assert_allclose(q_1, q_2)
 
 
@@ -174,6 +186,8 @@ def test_squared_norm_derivatives():
 
 
 def test_bound_barrier():
+
+    np.random.seed(0)
 
     v_lower = np.array([0, 0])
     v_upper = np.array([1, 1])

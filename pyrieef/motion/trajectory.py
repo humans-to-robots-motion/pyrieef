@@ -280,7 +280,7 @@ class Trajectory:
 
     def set(self, x):
         assert x.shape[0] == self._n * (self._T + 2)
-        self._x = x
+        self._x = x.copy()
 
     def active_segment(self):
         return self._x[self._n:]
@@ -323,7 +323,7 @@ class ContinuousTrajectory(Trajectory):
         for i in range(1, self._T + 1):
             q_curr = self.configuration(i)
             d = np.linalg.norm(q_curr - q_prev)
-            if d_param <= (dist + d):
+            if d_param <= (d + dist):
                 return self.interpolate(q_prev, q_curr, d_param - dist, d)
             dist += d
             q_prev = q_curr
@@ -342,6 +342,7 @@ class ContinuousTrajectory(Trajectory):
     @staticmethod
     def interpolate(q_1, q_2, d_param, dist):
         """ interpolate between configurations """
+        # assert d_param / dist <= 1.
         alpha = min(d_param / dist, 1.)
         assert alpha >= 0 and alpha <= 1., "alpha : {}".format(alpha)
         return (1. - alpha) * q_1 + alpha * q_2

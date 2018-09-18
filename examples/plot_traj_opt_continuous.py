@@ -41,11 +41,10 @@ def resample(trajectory):
     T = trajectory.T()
     new_trajectory = ContinuousTrajectory(T - 1, n)
     new_trajectory.set(trajectory.x()[n:])
-    for t in range(T + 1):
-        s = float(t) / float(T)
-        q_t = new_trajectory.configuration_at_parameter(s)
+    q_prev = new_trajectory.initial_configuration()
+    for t in range(T + 2):
+        q_t = new_trajectory.configuration_at_parameter(float(t) / float(T))
         trajectory.configuration(t)[:] = q_t
-    return trajectory
 
 
 def motion_optimimization():
@@ -76,7 +75,7 @@ def motion_optimimization():
             options={'maxiter': 10, 'gtol': 1e-05, 'disp': True}
         )
         trajectory.active_segment()[:] = res.x
-        trajectory = resample(trajectory)
+        resample(trajectory)
         f.draw(trajectory)
 
 if __name__ == "__main__":
