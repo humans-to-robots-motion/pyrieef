@@ -48,10 +48,10 @@ class MotionOptimization2DCostMap:
         self._obstacle_scalar = 1.
         self._init_potential_scalar = 0.
         self._term_potential_scalar = 10000000.
-        self._potential_scalar = 1000000.
         # self._init_potential_scalar = 0.0
         # self._term_potential_scalar = 0.0
         self._smoothness_scalar = 1.
+        self._attractor_stdev = .1
 
         # We only need the signed distance field
         # to create a trajectory optimization problem
@@ -142,21 +142,23 @@ class MotionOptimization2DCostMap:
         return A
 
     def add_attractor(self, trajectory):
-
-        s = .2
+        """ Add an attractor to each clique  scalled by the distance 
+            to the goal, it ensures that the trajectory does not slow down 
+            in time as it progresses towards the goal.
+            This is Model Predictive Control grounded scheme.
+            TODO check the literature to set this appropriatly. """
         alphas = np.zeros(trajectory.T())
-        for t in range(1, trajectory.T() + 1):
-            dist = np.linalg.norm(self.q_goal - trajectory.configuration(t))
-            alphas[t - 1] = np.exp(-dist / (s ** 2))
-        alphas *= alphas.size / alphas.sum()
-        print alphas
-
         for t in range(1, trajectory.T()):
+            dist = np.linalg.norm(self.q_goal - trajectory.configuration(t))
+            alphas[t] = np.exp(-dist / (self._attractor_stdev ** 2))
+        alphas /= alphas.sum()
+
+        for t in range(1,  trajectory.T()):
             potential = Pullback(
                 SquaredNorm(self.q_goal),
                 self.function_network.center_of_clique_map())
             self.function_network.register_function_for_clique(
-                t, Scale(potential, alphas[t - 1] * self._potential_scalar))
+                t, Scale(potential, alphas[t] * self._term_potential_scalar))
 
     def add_init_and_terminal_terms(self):
 

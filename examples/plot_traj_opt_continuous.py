@@ -31,8 +31,8 @@ def initialize_objective(objective, trajectory):
     objective.add_smoothness_terms(trajectory.n())
     objective.add_obstacle_terms()
     objective.add_box_limits()
-    # objective.add_init_and_terminal_terms()
     objective.add_attractor(trajectory)
+    objective.create_objective()
 
 
 def resample(trajectory):
@@ -42,9 +42,10 @@ def resample(trajectory):
     new_trajectory = ContinuousTrajectory(T - 1, n)
     new_trajectory.set(trajectory.x()[n:])
     q_prev = new_trajectory.initial_configuration()
-    for t in range(T + 2):
+    for t in range(T + 1):
         q_t = new_trajectory.configuration_at_parameter(float(t) / float(T))
         trajectory.configuration(t)[:] = q_t
+    trajectory.final_configuration()[:] = new_trajectory.final_configuration()
 
 
 def motion_optimimization():
@@ -62,7 +63,7 @@ def motion_optimimization():
         q_goal=trajectory.final_configuration()
     )
     f = TrajectoryOptimizationViewer(objective, draw=True)
-    for t in range(T):
+    for t in range(T+1):
         initialize_objective(objective, trajectory)
         t_start = time.time()
         x = trajectory.active_segment()
@@ -75,8 +76,8 @@ def motion_optimimization():
             options={'maxiter': 10, 'gtol': 1e-05, 'disp': True}
         )
         trajectory.active_segment()[:] = res.x
-        resample(trajectory)
         f.draw(trajectory)
+        resample(trajectory)
 
 if __name__ == "__main__":
     motion_optimimization()
