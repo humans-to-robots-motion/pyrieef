@@ -218,8 +218,6 @@ class MotionOptimization2DCostMap:
     def add_box_limits(self):
         v_lower = np.array([self.extends.x_min, self.extends.y_min])
         v_upper = np.array([self.extends.x_max, self.extends.y_max])
-        print "v_lower : ", v_lower
-        print "v_upper : ", v_upper
         box_limits = BoundBarrier(v_lower, v_upper)
         self.function_network.register_function_for_all_cliques(Pullback(
             box_limits, self.function_network.center_of_clique_map()))

@@ -63,7 +63,7 @@ def motion_optimimization():
         q_goal=trajectory.final_configuration()
     )
     f = TrajectoryOptimizationViewer(objective, draw=True)
-    for t in range(T+1):
+    for t in range(T + 1):
         initialize_objective(objective, trajectory)
         t_start = time.time()
         x = trajectory.active_segment()
@@ -73,7 +73,7 @@ def motion_optimimization():
             method='Newton-CG',
             jac=f.gradient,
             hess=f.hessian,
-            options={'maxiter': 10, 'gtol': 1e-05, 'disp': True}
+            options={'maxiter': 100, 'gtol': 1e-05, 'disp': False}
         )
         trajectory.active_segment()[:] = res.x
         f.draw(trajectory)
@@ -82,6 +82,3 @@ def motion_optimimization():
 if __name__ == "__main__":
     motion_optimimization()
     raw_input("Press Enter to continue...")
-    # Can do some profiling here
-    # import cProfile
-    # cProfile.run('motion_optimimization()')
