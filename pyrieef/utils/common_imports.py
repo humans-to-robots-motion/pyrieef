@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Copyright (c) 2018 University of Stuttgart
+# Copyright (c) 2018, University of Stuttgart
 # All rights reserved.
 #
 # Permission to use, copy, modify, and distribute this software for any purpose
@@ -16,7 +16,6 @@
 # PERFORMANCE OF THIS SOFTWARE.
 #
 #                                        Jim Mainprice on Sunday June 13 2018
-
 
 import sys
 import os
