@@ -25,6 +25,9 @@ import numpy as np
 
 class TrajectoryOptimizationViewer:
 
+    """ Wrapper around a Trajectory objective function 
+        tha can draw the inner optimization quantities """
+
     def __init__(self, objective, draw):
         self.objective = objective
         self.viewer = None
@@ -39,20 +42,25 @@ class TrajectoryOptimizationViewer:
     def evaluate(self, x):
         return self.objective.objective(x)
 
-    def gradient(self, x, draw=True):
+    def gradient(self, x, draw=False):
         g = self.objective.objective.gradient(x)
         if draw and self.viewer is not None:
             q_init = self.objective.q_init
-            trajectory = Trajectory(q_init=q_init, x=x)
-            g_traj = Trajectory(q_init=q_init, x=-0.01 * g + x)
-            for k in range(self.objective.T + 1):
-                q = trajectory.configuration(k)
-                self.viewer.draw_ws_circle(
-                    .01, q, color=(0, 0, 1) if k == 0 else (0, 1, 0))
-                self.viewer.draw_ws_line(q, g_traj.configuration(k))
-            self.viewer.render()
-            time.sleep(0.1)
+            self.draw(
+                Trajectory(q_init=q_init, x=x),
+                Trajectory(q_init=q_init, x=-0.01 * g + x))
         return g
 
     def hessian(self, x):
-        return np.array(self.objective.objective.hessian(x))
+        return self.objective.objective.hessian(x)
+
+    def draw(self, trajectory, g_traj=None):
+        q_init = self.objective.q_init
+        for k in range(self.objective.T + 1):
+            q = trajectory.configuration(k)
+            self.viewer.draw_ws_circle(
+                .01, q, color=(0, 0, 1) if k == 0 else (0, 1, 0))
+            if g_traj is not None:
+                self.viewer.draw_ws_line(q, g_traj.configuration(k))
+        self.viewer.render()
+        time.sleep(0.1)

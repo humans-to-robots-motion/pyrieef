@@ -48,7 +48,7 @@ class MotionOptimization2DCostMap:
         self._obstacle_scalar = 1.
         self._init_potential_scalar = 0.
         self._term_potential_scalar = 10000000.
-        self._potential_scalar = 10000.
+        self._potential_scalar = 1000000.
         # self._init_potential_scalar = 0.0
         # self._term_potential_scalar = 0.0
         self._smoothness_scalar = 1.
@@ -143,13 +143,15 @@ class MotionOptimization2DCostMap:
 
     def add_attractor(self, trajectory):
 
+        s = .2
         alphas = np.zeros(trajectory.T())
         for t in range(1, trajectory.T() + 1):
             dist = np.linalg.norm(self.q_goal - trajectory.configuration(t))
-            alphas[t - 1] = exp(-dist) / (s ** 2)
+            alphas[t - 1] = np.exp(-dist) / (s ** 2)
         alphas /= alphas.sum()
+        print alphas
 
-        for t in range(1, trajectory.T() + 1):
+        for t in range(1, trajectory.T()):
             potential = Pullback(
                 Scale(SquaredNorm(self.q_goal), alphas[t - 1]),
                 self.function_network.center_of_clique_map())
