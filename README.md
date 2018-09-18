@@ -1,23 +1,25 @@
 (pyrieef) Python Riemannian Electrical Fields
 =============
 
-Pure python project to generate and learn collision free movement s
+Pure python project to generate and learn collision free movement
 in real environments using a Riemannian geometric approach.
 
-Result of 
+Install
 
-    python plot_barrier.py
+    pip install -r requirements.txt
+
+Run all tests
+
+    bash -c pytest tests
+
+Result of
+
+    python example/plot_barrier.py
 
 [![EF](https://s22.postimg.cc/bqln6ds2p/image.png)](https://postimg.cc/image/62fcfhnq5/)
 
-
-To run all tests
-
-    cd tests
-    bash -c pytest
-
 For a technical presentation of the algorithm developed in this work
-refer to the following publication:
+refer to the following publication
 
     @inproceedings{mainprice2016warping,
       title={Warping the workspace geometry with electric potentials for motion optimization of manipulation tasks},
