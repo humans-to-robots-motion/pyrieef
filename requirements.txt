@@ -1,0 +1,8 @@
+numpy
+scipy
+six
+pyglet
+scikit-image
+h5py
+pytest
+tensorflow
