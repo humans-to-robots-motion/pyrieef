@@ -62,15 +62,15 @@ def motion_optimimization():
         q_init=trajectory.initial_configuration(),
         q_goal=trajectory.final_configuration()
     )
-    f = TrajectoryOptimizationViewer(objective, draw=True)
+    f = TrajectoryOptimizationViewer(objective, draw=True, draw_gradient=True)
     for t in range(T + 1):
         initialize_objective(objective, trajectory)
         t_start = time.time()
         x = trajectory.active_segment()
         res = optimize.minimize(
-            f.evaluate,
             x0=x,
             method='Newton-CG',
+            fun=f.forward,
             jac=f.gradient,
             hess=f.hessian,
             options={'maxiter': 100, 'gtol': 1e-05, 'disp': False}

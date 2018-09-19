@@ -28,10 +28,13 @@ class TrajectoryOptimizationViewer:
     """ Wrapper around a Trajectory objective function 
         tha can draw the inner optimization quantities """
 
-    def __init__(self, objective, draw):
+    def __init__(self, objective, draw=True, draw_gradient=True):
         self.objective = objective
         self.viewer = None
+        self.draw_gradient_ = False
         if draw:
+            self.draw_gradient_ = draw_gradient
+            self.draw_hessian_ = draw_gradient
             self.init_viewer()
 
     def init_viewer(self):
@@ -39,19 +42,24 @@ class TrajectoryOptimizationViewer:
             self.objective.workspace)
         self.viewer.draw_ws_background(self.objective.obstacle_costmap())
 
-    def evaluate(self, x):
+    def draw_gradient(self, x):
+        g = self.objective.objective.gradient(x)
+        q_init = self.objective.q_init
+        self.draw(
+            Trajectory(q_init=q_init, x=x),
+            Trajectory(q_init=q_init, x=-0.01 * g + x))
+
+    def forward(self, x):
         return self.objective.objective(x)
 
-    def gradient(self, x, draw=False):
-        g = self.objective.objective.gradient(x)
-        if draw and self.viewer is not None:
-            q_init = self.objective.q_init
-            self.draw(
-                Trajectory(q_init=q_init, x=x),
-                Trajectory(q_init=q_init, x=-0.01 * g + x))
-        return g
+    def gradient(self, x):
+        if self.draw_gradient_ and self.viewer is not None:
+            self.draw_gradient(x)
+        return self.objective.objective.gradient(x)
 
     def hessian(self, x):
+        if self.draw_hessian_ and self.viewer is not None:
+            self.draw_gradient(x)
         return self.objective.objective.hessian(x)
 
     def draw(self, trajectory, g_traj=None):

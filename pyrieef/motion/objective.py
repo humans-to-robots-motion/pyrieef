@@ -142,7 +142,7 @@ class MotionOptimization2DCostMap:
         return A
 
     def add_attractor(self, trajectory):
-        """ Add an attractor to each clique  scalled by the distance 
+        """ Add an attractor to each clique scalled by the distance 
             to the goal, it ensures that the trajectory does not slow down 
             in time as it progresses towards the goal.
             This is Model Predictive Control grounded scheme.

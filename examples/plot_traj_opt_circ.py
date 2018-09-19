@@ -82,7 +82,7 @@ def trajectory_optimization():
     signed_distance_field = SignedDistanceWorkspaceMap(workspace)
     extends = workspace.box.extends()
     optimizer = MotionOptimization2DCostMap(
-        T=20, n=2, extends=extends,
+        T=20, n=2, box=workspace.box,
         signed_distance_field=signed_distance_field)
     optimizer.set_eta(.1)
     optimizer.set_scalars(
@@ -108,7 +108,7 @@ def trajectory_optimization():
         from pyrieef.rendering import workspace_renderer
         from pyrieef.rendering import opengl
         viewer = workspace_renderer.WorkspaceRender(workspace)
-        viewer.draw_ws_background(optimizer.obstacle_cost_map())
+        viewer.draw_ws_background(optimizer.obstacle_costmap())
         # viewer.draw_ws_obstacles()
 
         for i in range(1000):
