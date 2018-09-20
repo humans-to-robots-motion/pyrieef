@@ -119,6 +119,9 @@ def random_environments(opt):
     resolution_x = 1. / opt.xsize
     resolution_y = 1. / opt.ysize
     save_workspace = True
+    if opt.seed >= 0:
+        print  "set random seed ({})".format(opt.seed)
+        np.random.seed(opt.seed)
 
     if resolution_x != resolution_y:
         print "Warning : resolution_x != resolution_y"
@@ -236,7 +239,7 @@ if __name__ == '__main__':
                       default=False, type="int", dest='display',
                       help='If set, displays the obstacle costs/occ grids in 2D')
     parser.add_option('--seed',
-                      default=-1, type="int", dest='seed',
+                      default=0, type="int", dest='seed',
                       help='Random number seed. -ve values mean random seed')
 
     (options, args) = parser.parse_args()

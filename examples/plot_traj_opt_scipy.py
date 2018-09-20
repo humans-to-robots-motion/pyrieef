@@ -38,7 +38,7 @@ def motion_optimimization():
         q_init=trajectory.initial_configuration(),
         q_goal=trajectory.final_configuration()
     )
-    f = TrajectoryOptimizationViewer(objective, draw=True, draw_gradient=True)
+    f = TrajectoryOptimizationViewer(objective, draw=False, draw_gradient=True)
     t_start = time.time()
     x = trajectory.active_segment()
     res = optimize.minimize(

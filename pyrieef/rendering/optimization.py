@@ -32,6 +32,7 @@ class TrajectoryOptimizationViewer:
         self.objective = objective
         self.viewer = None
         self.draw_gradient_ = False
+        self.draw_hessian_ = False
         if draw:
             self.draw_gradient_ = draw_gradient
             self.draw_hessian_ = draw_gradient

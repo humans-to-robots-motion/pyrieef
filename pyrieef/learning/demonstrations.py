@@ -79,7 +79,10 @@ def optimize(path, workspace, costmap, verbose=False):
         term_potential_scalar=10000000.,
         smoothness_scalar=1.)
     optimizer.create_clique_network()
-    optimizer.add_all_terms()
+    optimizer.add_smoothness_terms(2)
+    optimizer.add_obstacle_terms()
+    optimizer.add_box_limits()
+    optimizer.add_attractor(trajectory)
     optimizer.create_objective()
     t_start = time.time()
     [dist, traj, gradient, deltas] = optimizer.optimize(
