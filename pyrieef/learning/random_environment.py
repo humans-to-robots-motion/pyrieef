@@ -210,7 +210,7 @@ if __name__ == '__main__':
     parser = optparse.OptionParser("usage: %prog [options] arg1 arg2")
 
     parser.add_option('--numdatasets',
-                      default=10, type="int", dest='numdatasets',
+                      default=100, type="int", dest='numdatasets',
                       help='Number of datasets to generate')
     parser.add_option('--savefilename',
                       default='2dcostdata.t7', type="string", dest='savefilename',

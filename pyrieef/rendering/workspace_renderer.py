@@ -48,6 +48,15 @@ def to_rgb3(im):
 
 class WorkspaceRender:
 
+    """ Abstract class to draw a 2D workspace """
+
+    def __init__(self, workspace):
+        self.set_workspace(workspace)
+
+    def set_workspace(self, workspace):
+        self._workspace = workspace
+        self._extends = workspace.box.extends()
+
     @abstractmethod
     def draw_ws_circle(self, radius, origin, color=(0, 1, 0)):
         raise NotImplementedError()
@@ -67,30 +76,46 @@ class WorkspaceRender:
 
 class WorkspaceDrawer(WorkspaceRender):
 
-    """ Workspace Drawer based on matplotlib backend """
+    """ Workspace display based on matplotlib backend """
 
-    def __init__(self, workspace, wait_for_keyboard=False):
-        self._workspace = workspace
-        self._extends = workspace.box.extends()
+    def __init__(self, workspace, wait_for_keyboard=False, 
+            rows=1, cols=1, scale=1.):
+        WorkspaceRender.__init__(self, workspace)
         self._plot3d = False
         self._wait_for_keyboard = wait_for_keyboard
-        self.init()
+        self.size = scale * np.array([7, 6.5])
+        self.init(rows, cols)
 
-    def init(self):
-        self._fig = plt.figure(figsize=(7, 6.5))
-        plt.axis('equal')
-        plt.axis(self._workspace.box.box_extends())
+    def init(self, rows, cols):
+        assert rows > 0 and cols > 0
+        self._fig, self._axes = plt.subplots(rows, cols, figsize=self.size)
+        if rows > 1 or cols > 1:
+            for ax in self._axes.flatten():
+                ax.axis('equal')
+                ax.axis(self._workspace.box.box_extends())
+            self.set_drawing_axis(0)
+        else:
+            self._ax = self._axes
+            self._ax.axis('equal')
+            self._ax.axis(self._workspace.box.box_extends())
+            self._axes = None
+
+    def set_drawing_axis(self, i):
+        assert i >= 0
+        if self._axes is not None:
+            self._ax = self._axes.flatten()[i]
+            self._ax.axis('equal')
+            self._ax.axis(self._workspace.box.box_extends())
 
     def draw_ws_obstacles(self):
         colorst = [cm.gist_ncar(i) for i in np.linspace(
             0, 0.9, len(self._workspace.obstacles))]
         for i, o in enumerate(self._workspace.obstacles):
-            plt.plot(o.origin[0], o.origin[1], 'kx')
+            self._ax.plot(o.origin[0], o.origin[1], 'kx')
             points = o.sampled_points()
             X = np.array(points)[:, 0]
             Y = np.array(points)[:, 1]
-            plt.plot(X, Y, color=colorst[i], linewidth=2.0)
-            # print "colorst[" + str(i) + "] : ", colorst[i]
+            self._ax.plot(X, Y, color=colorst[i], linewidth=2.0)
 
     def draw_ws_background(self, phi, nb_points=100):
         X, Y = self._workspace.box.meshgrid(nb_points)
@@ -98,11 +123,13 @@ class WorkspaceDrawer(WorkspaceRender):
         self.draw_ws_img(Z)
 
     def draw_ws_img(self, Z):
-        # color_style = plt.cm.hot
-        # color_style = plt.cm.bone
-        # color_style = plt.cm.magma
+        """ 
+        Examples of coloring are : [viridis, hot, bone, magma]
+            see page : 
+            https://matplotlib.org/examples/color/colormaps_reference.html
+        """
         color_style = plt.cm.viridis
-        im = plt.imshow(
+        im = self._ax.imshow(
             Z.transpose(),
             extent=self._workspace.box.box_extends(),
             origin='lower',
@@ -110,19 +137,20 @@ class WorkspaceDrawer(WorkspaceRender):
             # vmin=0,
             # vmax=100,
             cmap=color_style)
-        plt.colorbar(im, fraction=0.05, pad=0.02)
+        if self._axes is None:
+            self._fig.colorbar(im, fraction=0.05, pad=0.02)
         # cs = plt.contour(X, Y, Z, 16, cmap=color_style)
-        if self._plot3d:
-            fig = plt.figure()
-            ax = fig.add_subplot(111, projection='3d')
-            ax.plot_surface(X, Y, Z, cmap=color_style,
-                            linewidth=0, antialiased=False)
+        # if self._plot3d:
+        #     fig = plt.figure()
+        #     ax = fig.add_subplot(111, projection='3d')
+        #     ax.plot_surface(X, Y, Z, cmap=color_style,
+        #                     linewidth=0, antialiased=False)
 
     def draw_ws_line(self, line, color='r'):
-        [plt.plot(point[0], point[1], color + 'o') for point in line]
+        [self._ax.plot(point[0], point[1], color + 'o') for point in line]
 
     def draw_ws_point(self, point, color='b'):
-        plt.plot(point[0], point[1], color + 'x')
+        self._ax.plot(point[0], point[1], color + 'x')
 
     def show(self):
         plt.show()
@@ -138,11 +166,10 @@ class WorkspaceDrawer(WorkspaceRender):
 
 class WorkspaceOpenGl(WorkspaceRender):
 
-    """ Workspace Drawer based on pyglet backend """
+    """ Workspace display based on pyglet backend """
 
     def __init__(self, workspace, display=None):
-        self._workspace = workspace
-        self._extends = workspace.box.extends()
+        WorkspaceRender.__init__(self, workspace)
         self._scale = 700.
         self.width = self._scale * (self._extends.x_max - self._extends.x_min)
         self.height = self._scale * (self._extends.y_max - self._extends.y_min)

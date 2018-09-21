@@ -114,31 +114,47 @@ def draw_grids(data):
     plt.close(fig)
 
 
-def draw_all_workspaces(basename):
+def draw_all_workspaces(basename, multicol=True):
     dataset = load_workspace_dataset(basename)
-    for ws in dataset:
-        viewer = render.WorkspaceDrawer(ws.workspace, wait_for_keyboard=True)
-        viewer.draw_ws_img(ws.costmap)
-        viewer.draw_ws_obstacles()
-        if ws.demonstrations:
-            for trajectory in ws.demonstrations:
-                configurations = trajectory.list_configurations()
-                viewer.draw_ws_line(configurations, color="r")
-                viewer.draw_ws_point(configurations[0], color="k")
+    rows = 1
+    cols = 1
+    t_sleep = 0.4
+    if multicol:
+        rows = 3
+        cols = 4
+        t_sleep = 3.
+    for workspaces in izip(*[iter(dataset)] * (rows * cols)):
+        viewer = render.WorkspaceDrawer(
+            workspaces[0].workspace,
+            wait_for_keyboard=False, rows=rows, cols=cols, scale=1.5)
+        for k, ws in enumerate(workspaces):
+            viewer.set_drawing_axis(k)
+            viewer.set_workspace(ws.workspace)
+            viewer.draw_ws_img(ws.costmap)
+            viewer.draw_ws_obstacles()
+            if ws.demonstrations:
+                for trajectory in ws.demonstrations:
+                    configurations = trajectory.list_configurations()
+                    viewer.draw_ws_line(configurations, color="r")
+                    viewer.draw_ws_point(configurations[0], color="k")
         viewer.show_once()
-        time.sleep(.4)
+        time.sleep(t_sleep)
 
 if __name__ == '__main__':
 
-    parser = optparse.OptionParser("usage: %prog [options] arg1 arg2")
+    parser = optparse.OptionParser("usage: %prog [options]")
     add_boolean_options(
         parser,
         ['verbose',          # prints debug information
          'trajectories',     # displays the trajectories
          'costmaps',         # displays the costmaps
-         'workspaces'        # displays the workspaces
          ])
     parser.add_option('--basename', type='string', default='1k_small.hdf5')
     options, args = parser.parse_args()
-    # draw_all_costmaps(options.basename)
-    draw_all_workspaces(options.basename)
+
+    if options.costmaps:
+        draw_all_costmaps(options.basename)
+    elif options.trajectories:
+        draw_all_workspaces(options.basename)
+    else:
+        print parser.print_help()
