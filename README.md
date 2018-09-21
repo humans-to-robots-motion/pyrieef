@@ -14,7 +14,7 @@ Run all tests
 
 Result of
 
-    python example/plot_barrier.py
+    python examples/plot_barrier.py
 
 [![EF](https://s22.postimg.cc/bqln6ds2p/image.png)](https://postimg.cc/image/62fcfhnq5/)
 
