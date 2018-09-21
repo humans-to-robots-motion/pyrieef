@@ -107,7 +107,7 @@ def trajectory_optimization():
     else:
         from pyrieef.rendering import workspace_renderer
         from pyrieef.rendering import opengl
-        viewer = workspace_renderer.WorkspaceRender(workspace)
+        viewer = workspace_renderer.WorkspaceOpenGl(workspace)
         viewer.draw_ws_background(optimizer.obstacle_costmap())
         # viewer.draw_ws_obstacles()
 
@@ -121,7 +121,7 @@ def trajectory_optimization():
                     q = trajectory.configuration(k)
                     viewer.draw_ws_circle(.01, q)
                     viewer.draw_ws_line(q, g_traj.configuration(k))
-                viewer.render()
+                viewer.show()
                 time.sleep(0.02)
         raw_input("Press Enter to continue...")
 

@@ -39,7 +39,7 @@ class TrajectoryOptimizationViewer:
             self.init_viewer()
 
     def init_viewer(self):
-        self.viewer = renderer.WorkspaceRender(
+        self.viewer = renderer.WorkspaceOpenGl(
             self.objective.workspace)
         self.viewer.draw_ws_background(self.objective.obstacle_costmap())
 
@@ -71,5 +71,5 @@ class TrajectoryOptimizationViewer:
                 .01, q, color=(0, 0, 1) if k == 0 else (0, 1, 0))
             if g_traj is not None:
                 self.viewer.draw_ws_line(q, g_traj.configuration(k))
-        self.viewer.render()
+        self.viewer.show()
         time.sleep(0.1)
