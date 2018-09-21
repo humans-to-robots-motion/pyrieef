@@ -69,6 +69,10 @@ def draw_one_data_point(fig, lim,
         ax2.set_title('Chomp Cost', fontsize=draw_fontsize)
 
 
+def draw_one_workspace(fig,
+    lim, occ, sdf, cost, numb_rows=1, row=0, ws=None
+
+
 # This function draws two images next to each other.
 
 
@@ -84,6 +88,12 @@ def draw_grids(data):
 
 if __name__ == '__main__':
 
+    parser = optparse.OptionParser("usage: %prog [options] arg1 arg2")
+    add_boolean_options(parser, [
+        'verbose',          # prints debug information
+        'trajectories'      # displays the trajectories
+    ])
+
     data = dict_to_object(
         load_dictionary_from_file(filename='costdata2d_1k_small.hdf5'))
     print "Data is now loaded !!!"
@@ -91,12 +101,12 @@ if __name__ == '__main__':
     print " -- lims : ", data.lims
     print " -- datasets.shape : ", data.datasets.shape
 
-    data_ws = dict_to_object(
+    data_ws=dict_to_object(
         load_dictionary_from_file(filename='workspaces_1k_small.hdf5'))
     print " -- data_ws.shape : ", data_ws.datasets.shape
 
     print " -- displaying with matplotlib..."
-    dataset_id = 0
+    dataset_id=0
     for data1, data2, data3, data4 in izip(*[iter(data.datasets)] * 4):
         fig = plt.figure(figsize=(5, 6))
 

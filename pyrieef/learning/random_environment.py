@@ -120,7 +120,7 @@ def random_environments(opt):
     resolution_y = 1. / opt.ysize
     save_workspace = True
     if opt.seed >= 0:
-        print  "set random seed ({})".format(opt.seed)
+        print "set random seed ({})".format(opt.seed)
         np.random.seed(opt.seed)
 
     if resolution_x != resolution_y:
@@ -202,6 +202,33 @@ def random_environments(opt):
     workspaces["datasets"] = np.stack(dataws)
 
     return data, workspaces
+
+
+def create_circles_workspace(box, ws):
+    """ Creates circle dataset from array """
+    workspace = Workspace(box)
+    for i in range(ws[0].shape[0]):
+        center = ws[0][i]
+        radius = ws[1][i][0]
+        if radius > 0:
+            workspace.add_circle(center, radius)
+    return workspace
+
+
+def load_workspaces_from_file(filename='workspaces_1k_small.hdf5'):
+    """ Load data from an hdf5 file """
+    data_ws = dict_to_object(load_dictionary_from_file(filename))
+    print(" -- size : ", data_ws.size)
+    print(" -- lims : ", data_ws.lims.flatten())
+    print(" -- datasets.shape : ", data_ws.datasets.shape)
+    print(" -- data_ws.shape : ", data_ws.datasets.shape)
+    box = box_from_limits(
+        data_ws.lims[0, 0], data_ws.lims[0, 1],
+        data_ws.lims[1, 0], data_ws.lims[1, 1])
+    workspaces = [None] * len(data_ws.datasets)
+    for k, ws in enumerate(data_ws.datasets):
+        workspaces[k] = create_circles_workspace(box, ws)
+    return workspaces
 
 
 if __name__ == '__main__':

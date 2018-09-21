@@ -21,26 +21,16 @@ from __future__ import print_function
 import common_imports
 from graph.shortest_path import *
 from learning.dataset import *
+from learning.random_environment import *
 from learning.utils import *
 from geometry.workspace import *
 from motion.cost_terms import *
 from motion.trajectory import *
 from motion.objective import *
-import rendering.workspace_renderer as render
 from tqdm import tqdm
 import time
 from utils.options import *
 from utils.collision_checking import *
-
-
-def load_circles_workspace(ws, box):
-    workspace = Workspace(box)
-    for i in range(ws[0].shape[0]):
-        center = ws[0][i]
-        radius = ws[1][i][0]
-        if radius > 0:
-            workspace.add_circle(center, radius)
-    return workspace
 
 
 def save_trajectories_to_file(trajectories):
@@ -133,6 +123,7 @@ def compute_demonstration(
         result[i] = optimized_trajectory.configuration(i)
 
     if show_result:
+        import rendering.workspace_renderer as render
         viewer = render.WorkspaceDrawer(workspace, wait_for_keyboard=True)
         viewer.draw_ws_background(phi, nb_points)
         viewer.draw_ws_obstacles()
@@ -156,32 +147,18 @@ if __name__ == '__main__':
     show_demo_id = -1
     average_cost = options.average_cost
     nb_points = 24
-
     print(" -- options : ", options)
-
-    data_ws = dict_to_object(
-        load_dictionary_from_file(filename='workspaces_1k_small.hdf5'))
-    print(" -- size : ", data_ws.size)
-    print(" -- lims : ", data_ws.lims.flatten())
-    print(" -- datasets.shape : ", data_ws.datasets.shape)
-    print(" -- data_ws.shape : ", data_ws.datasets.shape)
-    x_min = data_ws.lims[0, 0]
-    x_max = data_ws.lims[0, 1]
-    y_min = data_ws.lims[1, 0]
-    y_max = data_ws.lims[1, 1]
-    box = box_from_limits(x_min, x_max, y_min, y_max)
-
     converter = CostmapToSparseGraph(
         np.ones((nb_points, nb_points)), average_cost)
     converter.convert()
     np.random.seed(1)
-
-    trajectories = [None] * len(data_ws.datasets)
-    for k, ws in enumerate(tqdm(data_ws.datasets)):
+    workspaces = load_workspaces_from_file(filename='workspaces_1k_small.hdf5')
+    trajectories = [None] * len(workspaces)
+    for k, workspace in enumerate(tqdm(workspaces)):
         if verbose:
             print("Compute demo ", k)
         trajectories[k] = compute_demonstration(
-            load_circles_workspace(ws, box),
+            workspace,
             converter,
             nb_points=nb_points,
             # show_result=show_result,
