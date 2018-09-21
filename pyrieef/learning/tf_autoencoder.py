@@ -105,3 +105,4 @@ with tf.Session() as sess:
         plt.subplot(5, 10, i+1)
         plt.imshow(batch_img[i, ..., 0], cmap='gray')
     plt.show()
+    

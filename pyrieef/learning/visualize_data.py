@@ -21,9 +21,10 @@ import common_imports
 import matplotlib.pyplot as plt
 from itertools import izip
 from dataset import *
-from random_environment import *
 from utils.options import *
 from utils.misc import *
+import rendering.workspace_renderer as render
+import time
 
 # if running in the
 # The default python provided in (Ana)Conda is not a framework build. However,
@@ -61,15 +62,15 @@ def draw_one_data_point(fig, lim,
         ax2.set_title('Chomp Cost', fontsize=draw_fontsize)
 
 
-def draw_all_costmaps():
+def draw_all_costmaps(basename='1k_small.hdf5'):
 
     data = dict_to_object(
-        load_dictionary_from_file(filename='costdata2d_1k_small.hdf5'))
+        load_dictionary_from_file(filename='costdata2d_' + str(basename)))
     print "Data is now loaded !!!"
     print " -- size : ", data.size
     print " -- lims : ", data.lims
     print " -- datasets.shape : ", data.datasets.shape
-    workspaces = load_workspaces_from_file(filename='workspaces_1k_small.hdf5')
+    workspaces = load_workspaces_from_file(filename='workspaces_' + basename)
 
     print " -- displaying with matplotlib..."
     dataset_id = 0
@@ -112,13 +113,32 @@ def draw_grids(data):
     # raw_input("Press [enter] to continue.")
     plt.close(fig)
 
+
+def draw_all_workspaces(basename):
+    dataset = load_workspace_dataset(basename)
+    for ws in dataset:
+        print ws.workspace
+        viewer = render.WorkspaceDrawer(ws.workspace, wait_for_keyboard=True)
+        print ws.costmap
+        viewer.draw_ws_img(ws.costmap)
+        viewer.draw_ws_obstacles()
+        if ws.demonstrations:
+            for d in ws.demonstrations:
+                viewer.draw_ws_line(interpolated_traj, color="r")
+        viewer.show_once()
+        time.sleep(.4)
+
 if __name__ == '__main__':
 
     parser = optparse.OptionParser("usage: %prog [options] arg1 arg2")
     add_boolean_options(
         parser,
         ['verbose',          # prints debug information
-         'trajectories'      # displays the trajectories
+         'trajectories',     # displays the trajectories
+         'costmaps',         # displays the costmaps
+         'workspaces'        # displays the workspaces
          ])
-
-    draw_all_costmaps()
+    parser.add_option('--basename', type='string', default='1k_small.hdf5')
+    options, args = parser.parse_args()
+    # draw_all_costmaps(options.basename)
+    draw_all_workspaces(options.basename)

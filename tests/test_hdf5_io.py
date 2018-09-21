@@ -19,7 +19,7 @@
 
 import __init__
 from learning.dataset import *
-from learning.utils import *
+from utils.misc import *
 import numpy as np
 
 

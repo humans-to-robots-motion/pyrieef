@@ -127,20 +127,24 @@ class WorkspaceDrawer:
 
     def draw_ws_background(self, phi, nb_points=100):
         X, Y = self._workspace.box.meshgrid(nb_points)
-        Z = phi(np.stack([X, Y]))
-        color_style = plt.cm.hot
-        color_style = plt.cm.bone
-        color_style = plt.cm.magma
-        im = plt.imshow(Z,
-                        extent=self._workspace.box.box_extends(),
-                        origin='lower',
-                        interpolation='nearest',
-                        vmin=0,
-                        vmax=100,
-                        cmap=color_style)
+        Z = phi(np.stack([X, Y])).transpose()
+        self.draw_ws_img(Z)
+
+    def draw_ws_img(self, Z):
+        # color_style = plt.cm.hot
+        # color_style = plt.cm.bone
+        # color_style = plt.cm.magma
+        color_style = plt.cm.viridis
+        im = plt.imshow(
+            Z.transpose(),
+            extent=self._workspace.box.box_extends(),
+            origin='lower',
+            interpolation='nearest',
+            # vmin=0,
+            # vmax=100,
+            cmap=color_style)
         plt.colorbar(im, fraction=0.05, pad=0.02)
         # cs = plt.contour(X, Y, Z, 16, cmap=color_style)
-
         if self._plot3d:
             fig = plt.figure()
             ax = fig.add_subplot(111, projection='3d')

@@ -21,58 +21,11 @@
 import h5py
 import os
 from utils import *
+from utils.misc import *
 import numpy as np
+from geometry.workspace import *
+
 # TODO write some import test
-
-
-class CostmapDataset:
-
-    def __init__(self, filename):
-        print('==> Loading dataset from: ' + filename)
-        data = dict_to_object(load_dictionary_from_file(filename))
-        self._max_index = 1000
-        self._size_limit = True
-        if not self._size_limit:
-            self._max_index = len(data)
-        self.train_per = 0.80
-        print('Sorting out inputs and targets...')
-        self.split_data(data)
-        print(' - num. inputs : {}, shape : {}'.format(
-            len(self.train_inputs),
-            self.train_inputs.shape))
-        print(' - num. targets : {}, shape : {}'.format(
-            len(self.train_targets),
-            self.train_targets.shape))
-
-    def split_data(self, data):
-        """Load datasets afresh, train_per should be between 0 and 1"""
-        assert self.train_per >= 0. and self.train_per < 1.
-        num_data = min(self._max_index, len(data.datasets))
-        num_train = int(round(self.train_per * num_data))
-        num_test = num_data - num_train
-        print(" num_train : {}, num_test : {}".format(num_train, num_test))
-        self.train_inputs = []
-        self.train_targets = []
-        self.test_inputs = []
-        self.test_targets = []
-        for i, d in enumerate(data.datasets):
-            occupancy = d[0]
-            costmap = d[2]
-            if i < num_train:
-                self.train_inputs.append(occupancy)
-                self.train_targets.append(costmap)
-            else:
-                self.test_inputs.append(occupancy)
-                self.test_targets.append(costmap)
-            if i == self._max_index - 1 and self._size_limit:
-                break
-        self.train_inputs = np.array(self.train_inputs)
-        self.train_targets = np.array(self.train_targets)
-        if num_test > 0:
-            self.test_inputs = np.array(self.test_inputs)
-            self.test_targets = np.array(self.test_targets)
-        assert len(self.train_inputs) == num_train
-        assert len(self.test_inputs) == num_test
 
 
 def learning_data_dir():
@@ -173,3 +126,132 @@ def import_tf_data(filename='costdata2d_10k.hdf5'):
             rawdata.test_inputs,
             rawdata.test_targets))
     return dataset_train, dataset_test
+
+
+def create_circles_workspace(box, ws):
+    """ Creates circle dataset from array """
+    workspace = Workspace(box)
+    for i in range(ws[0].shape[0]):
+        center = ws[0][i]
+        radius = ws[1][i][0]
+        if radius > 0:
+            workspace.add_circle(center, radius)
+    return workspace
+
+
+def load_workspaces_from_file(filename='workspaces_1k_small.hdf5'):
+    """ Load data from an hdf5 file """
+    data_ws = dict_to_object(load_dictionary_from_file(filename))
+    print(" -- size : ", data_ws.size)
+    print(" -- lims : ", data_ws.lims.flatten())
+    print(" -- datasets.shape : ", data_ws.datasets.shape)
+    print(" -- data_ws.shape : ", data_ws.datasets.shape)
+    box = box_from_limits(
+        data_ws.lims[0, 0], data_ws.lims[0, 1],
+        data_ws.lims[1, 0], data_ws.lims[1, 1])
+    workspaces = [None] * len(data_ws.datasets)
+    for k, ws in enumerate(data_ws.datasets):
+        workspaces[k] = create_circles_workspace(box, ws)
+    return workspaces
+
+
+def save_trajectories_to_file(
+        trajectories, filename='trajectories_1k_small.hdf5'):
+    nb_traj = len(trajectories)
+    assert nb_traj > 0
+    length = trajectories[0].x().size
+    trajectories_data = [np.zeros(length)] * nb_traj
+    for i, traj in enumerate(trajectories):
+        trajectories_data[i] = traj.x()
+    data = {}
+    data["n"] = trajectories[0].n()
+    data["datasets"] = np.stack(trajectories_data)
+    write_dictionary_to_file(data, filename=filename)
+
+
+def load_trajectories_from_file(filename='trajectories_1k_small.hdf5'):
+    """ Load data from an hdf5 file """
+    data = dict_to_object(load_dictionary_from_file(filename))
+    n = data.n
+    trajectories = [None] * len(data.datasets)
+    for k, trj in enumerate(data.datasets):
+        trajectories[k] = Trajectories(trj[:n], trj)
+    return trajectories
+
+
+class CostmapDataset:
+
+    def __init__(self, filename):
+        print('==> Loading dataset from: ' + filename)
+        data = dict_to_object(load_dictionary_from_file(filename))
+        self._max_index = 1000
+        self._size_limit = True
+        if not self._size_limit:
+            self._max_index = len(data)
+        self.train_per = 0.80
+        print('Sorting out inputs and targets...')
+        self.split_data(data)
+        print(' - num. inputs : {}, shape : {}'.format(
+            len(self.train_inputs),
+            self.train_inputs.shape))
+        print(' - num. targets : {}, shape : {}'.format(
+            len(self.train_targets),
+            self.train_targets.shape))
+
+    def split_data(self, data):
+        """ Load datasets afresh, train_per should be between 0 and 1 """
+        assert self.train_per >= 0. and self.train_per < 1.
+        num_data = min(self._max_index, len(data.datasets))
+        num_train = int(round(self.train_per * num_data))
+        num_test = num_data - num_train
+        print(" num_train : {}, num_test : {}".format(num_train, num_test))
+        self.train_inputs = []
+        self.train_targets = []
+        self.test_inputs = []
+        self.test_targets = []
+        for i, d in enumerate(data.datasets):
+            occupancy = d[0]
+            costmap = d[2]
+            if i < num_train:
+                self.train_inputs.append(occupancy)
+                self.train_targets.append(costmap)
+            else:
+                self.test_inputs.append(occupancy)
+                self.test_targets.append(costmap)
+            if i == self._max_index - 1 and self._size_limit:
+                break
+        self.train_inputs = np.array(self.train_inputs)
+        self.train_targets = np.array(self.train_targets)
+        if num_test > 0:
+            self.test_inputs = np.array(self.test_inputs)
+            self.test_targets = np.array(self.test_targets)
+        assert len(self.train_inputs) == num_train
+        assert len(self.test_inputs) == num_test
+
+
+class WorkspaceData:
+
+    def __init__(self):
+        self.workspace = None
+        self.occupancy = None
+        self.costmap = None
+        self.signed_distance_field = None
+        self.demonstrations = None
+
+
+def load_workspace_dataset(basename="1k_small.hdf5"):
+    file_ws = 'workspaces_' + basename
+    file_cost = 'costdata2d_' + basename
+    dataset = WorkspaceData()
+    workspaces = load_workspaces_from_file(file_ws)
+    data = dict_to_object(load_dictionary_from_file(file_cost))
+    assert len(workspaces) == len(data.datasets)
+    workspaces_dataset = [None] * len(workspaces)
+    for k, data_file in enumerate(data.datasets):
+        ws = WorkspaceData()
+        ws.workspace = workspaces[k]
+        ws.occupancy = data_file[0]
+        ws.signed_distance_field = data_file[1]
+        ws.costmap = data_file[2]
+        workspaces_dataset[k] = ws
+    return workspaces_dataset

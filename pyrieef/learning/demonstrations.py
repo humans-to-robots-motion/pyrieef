@@ -33,21 +33,6 @@ from utils.options import *
 from utils.collision_checking import *
 
 
-def save_trajectories_to_file(trajectories):
-    max_length = 0
-    for t in trajectories:
-        if len(t) > max_length:
-            max_length = len(t)
-    trajectories_data = [-1000. * np.ones((max_length, 2))] * len(trajectories)
-    for i, t in enumerate(trajectories):
-        for k, q in enumerate(t):
-            trajectories_data[i][k] = q
-
-    data = {}
-    data["datasets"] = np.stack(trajectories_data)
-    write_dictionary_to_file(data, filename='trajectories_1k_small.hdf5')
-
-
 def optimize(path, workspace, costmap, verbose=False):
     T = len(path) - 1
     trajectory = Trajectory(T, 2)
@@ -135,7 +120,7 @@ def compute_demonstration(
         viewer.show_once()
         time.sleep(.4)
 
-    return path
+    return optimized_trajectory
 
 if __name__ == '__main__':
 
