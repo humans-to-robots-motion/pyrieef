@@ -152,11 +152,10 @@ class WorkspaceDrawer:
                             linewidth=0, antialiased=False)
 
     def draw_ws_line(self, line, color='r'):
-        for q in line:
-            plt.plot(q[0], q[1], color + 'o')
+        [plt.plot(point[0], point[1], color + 'o') for point in line]
 
-    def draw_ws_point(self, point):
-        plt.plot(point[0], point[1], 'bx')
+    def draw_ws_point(self, point, color='b'):
+        plt.plot(point[0], point[1], color + 'x')
 
     def show(self):
         plt.show()

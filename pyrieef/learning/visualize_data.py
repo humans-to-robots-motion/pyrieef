@@ -124,7 +124,7 @@ def draw_all_workspaces(basename):
             for trajectory in ws.demonstrations:
                 configurations = trajectory.list_configurations()
                 viewer.draw_ws_line(configurations, color="r")
-                print trajectory
+                viewer.draw_ws_point(configurations[0], color="k")
         viewer.show_once()
         time.sleep(.4)
 
