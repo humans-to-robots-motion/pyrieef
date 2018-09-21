@@ -17,11 +17,13 @@
 #
 #                                        Jim Mainprice on Sunday June 13 2018
 
-
+import common_imports
 import matplotlib.pyplot as plt
 from itertools import izip
 from dataset import *
-from utils import *
+from random_environment import *
+from utils.options import *
+from utils.misc import *
 
 # if running in the
 # The default python provided in (Ana)Conda is not a framework build. However,
@@ -31,7 +33,7 @@ from utils import *
 
 
 def draw_one_data_point(fig, lim,
-                        occ, sdf, cost, numb_rows=1, row=0, ws=None):
+                        occ, sdf, cost, numb_rows=1, row=0, workspace=None):
 
     # x_min, x_max, y_min, y_max
     extend = np.array([lim[0][0], lim[0][1], lim[1][0], lim[1][1]])
@@ -43,19 +45,9 @@ def draw_one_data_point(fig, lim,
     ax2 = fig.add_subplot(numb_rows, 3, 3 + 3 * row)
     image_2 = plt.imshow(cost.transpose(), extent=extend, origin='lower')
 
-    if ws is not None:
-        center_0 = ws[0][0]
-        radius_0 = ws[1][0][0]
-        center_1 = ws[0][1]
-        radius_1 = ws[1][1][0]
-        center_2 = ws[0][2]
-        radius_2 = ws[1][2][0]
-        if radius_0 > 0:
-            ax0.plot(center_0[0], center_0[1], "rx")
-        if radius_1 > 0:
-            ax0.plot(center_1[0], center_1[1], "rx")
-        if radius_2 > 0:
-            ax0.plot(center_2[0], center_2[1], "rx")
+    if workspace is not None:
+        for circle in workspace.obstacles:
+            ax0.plot(circle.origin[0], circle.origin[1], "rx")
 
     draw_fontsize = 5
 
@@ -69,14 +61,48 @@ def draw_one_data_point(fig, lim,
         ax2.set_title('Chomp Cost', fontsize=draw_fontsize)
 
 
-def draw_one_workspace(fig,
-    lim, occ, sdf, cost, numb_rows=1, row=0, ws=None
+def draw_all_costmaps():
 
+    data = dict_to_object(
+        load_dictionary_from_file(filename='costdata2d_1k_small.hdf5'))
+    print "Data is now loaded !!!"
+    print " -- size : ", data.size
+    print " -- lims : ", data.lims
+    print " -- datasets.shape : ", data.datasets.shape
+    workspaces = load_workspaces_from_file(filename='workspaces_1k_small.hdf5')
 
-# This function draws two images next to each other.
+    print " -- displaying with matplotlib..."
+    dataset_id = 0
+    for data1, data2, data3, data4 in izip(*[iter(data.datasets)] * 4):
+        fig = plt.figure(figsize=(5, 6))
+        # fig = plt.figure(figsize=(8, 9))
+
+        ws1 = workspaces[dataset_id + 0]
+        ws2 = workspaces[dataset_id + 1]
+        ws3 = workspaces[dataset_id + 2]
+        ws4 = workspaces[dataset_id + 3]
+
+        draw_one_data_point(
+            fig, data.lims, data1[0], data1[1], data1[2], 4, 0, ws1)
+        draw_one_data_point(
+            fig, data.lims, data2[0], data2[1], data2[2], 4, 1, ws2)
+        draw_one_data_point(
+            fig, data.lims, data3[0], data3[1], data3[2], 4, 2, ws3)
+        draw_one_data_point(
+            fig, data.lims, data4[0], data4[1], data4[2], 4, 3, ws4)
+
+        dataset_id += 4
+        # centers =
+        plt.show(block=False)
+        plt.draw()
+        plt.pause(0.0001)
+
+        # raw_input("Press [enter] to continue.")
+        plt.close(fig)
 
 
 def draw_grids(data):
+    """ This function draws two images next to each other. """
     fig = plt.figure(figsize=(5, 2))
     draw_one_data_point(fig, data[0], data[1], data[2])
     plt.show(block=False)
@@ -89,46 +115,10 @@ def draw_grids(data):
 if __name__ == '__main__':
 
     parser = optparse.OptionParser("usage: %prog [options] arg1 arg2")
-    add_boolean_options(parser, [
-        'verbose',          # prints debug information
-        'trajectories'      # displays the trajectories
-    ])
+    add_boolean_options(
+        parser,
+        ['verbose',          # prints debug information
+         'trajectories'      # displays the trajectories
+         ])
 
-    data = dict_to_object(
-        load_dictionary_from_file(filename='costdata2d_1k_small.hdf5'))
-    print "Data is now loaded !!!"
-    print " -- size : ", data.size
-    print " -- lims : ", data.lims
-    print " -- datasets.shape : ", data.datasets.shape
-
-    data_ws=dict_to_object(
-        load_dictionary_from_file(filename='workspaces_1k_small.hdf5'))
-    print " -- data_ws.shape : ", data_ws.datasets.shape
-
-    print " -- displaying with matplotlib..."
-    dataset_id=0
-    for data1, data2, data3, data4 in izip(*[iter(data.datasets)] * 4):
-        fig = plt.figure(figsize=(5, 6))
-
-        data_ws1 = data_ws.datasets[dataset_id + 0]
-        data_ws2 = data_ws.datasets[dataset_id + 1]
-        data_ws3 = data_ws.datasets[dataset_id + 2]
-        data_ws4 = data_ws.datasets[dataset_id + 3]
-
-        draw_one_data_point(fig, data.lims,
-                            data1[0], data1[1], data1[2], 4, 0, data_ws1)
-        draw_one_data_point(fig, data.lims,
-                            data2[0], data2[1], data2[2], 4, 1, data_ws2)
-        draw_one_data_point(fig, data.lims,
-                            data3[0], data3[1], data3[2], 4, 2, data_ws3)
-        draw_one_data_point(fig, data.lims,
-                            data4[0], data4[1], data4[2], 4, 3, data_ws4)
-
-        dataset_id += 4
-        # centers =
-        plt.show(block=False)
-        plt.draw()
-        plt.pause(0.0001)
-
-        # raw_input("Press [enter] to continue.")
-        plt.close(fig)
+    draw_all_costmaps()

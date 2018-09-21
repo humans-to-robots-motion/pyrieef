@@ -22,7 +22,7 @@ import common_imports
 from graph.shortest_path import *
 from learning.dataset import *
 from learning.random_environment import *
-from learning.utils import *
+from utils.misc import *
 from geometry.workspace import *
 from motion.cost_terms import *
 from motion.trajectory import *
@@ -143,14 +143,14 @@ if __name__ == '__main__':
     add_boolean_options(parser, ['verbose', 'show_result', 'average_cost'])
     (options, args) = parser.parse_args()
     verbose = options.verbose
-    show_result = options.show_result
     show_demo_id = -1
-    average_cost = options.average_cost
     nb_points = 24
     print(" -- options : ", options)
+
     converter = CostmapToSparseGraph(
-        np.ones((nb_points, nb_points)), average_cost)
+        np.ones((nb_points, nb_points)), options.average_cost)
     converter.convert()
+
     np.random.seed(1)
     workspaces = load_workspaces_from_file(filename='workspaces_1k_small.hdf5')
     trajectories = [None] * len(workspaces)
@@ -162,9 +162,9 @@ if __name__ == '__main__':
             converter,
             nb_points=nb_points,
             # show_result=show_result,
-            show_result=(show_demo_id == k or show_result),
-            average_cost=average_cost,
+            show_result=(show_demo_id == k or options.show_result),
+            average_cost=options.average_cost,
             verbose=verbose)
-        if show_demo_id == k and not show_result:
+        if show_demo_id == k and not options.show_result:
             break
     save_trajectories_to_file(trajectories)

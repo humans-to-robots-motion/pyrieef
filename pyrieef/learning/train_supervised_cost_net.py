@@ -106,6 +106,28 @@ def parse_options():
     return (opt, args)
 
 
+def load_saved_network(savedFile, loadOnlyModel):
+    """Load trained data """
+    data = torch.load(savedFile)
+
+    # Load all the data in the file
+    if loadOnlyModel:
+        print('Loading only the saved network from: ', opt.preTrained)
+        model = data.model  # Use cleaned up model
+    else:
+        print('Loading all saved data from: ', opt.preTrained)
+        model = data.model  # Use cleaned up model
+        rngstate = data.rngstate  # Random number generator state
+        opt = data.opt or {}  # Save the options
+        currEpoch = data.currepoch or 1  # Save the number of training epochs
+        trainLoss = data.trainloss or {}  # Training loss/batch
+        testLoss = data.testloss or {}  # Test loss/batch
+        optimMethod = data.optimmethod or nil  # Save optimization method
+        # Save optimizer state (for optimizers like ADAM, this helps)
+        optimState = data.optimstate or nil
+        torch.setRNGState(data.rngstate)  # Set random number state
+
+
 def create_loss_function(opt):
     """
      b1) Setup progress/loss logging (Do not overwrite existing
