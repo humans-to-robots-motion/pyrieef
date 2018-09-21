@@ -24,6 +24,7 @@ from utils import *
 from utils.misc import *
 import numpy as np
 from geometry.workspace import *
+from motion.trajectory import Trajectory
 
 # TODO write some import test
 
@@ -164,7 +165,7 @@ def save_trajectories_to_file(
     for i, traj in enumerate(trajectories):
         trajectories_data[i] = traj.x()
     data = {}
-    data["n"] = trajectories[0].n()
+    data["n"] = np.array([trajectories[0].n()])
     data["datasets"] = np.stack(trajectories_data)
     write_dictionary_to_file(data, filename=filename)
 
@@ -172,10 +173,12 @@ def save_trajectories_to_file(
 def load_trajectories_from_file(filename='trajectories_1k_small.hdf5'):
     """ Load data from an hdf5 file """
     data = dict_to_object(load_dictionary_from_file(filename))
-    n = data.n
+    print(" -- trajectories * n : {}".format(data.n[0]))
+    print(" -- trajectories * l : {}".format(len(data.datasets)))
+    n = data.n[0]
     trajectories = [None] * len(data.datasets)
     for k, trj in enumerate(data.datasets):
-        trajectories[k] = Trajectories(trj[:n], trj)
+        trajectories[k] = Trajectory(q_init=trj[:n], x=trj)
     return trajectories
 
 
@@ -242,14 +245,17 @@ class WorkspaceData:
 def load_workspace_dataset(basename="1k_small.hdf5"):
     file_ws = 'workspaces_' + basename
     file_cost = 'costdata2d_' + basename
+    file_trj = 'trajectories_' + basename
     dataset = WorkspaceData()
     workspaces = load_workspaces_from_file(file_ws)
+    trajectories = load_trajectories_from_file(file_trj)
     data = dict_to_object(load_dictionary_from_file(file_cost))
     assert len(workspaces) == len(data.datasets)
     workspaces_dataset = [None] * len(workspaces)
     for k, data_file in enumerate(data.datasets):
         ws = WorkspaceData()
         ws.workspace = workspaces[k]
+        ws.demonstrations = [trajectories[k]]
         ws.occupancy = data_file[0]
         ws.signed_distance_field = data_file[1]
         ws.costmap = data_file[2]

@@ -117,14 +117,14 @@ def draw_grids(data):
 def draw_all_workspaces(basename):
     dataset = load_workspace_dataset(basename)
     for ws in dataset:
-        print ws.workspace
         viewer = render.WorkspaceDrawer(ws.workspace, wait_for_keyboard=True)
-        print ws.costmap
         viewer.draw_ws_img(ws.costmap)
         viewer.draw_ws_obstacles()
         if ws.demonstrations:
-            for d in ws.demonstrations:
-                viewer.draw_ws_line(interpolated_traj, color="r")
+            for trajectory in ws.demonstrations:
+                configurations = trajectory.list_configurations()
+                viewer.draw_ws_line(configurations, color="r")
+                print trajectory
         viewer.show_once()
         time.sleep(.4)
 

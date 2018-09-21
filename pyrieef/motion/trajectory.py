@@ -305,6 +305,14 @@ class Trajectory:
         end_idx = self._n * (i + 2)
         return self._x[beg_idx:end_idx]
 
+    def list_configurations(self):
+        """ returns a list of configurations """
+        nb_config = self.T() + 1
+        line = [None] * nb_config
+        for t in range(nb_config):
+            line[t] = self.configuration(t)
+        return line
+
     def continuous_trajectory(self):
         """ returns an object of contunious type """
         trajectory = ContinuousTrajectory(self.T(), self.n())
