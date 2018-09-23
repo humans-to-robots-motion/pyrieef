@@ -81,10 +81,12 @@ class WorkspaceDrawer(WorkspaceRender):
     def __init__(self, workspace, wait_for_keyboard=False, 
             rows=1, cols=1, scale=1.):
         WorkspaceRender.__init__(self, workspace)
+        plt.rcParams.update({'font.size': int(scale * 5)})
         self._plot3d = False
         self._wait_for_keyboard = wait_for_keyboard
         self.size = scale * np.array([7, 6.5])
         self.init(rows, cols)
+
 
     def init(self, rows, cols):
         assert rows > 0 and cols > 0

@@ -114,7 +114,7 @@ def draw_grids(data):
     plt.close(fig)
 
 
-def draw_all_workspaces(basename, multicol=True):
+def draw_all_workspaces(basename, scale, multicol=True):
     dataset = load_workspace_dataset(basename)
     rows = 1
     cols = 1
@@ -126,7 +126,7 @@ def draw_all_workspaces(basename, multicol=True):
     for workspaces in izip(*[iter(dataset)] * (rows * cols)):
         viewer = render.WorkspaceDrawer(
             workspaces[0].workspace,
-            wait_for_keyboard=False, rows=rows, cols=cols, scale=1.5)
+            wait_for_keyboard=False, rows=rows, cols=cols, scale=scale)
         for k, ws in enumerate(workspaces):
             viewer.set_drawing_axis(k)
             viewer.set_workspace(ws.workspace)
@@ -150,11 +150,12 @@ if __name__ == '__main__':
          'costmaps',         # displays the costmaps
          ])
     parser.add_option('--basename', type='string', default='1k_small.hdf5')
+    parser.add_option('--scale', type='float', default=1.5)
     options, args = parser.parse_args()
 
     if options.costmaps:
         draw_all_costmaps(options.basename)
     elif options.trajectories:
-        draw_all_workspaces(options.basename)
+        draw_all_workspaces(options.basename, options.scale)
     else:
         print parser.print_help()
