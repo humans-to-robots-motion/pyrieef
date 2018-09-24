@@ -223,6 +223,14 @@ class SignedDistanceWorkspaceMap(DifferentiableMap):
         return [mindist, J_mindist]
 
 
+def occupancy_map(nb_points, workspace):
+    """ Returns an occupancy map in the form of a square matrix
+        using the signed distance field associated to a workspace object """
+    meshgrid = workspace.box.stacked_meshgrid(nb_points)
+    sdf = SignedDistanceWorkspaceMap(workspace)(meshgrid).transpose()
+    return (sdf < 0).astype(float)
+
+
 class Box:
     """
         A box is defined by an origin, which is its center.
@@ -284,6 +292,13 @@ def box_from_limits(x_min, x_max, y_min, y_max):
     return Box(
         origin=np.array([(x_min + x_max) / 2., (y_min + y_max) / 2.]),
         dim=np.array([x_max - x_min, y_max - y_min]))
+
+
+def pixelmap_from_box(nb_points, box):
+    extends = box.extends()
+    assert extends.x() == extends.y()  # Test is square
+    resolution = extends.x() / nb_points
+    return PixelMap(resolution, extends)
 
 
 class Workspace:

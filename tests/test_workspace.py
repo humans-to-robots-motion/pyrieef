@@ -89,8 +89,24 @@ def test_sdf_grid():
         assert_allclose(sdf(p), sdfmap[i, j])
 
 
+def test_workspace_to_occupancy_map():
+    np.random.seed(0)
+    np.set_printoptions(suppress=True, linewidth=200, precision=2)
+    nb_points = 10
+    workspace = Workspace()
+    for center, radius in sample_circles(nb_circles=5):
+        workspace.obstacles.append(Circle(center, radius))
+    occ = occupancy_map(nb_points, workspace)
+    pixel_map = pixelmap_from_box(nb_points, workspace.box)
+    for i, j in product(range(nb_points), range(nb_points)):
+        p = pixel_map.grid_to_world(np.array([i, j]))
+        v = float(workspace.min_dist(p)[0] < 0)
+        assert_allclose(occ[i, j], v)
+
+
 test_ellipse()
 test_sdf_derivatives()
 test_sdf_workspace()
 test_meshgrid()
 test_sdf_grid()
+test_workspace_to_occupancy_map()

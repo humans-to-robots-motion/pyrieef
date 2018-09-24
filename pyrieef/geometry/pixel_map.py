@@ -20,6 +20,17 @@
 import numpy as np
 from differentiable_geometry import *
 from scipy.interpolate import RectBivariateSpline
+from scipy import ndimage
+
+
+def edt(image):
+    return ndimage.distance_transform_edt(image == 0)
+
+
+def sdf(image):
+    dist1 = ndimage.distance_transform_edt(image == 0)
+    dist2 = ndimage.distance_transform_edt(image == 1)
+    return dist1 - dist2
 
 
 class Extends:
