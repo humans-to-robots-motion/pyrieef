@@ -211,9 +211,12 @@ class MotionOptimization2DCostMap:
             isometric_obstacle_cost = ProductFunction(
                 obstacle_potential,
                 squared_norm_vel)
-
+            
             self.function_network.register_function_for_all_cliques(
                 Scale(isometric_obstacle_cost, self._obstacle_scalar))
+
+    # def add_costmap_terms(self):
+
 
     def add_box_limits(self):
         v_lower = np.array([self.extends.x_min, self.extends.y_min])

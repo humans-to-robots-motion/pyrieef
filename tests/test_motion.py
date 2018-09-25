@@ -37,6 +37,20 @@ def test_finite_differences():
     print velocity.jacobian(np.zeros(dim * 3))
     assert check_jacobian_against_finite_difference(acceleration)
 
+    trajectory = Trajectory(T=10, n=2)
+    trajectory.x()[:] = np.random.random(trajectory.x().size)
+    print trajectory
+
+    dt = 0.1
+    vel_2d = FiniteDifferencesVelocity(2, dt)
+    acc_2d = FiniteDifferencesAcceleration(2, dt)
+    for t in range(trajectory.T()):
+        v_t = trajectory.velocity(t + 1, dt)
+        a_t = trajectory.acceleration(t + 1, dt)
+        c_t = trajectory.clique(t + 1)
+        assert_allclose(v_t, vel_2d(c_t[2:]))
+        assert_allclose(a_t, acc_2d(c_t))
+
 
 def test_cliques():
     A = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
@@ -53,6 +67,17 @@ def test_cliques():
     cliques = network.all_cliques(A)
     print cliques
     assert len(cliques) == (len(A) - 2)
+
+    T = 10
+    n = 2
+
+    trajectory = Trajectory(T, n)
+    trajectory.x()[:] = np.random.random(trajectory.x().size)
+    print trajectory
+
+    network = CliquesFunctionNetwork((n * (T + 2)), n)
+    for i, c in enumerate(network.all_cliques(trajectory.x())):
+        assert_allclose(c, trajectory.clique(i + 1))
 
 
 def test_trajectory():
@@ -404,10 +429,10 @@ def test_optimize():
     objective.optimize(q_init, nb_steps=5, optimizer="newton")
 
 if __name__ == "__main__":
+    test_finite_differences()
+    test_cliques()
     test_trajectory()
     test_continuous_trajectory()
-    test_cliques()
-    test_finite_differences()
     test_squared_norm_derivatives()
     test_bound_barrier()
     test_obstacle_potential()

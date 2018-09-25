@@ -298,6 +298,19 @@ class Trajectory:
         end_idx = self._n * (i + 1)
         return self._x[beg_idx:end_idx]
 
+    def velocity(self, i, dt):
+        """ returns an velocity at index i """
+        q_i_1 = self.configuration(i)
+        q_i_2 = self.configuration(i + 1)
+        return (q_i_2 - q_i_1) / dt
+
+    def acceleration(self, i, dt):
+        """ returns a acceleration at index i """
+        q_i_0 = self.configuration(i - 1)
+        q_i_1 = self.configuration(i)
+        q_i_2 = self.configuration(i + 1)
+        return (q_i_2 - 2 * q_i_1 + q_i_0) / (dt**2)
+
     def clique(self, i):
         """ returns a clique of 3 configurations """
         assert i >= 1 and i <= (self._T + 1)
