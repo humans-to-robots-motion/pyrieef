@@ -299,17 +299,41 @@ class Trajectory:
         return self._x[beg_idx:end_idx]
 
     def velocity(self, i, dt):
-        """ returns an velocity at index i """
-        q_i_1 = self.configuration(i)
-        q_i_2 = self.configuration(i + 1)
+        """ 
+        returns an velocity at index i
+            WARNING It is not the same convetion as on the clique
+                    Here we supposes the velocity at q_init to be 0
+                    this is not equivalent to right sided finite differences
+                    which is implemented in the cost term module.
+
+            Implementing left sideded makes more sense as we directly get 
+            the following integration scheme:
+
+                q_{t+1} = q_t + v_t * dt + a_t * dt^2
+
+            where v_t and a_t are velocity and acceleration at index t
+            """
+        if i == 0:
+            return np.zeros(self._n)
+        q_i_1 = self.configuration(i - 1)
+        q_i_2 = self.configuration(i)
         return (q_i_2 - q_i_1) / dt
 
     def acceleration(self, i, dt):
-        """ returns a acceleration at index i """
-        q_i_0 = self.configuration(i - 1)
+        """ 
+        returns a acceleration at index i
+            Note that we suppose velocity at q_init to be 0 """
+        id_init = 0 if i == 0 else i - 1
+        q_i_0 = self.configuration(id_init)
         q_i_1 = self.configuration(i)
         q_i_2 = self.configuration(i + 1)
         return (q_i_2 - 2 * q_i_1 + q_i_0) / (dt**2)
+
+    def state(self, i, dt):
+        """ return a tuple of configuration and velocity at slice i """
+        q_t = self.configuration(i)
+        v_t = self.velocity(i, dt)
+        return (q_t, v_t)
 
     def clique(self, i):
         """ returns a clique of 3 configurations """

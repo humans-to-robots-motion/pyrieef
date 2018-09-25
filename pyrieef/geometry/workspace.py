@@ -301,7 +301,7 @@ class EnvBox(Box):
 def box_from_limits(x_min, x_max, y_min, y_max):
     assert x_max > x_min
     assert y_max > y_min
-    return Box(
+    return EnvBox(
         origin=np.array([(x_min + x_max) / 2., (y_min + y_max) / 2.]),
         dim=np.array([x_max - x_min, y_max - y_min]))
 

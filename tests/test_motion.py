@@ -45,10 +45,12 @@ def test_finite_differences():
     vel_2d = FiniteDifferencesVelocity(2, dt)
     acc_2d = FiniteDifferencesAcceleration(2, dt)
     for t in range(1, trajectory.T()):
+        """ Warning velocity FD are right sided in the trajectory class and
+            left sided when compuded on the clique """
         v_t = trajectory.velocity(t, dt)
         a_t = trajectory.acceleration(t, dt)
         c_t = trajectory.clique(t)
-        assert_allclose(v_t, vel_2d(c_t[2:]))
+        assert_allclose(v_t, vel_2d(c_t[:4]))
         assert_allclose(a_t, acc_2d(c_t))
 
 
@@ -57,29 +59,30 @@ def test_integration():
     dt = 0.1
     trajectory = Trajectory(T=20, n=2)
     trajectory.x()[:] = np.random.random(trajectory.x().size)
+    print trajectory
 
     """
     Test velocity integration
         we test that a kinematic trajectory can be recovered
         by integrating the finite difference velocity profile
-        q_t1 = q_t0 + v_t1 * dt
+        q_t1 = q_t + v_t * dt
         """
     trajectory_zero = Trajectory(T=20, n=2)
     trajectory_zero.x()[:] = np.zeros(trajectory.x().size)
     q_t0 = trajectory.configuration(0).copy()
     trajectory_zero.configuration(0)[:] = q_t0
-    for t in range(1, trajectory.T() + 1):
-        v_t1 = trajectory.velocity(t - 1, dt)
-        q_t0 = trajectory_zero.configuration(t - 1)
-        q_t1 = q_t0 + v_t1 * dt
-        trajectory_zero.configuration(t)[:] = q_t1
+    for t in range(trajectory.T() + 1):
+        v_t = trajectory.velocity(t, dt)
+        q_t = trajectory_zero.configuration(t)
+        q_t1 = q_t + v_t * dt
+        trajectory_zero.configuration(t + 1)[:] = q_t1
         assert_allclose(q_t1, trajectory.configuration(t))
 
     """
     Test acceleration integration
         we test that a kinematic trajectory can be recovered
         by integrating the finite difference acceleration profile
-        q_t2 = q_t1 + v_t0 * dt + a_t1 * (dt ** 2)
+        q_t1 = q_t + v_t * dt + a_t * (dt ** 2)
         """
     trajectory_zero = Trajectory(T=20, n=2)
     trajectory_zero.x()[:] = np.zeros(trajectory.x().size)
@@ -87,13 +90,13 @@ def test_integration():
     q_t1 = trajectory.configuration(1).copy()
     trajectory_zero.configuration(0)[:] = q_t0
     trajectory_zero.configuration(1)[:] = q_t1
-    for t in range(1, trajectory.T() + 1):
-        a_t1 = trajectory.acceleration(t, dt)
-        v_t0 = trajectory_zero.velocity(t - 1, dt)
-        q_t1 = trajectory_zero.configuration(t)
-        q_t2 = q_t1 + v_t0 * dt + a_t1 * (dt ** 2)
-        trajectory_zero.configuration(t + 1)[:] = q_t2
-        assert_allclose(q_t2, trajectory.configuration(t + 1))
+    for t in range(trajectory.T() + 1):
+        a_t = trajectory.acceleration(t, dt)
+        v_t = trajectory_zero.velocity(t, dt)
+        q_t = trajectory_zero.configuration(t)
+        q_t1 = q_t + v_t * dt + a_t * (dt ** 2)
+        trajectory_zero.configuration(t + 1)[:] = q_t1
+        assert_allclose(q_t1, trajectory.configuration(t + 1))
 
 
 def test_cliques():
