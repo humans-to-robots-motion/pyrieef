@@ -196,11 +196,17 @@ class MotionOptimization2DCostMap:
                 deriv_order))
 
     def add_isometric_potential_to_all_cliques(self, potential, scalar):
+        """ 
+        Apply the following euqation to all cliques: 
 
+                c(x_t) | d/dt x_t |
+
+            The resulting Riemanian metric is isometric. TODO see paper.
+            Introduced in CHOMP, Ratliff et al. 2009.
+        """
         cost = Pullback(
             potential,
             self.function_network.center_of_clique_map())
-
         squared_norm_vel = Pullback(
             SquaredNormVelocity(self.config_space_dim, self.dt),
             self.function_network.right_of_clique_map())
@@ -215,16 +221,18 @@ class MotionOptimization2DCostMap:
             self.add_isometric_potential_to_all_cliques(
                 self.obstacle_potential, self._obstacle_scalar)
 
-    def add_costgrid_terms(self, costgrid):
-        assert costgrid.shape[0] == costgrid.shape[1]
+    def add_costgrid_terms(self, matrix, scalar):
+        """ Takes a matrix and adds a isometric potential term 
+            to all cliques """
+        assert matrix.shape[0] == matrix.shape[1]
         assert self.extends.x() == self.extends.y()
-        resolution = self.extends.x() / costgrid.shape[0]
-        self.costmap = RegressedPixelGridSpline(
-            costgrid,
-            resolution,
-            self.extends())
 
-        return 0
+        resolution = self.extends.x() / matrix.shape[0]
+        self.costmap = RegressedPixelGridSpline(
+            matrix, resolution, self.extends())
+
+        self.add_isometric_potential_to_all_cliques(
+            self.costmap, scalar)
 
     def add_box_limits(self):
         v_lower = np.array([self.extends.x_min, self.extends.y_min])
