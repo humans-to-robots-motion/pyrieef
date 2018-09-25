@@ -87,9 +87,7 @@ def test_integration():
     trajectory_zero = Trajectory(T=20, n=2)
     trajectory_zero.x()[:] = np.zeros(trajectory.x().size)
     q_t0 = trajectory.configuration(0).copy()
-    q_t1 = trajectory.configuration(1).copy()
     trajectory_zero.configuration(0)[:] = q_t0
-    trajectory_zero.configuration(1)[:] = q_t1
     for t in range(trajectory.T() + 1):
         a_t = trajectory.acceleration(t, dt)
         v_t = trajectory_zero.velocity(t, dt)
