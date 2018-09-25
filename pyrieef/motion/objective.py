@@ -179,18 +179,16 @@ class MotionOptimization2DCostMap:
         if deriv_order == 1:
             derivative = Pullback(
                 SquaredNormVelocity(self.config_space_dim, self.dt),
-                self.function_network.left_of_clique_map())
+                self.function_network.right_of_clique_map())
             self.function_network.register_function_for_all_cliques(derivative)
             # TODO change the last clique to have 0 velocity change
             # when linearly interpolating
 
         elif deriv_order == 2:
-            derivative = FiniteDifferencesAcceleration(
+            derivative = SquaredNormAcceleration(
                 self.config_space_dim, self.dt)
             self.function_network.register_function_for_all_cliques(
-                Scale(
-                    Pullback(SquaredNorm(np.zeros(self.config_space_dim)),
-                             derivative), self._smoothness_scalar))
+                Scale(derivative, self._smoothness_scalar))
         else:
             raise ValueError("deriv_order ({}) not suported".format(
                 deriv_order))

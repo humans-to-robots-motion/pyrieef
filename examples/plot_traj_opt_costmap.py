@@ -25,6 +25,23 @@ from numpy.testing import assert_allclose
 from rendering.optimization import *
 
 
+def initialize_objective(trajectory):
+    objective = MotionOptimization2DCostMap(
+        box=EnvBox(origin=np.array([0, 0]), dim=np.array([1., 1.])),
+        T=trajectory.T(),
+        q_init=trajectory.initial_configuration(),
+        q_goal=trajectory.final_configuration()
+    )
+    objective.create_clique_network()
+    # objective.add_smoothness_terms(2)
+    objective.add_smoothness_terms(1)
+    # objective.add_obstacle_terms()
+    objective.add_box_limits()
+    objective.add_init_and_terminal_terms()
+    objective.create_objective()
+    return objective
+
+
 def motion_optimimization():
     print "Checkint Motion Optimization"
     trajectory = linear_interpolation_trajectory(
@@ -32,12 +49,7 @@ def motion_optimimization():
         q_goal=.3 * np.ones(2),
         T=22
     )
-    objective = MotionOptimization2DCostMap(
-        box=EnvBox(origin=np.array([0, 0]), dim=np.array([1., 1.])),
-        T=trajectory.T(),
-        q_init=trajectory.initial_configuration(),
-        q_goal=trajectory.final_configuration()
-    )
+    objective = initialize_objective(trajectory)
     f = TrajectoryOptimizationViewer(objective, draw=False, draw_gradient=True)
     t_start = time.time()
     x = trajectory.active_segment()
@@ -49,6 +61,8 @@ def motion_optimimization():
         hess=f.hessian,
         options={'maxiter': 100, 'gtol': 1e-05, 'disp': True}
     )
+    trajectory.active_segment()[:] = res.x
+    f.draw(trajectory)
     print "optimization done in {} sec.".format(time.time() - t_start)
     print "gradient norm : ", np.linalg.norm(res.jac)
 
