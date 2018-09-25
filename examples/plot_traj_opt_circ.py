@@ -108,7 +108,7 @@ def trajectory_optimization():
         from pyrieef.rendering import workspace_renderer
         from pyrieef.rendering import opengl
         viewer = workspace_renderer.WorkspaceOpenGl(workspace)
-        viewer.draw_ws_background(optimizer.obstacle_costmap())
+        viewer.draw_ws_background(optimizer.obstacle_potential_from_sdf())
         # viewer.draw_ws_obstacles()
 
         for i in range(1000):

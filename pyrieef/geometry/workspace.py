@@ -139,6 +139,8 @@ class Ellipse(Shape):
 
 
 class Segment(Shape):
+    """ A segment defined with an origin, length and orientaiton 
+        TODO define distance"""
 
     def __init__(self,
                  origin=np.array([0., 0.]),
@@ -159,6 +161,23 @@ class Segment(Shape):
             # Linear interpolation
             points.append((1. - alpha) * p_1 + alpha * p_2)
         return points
+
+
+class Box(Shape):
+    """
+        A box is defined by an origin, which is its center.
+        and dimension which are it's size in axis aligned coordinates
+        TODO define distance
+    """
+
+    def __init__(self,
+                 origin=np.array([0., 0.]),
+                 dim=np.array([1., 1.])):
+        self.origin = origin
+        self.dim = dim
+
+    def diag(self):
+        return np.sqrt(self.dim[0] ** 2 + self.dim[1]**2)
 
 
 class SignedDistance2DMap(DifferentiableMap):
@@ -231,17 +250,13 @@ def occupancy_map(nb_points, workspace):
     return (sdf < 0).astype(float)
 
 
-class Box:
-    """
-        A box is defined by an origin, which is its center.
-        and dimension which are it's size in axis aligned coordinates
-    """
+class EnvBox(Box):
+    """ Specializes a box to defined an environment """
 
     def __init__(self,
                  origin=np.array([0., 0.]),
                  dim=np.array([1., 1.])):
-        self.origin = origin
-        self.dim = dim
+        Box.__init__(self, origin, dim)
 
     def box_extends(self):
         return np.array([self.origin[0] - self.dim[0] / 2.,
@@ -258,9 +273,6 @@ class Box:
         extends.y_min = box_extends[2]
         extends.y_max = box_extends[3]
         return extends
-
-    def diag(self):
-        return np.sqrt(self.dim[0] ** 2 + self.dim[1]**2)
 
     def meshgrid(self, nb_points=100):
         """ This mesh grid definition matches the one in the PixelMap class
@@ -306,7 +318,7 @@ class Workspace:
        Contains obstacles.
     """
 
-    def __init__(self, box=Box()):
+    def __init__(self, box=EnvBox()):
         self.box = box
         self.obstacles = []
 

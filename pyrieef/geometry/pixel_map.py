@@ -101,11 +101,14 @@ class RegressedPixelGridSpline(DifferentiableMap):
         y = np.arange(self._extends.y_min, self._extends.y_max, resolution)
         self._interp_spline = RectBivariateSpline(x, y, matrix)
 
-    def output_dimension(self): return 1
+    def output_dimension(self):
+        return 1
 
-    def input_dimension(self): return 2
+    def input_dimension(self):
+        return 2
 
-    def extends(self): return self._extends
+    def extends(self):
+        return self._extends
 
     def forward(self, p):
         assert p.size == 2

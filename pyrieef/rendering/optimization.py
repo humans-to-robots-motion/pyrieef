@@ -17,7 +17,6 @@
 #
 #                                        Jim Mainprice on Sunday June 13 2018
 
-import workspace_renderer as renderer
 from motion.trajectory import Trajectory
 import time
 import numpy as np
@@ -39,9 +38,11 @@ class TrajectoryOptimizationViewer:
             self.init_viewer()
 
     def init_viewer(self):
+        import workspace_renderer as renderer
         self.viewer = renderer.WorkspaceOpenGl(
             self.objective.workspace)
-        self.viewer.draw_ws_background(self.objective.obstacle_costmap())
+        self.viewer.draw_ws_background(
+            self.objective.obstacle_potential_from_sdf())
 
     def draw_gradient(self, x):
         g = self.objective.objective.gradient(x)
@@ -64,6 +65,8 @@ class TrajectoryOptimizationViewer:
         return self.objective.objective.hessian(x)
 
     def draw(self, trajectory, g_traj=None):
+        if self.viewer is None:
+            self.init_viewer()
         q_init = self.objective.q_init
         for k in range(self.objective.T + 2):
             q = trajectory.configuration(k)

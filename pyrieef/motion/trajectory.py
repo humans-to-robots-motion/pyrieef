@@ -313,7 +313,7 @@ class Trajectory:
 
     def clique(self, i):
         """ returns a clique of 3 configurations """
-        assert i >= 1 and i <= (self._T + 1)
+        assert i >= 1 and i <= (self._T)
         beg_idx = self._n * (i - 1)
         end_idx = self._n * (i + 2)
         return self._x[beg_idx:end_idx]

@@ -33,7 +33,7 @@ def motion_optimimization():
         T=22
     )
     objective = MotionOptimization2DCostMap(
-        box=Box(origin=np.array([0, 0]), dim=np.array([1., 1.])),
+        box=EnvBox(origin=np.array([0, 0]), dim=np.array([1., 1.])),
         T=trajectory.T(),
         q_init=trajectory.initial_configuration(),
         q_goal=trajectory.final_configuration()

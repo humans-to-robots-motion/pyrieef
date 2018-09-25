@@ -58,8 +58,8 @@ def test_integration():
     trajectory = Trajectory(T=20, n=2)
     trajectory.x()[:] = np.random.random(trajectory.x().size)
 
-    """ 
-    Test velocity integration 
+    """
+    Test velocity integration
         we test that a kinematic trajectory can be recovered
         by integrating the finite difference velocity profile
         q_t1 = q_t0 + v_t1 * dt
@@ -68,15 +68,15 @@ def test_integration():
     trajectory_zero.x()[:] = np.zeros(trajectory.x().size)
     q_t0 = trajectory.configuration(0).copy()
     trajectory_zero.configuration(0)[:] = q_t0
-    for t in range(1, trajectory.T()):
+    for t in range(1, trajectory.T() + 1):
         v_t1 = trajectory.velocity(t - 1, dt)
         q_t0 = trajectory_zero.configuration(t - 1)
         q_t1 = q_t0 + v_t1 * dt
         trajectory_zero.configuration(t)[:] = q_t1
         assert_allclose(q_t1, trajectory.configuration(t))
 
-    """ 
-    Test acceleration integration 
+    """
+    Test acceleration integration
         we test that a kinematic trajectory can be recovered
         by integrating the finite difference acceleration profile
         q_t2 = q_t1 + v_t0 * dt + a_t1 * (dt ** 2)
@@ -87,7 +87,7 @@ def test_integration():
     q_t1 = trajectory.configuration(1).copy()
     trajectory_zero.configuration(0)[:] = q_t0
     trajectory_zero.configuration(1)[:] = q_t1
-    for t in range(1, trajectory.T()):
+    for t in range(1, trajectory.T() + 1):
         a_t1 = trajectory.acceleration(t, dt)
         v_t0 = trajectory_zero.velocity(t - 1, dt)
         q_t1 = trajectory_zero.configuration(t)
@@ -237,21 +237,39 @@ def test_obstacle_potential():
 
 def test_squared_norm_derivatives():
 
-    f = SquaredNormVelocity(2, dt=0.1)
+    dt = 0.1
+    n = 2
+
+    f_v = SquaredNormVelocity(n, dt)
 
     print "Check SquaredNormVelocity (J implementation) : "
-    assert check_jacobian_against_finite_difference(f)
+    assert check_jacobian_against_finite_difference(f_v)
 
     print "Check SquaredNormVelocity (H implementation) : "
-    assert check_hessian_against_finite_difference(f)
+    assert check_hessian_against_finite_difference(f_v)
 
-    f = SquaredNormAcceleration(2, dt=0.1)
+    f_a = SquaredNormAcceleration(n, dt)
 
     print "Check SquaredNormAcceleration (J implementation) : "
-    assert check_jacobian_against_finite_difference(f)
+    assert check_jacobian_against_finite_difference(f_a)
 
     print "Check SquaredNormAcceleration (H implementation) : "
-    assert check_hessian_against_finite_difference(f)
+    assert check_hessian_against_finite_difference(f_a)
+
+    T = 20
+    trajectory = Trajectory(T, n)
+    trajectory.x()[:] = np.random.random(trajectory.x().size)
+
+    f_v2 = Pullback(SquaredNorm(np.zeros(n)),
+                    FiniteDifferencesVelocity(n, dt))
+
+    f_a2 = Pullback(SquaredNorm(np.zeros(n)),
+                    FiniteDifferencesAcceleration(n, dt))
+
+    for t in range(1, trajectory.T() + 1):
+        c_t = trajectory.clique(t)
+        assert abs(f_v2(c_t[n:]) - f_v(c_t[n:])) < 1e-10
+        assert abs(f_a2(c_t[0:]) - f_a(c_t[0:])) < 1e-10
 
 
 def test_bound_barrier():

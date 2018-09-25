@@ -29,7 +29,7 @@ from scipy import optimize
 class MotionOptimization2DCostMap:
 
     def __init__(self, T=10, n=2,
-                 box=Box(np.array([0., 0.]), np.array([2., 2.])),
+                 box=EnvBox(np.array([0., 0.]), np.array([2., 2.])),
                  signed_distance_field=None,
                  q_init=None,
                  q_goal=None):
@@ -63,7 +63,7 @@ class MotionOptimization2DCostMap:
 
         # Create metric for natural gradient descent
         self.create_smoothness_metric()
-        self.costmap = self.obstacle_costmap()
+        self.obstacle_potential = self.obstacle_potential_from_sdf()
 
         # Here we combine everything to make an objective
         # TODO see why n==1 doesn't work...
@@ -86,7 +86,7 @@ class MotionOptimization2DCostMap:
     def set_eta(self, eta):
         self._eta = eta
 
-    def obstacle_costmap(self):
+    def obstacle_potential_from_sdf(self):
         return SimplePotential2D(self.sdf)
         # return CostGridPotential2D(self.sdf,
         #                            alpha=10.,
@@ -195,28 +195,36 @@ class MotionOptimization2DCostMap:
             raise ValueError("deriv_order ({}) not suported".format(
                 deriv_order))
 
+    def add_isometric_potential_to_all_cliques(self, potential, scalar):
+
+        cost = Pullback(
+            potential,
+            self.function_network.center_of_clique_map())
+
+        squared_norm_vel = Pullback(
+            SquaredNormVelocity(self.config_space_dim, self.dt),
+            self.function_network.right_of_clique_map())
+
+        self.function_network.register_function_for_all_cliques(
+            Scale(ProductFunction(cost, squared_norm_vel), scalar))
+
     def add_obstacle_terms(self, geodesic=False):
         if geodesic:
             pass
         else:
-            obstacle_potential = Pullback(
-                self.costmap,
-                self.function_network.center_of_clique_map())
-            squared_norm_vel = Pullback(
-                SquaredNorm(np.zeros(self.config_space_dim)),
-                Pullback(
-                    FiniteDifferencesVelocity(self.config_space_dim, self.dt),
-                    self.function_network.right_of_clique_map())
-            )
-            isometric_obstacle_cost = ProductFunction(
-                obstacle_potential,
-                squared_norm_vel)
-            
-            self.function_network.register_function_for_all_cliques(
-                Scale(isometric_obstacle_cost, self._obstacle_scalar))
+            self.add_isometric_potential_to_all_cliques(
+                self.obstacle_potential, self._obstacle_scalar)
 
-    # def add_costmap_terms(self):
+    def add_costgrid_terms(self, costgrid):
+        assert costgrid.shape[0] == costgrid.shape[1]
+        assert self.extends.x() == self.extends.y()
+        resolution = self.extends.x() / costgrid.shape[0]
+        self.costmap = RegressedPixelGridSpline(
+            costgrid,
+            resolution,
+            self.extends())
 
+        return 0
 
     def add_box_limits(self):
         v_lower = np.array([self.extends.x_min, self.extends.y_min])

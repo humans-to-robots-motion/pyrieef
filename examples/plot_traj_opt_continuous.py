@@ -57,12 +57,12 @@ def motion_optimimization():
         T=T
     )
     objective = MotionOptimization2DCostMap(
-        box=Box(origin=np.array([0, 0]), dim=np.array([1., 1.])),
+        box=EnvBox(origin=np.array([0, 0]), dim=np.array([1., 1.])),
         T=trajectory.T(),
         q_init=trajectory.initial_configuration(),
         q_goal=trajectory.final_configuration()
     )
-    f = TrajectoryOptimizationViewer(objective, draw=True, draw_gradient=True)
+    f = TrajectoryOptimizationViewer(objective, draw=False, draw_gradient=True)
     for t in range(T + 1):
         initialize_objective(objective, trajectory)
         t_start = time.time()
