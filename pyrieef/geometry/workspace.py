@@ -182,6 +182,15 @@ class Box(Shape):
         self.origin = origin
         self.dim = dim
 
+    def lower_corner(self):
+        return self.origin - .5 * self.dim
+
+    def upper_corner(self):
+        return self.origin + .5 * self.dim
+
+    def diag(self):
+        return np.linalg.norm(self.dim)
+
     def vertices(self):
         """ TODO test this function """
         verticies = [self.origin.copy()] * 4
@@ -193,16 +202,13 @@ class Box(Shape):
         verticies[3] += .5 * self.dim
         return verticies
 
-    def diag(self):
-        return np.linalg.norm(self.dim)
-
     def is_inside(self, x):
 
-        lower_corner = self.origin - .5 * self.dim
+        lower_corner = self.lower_corner()
         if x[0] < lower_corner[0] or x[1] < lower_corner[1]:
             return False
 
-        upper_corner = self.origin + .5 * self.dim
+        upper_corner = self.upper_corner()
         if x[1] > upper_corner[1] or x[1] > upper_corner[1]:
             return False
 
@@ -327,6 +333,11 @@ class EnvBox(Box):
         X, Y = self.meshgrid(nb_points)
         return np.stack([X, Y])
 
+    def sample_uniform(self):
+        """ Sample uniformly point in extend"""
+        pt = np.random.random(self.origin.size)  # in [0, 1]^n
+        return np.multiply(self.dim, pt) + self.lower_corner()
+
     def __str__(self):
         return "origin : {}, dim : {}".format(self.origin, self.dim)
 
@@ -410,15 +421,33 @@ class Workspace:
 
 
 def sample_circles(nb_circles):
+    """ Samples circles in [0, 1]^2 with radii in [0, 1]"""
     centers = np.random.rand(nb_circles, 2)
     radii = np.random.rand(nb_circles)
     return zip(centers, radii)
 
 
-def sample_collision_free(workspace):
+def sample_workspace(nb_circles, radius_parameter=.20):
+    """ Samples a workspace randomly composed of nb_circles 
+        the radius parameter specifies the 
+        max fraction of workspace diagonal used for a circle radius. """
+    workspace = Workspace()
     extends = workspace.box.extends()
+    max_radius = radius_parameter * workspace.box.diag()
+    workspace.obstacles = [None] * nb_circles
+    for i in range(nb_circles):
+        center = workspace.box.sample_uniform()
+        radius = max_radius * np.random.rand()
+        workspace.obstacles[i] = Circle(center, radius)
+    return workspace
+
+
+def sample_collision_free(workspace):
+    """ Samples a collision free point """
+    extends = workspace.box.extends()
+    min_dist = workspace.box.diag() / 20.
     while True:
-        p = extends.sample_uniform()
+        p = extends.box.sample_uniform()
         dist = workspace.min_dist(p)[0]
-        if dist > 0.05:
+        if dist > min_dist:
             return p

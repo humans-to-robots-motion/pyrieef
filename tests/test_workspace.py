@@ -50,9 +50,7 @@ def test_sdf_derivatives():
 
 
 def test_sdf_workspace():
-    workspace = Workspace()
-    for center, radius in sample_circles(nb_circles=10):
-        workspace.obstacles.append(Circle(center, radius))
+    workspace = sample_workspace(nb_circles=10)
     signed_distance_field = SignedDistanceWorkspaceMap(workspace)
     assert check_jacobian_against_finite_difference(signed_distance_field)
     assert check_hessian_against_finite_difference(signed_distance_field)
@@ -74,9 +72,7 @@ def test_meshgrid():
 
 def test_sdf_grid():
     nb_points = 24
-    workspace = Workspace()
-    for center, radius in sample_circles(nb_circles=10):
-        workspace.obstacles.append(Circle(center, radius))
+    workspace = sample_workspace(nb_circles=10)
     sdf = SignedDistanceWorkspaceMap(workspace)
     pixel_map = workspace.pixel_map(nb_points)
     # WARNING !!!
@@ -93,9 +89,7 @@ def test_workspace_to_occupancy_map():
     np.random.seed(0)
     np.set_printoptions(suppress=True, linewidth=200, precision=2)
     nb_points = 10
-    workspace = Workspace()
-    for center, radius in sample_circles(nb_circles=5):
-        workspace.obstacles.append(Circle(center, radius))
+    workspace = sample_workspace(nb_circles=5)
     occ = occupancy_map(nb_points, workspace)
     pixel_map = pixelmap_from_box(nb_points, workspace.box)
     for i, j in product(range(nb_points), range(nb_points)):

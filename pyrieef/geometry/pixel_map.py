@@ -47,12 +47,13 @@ class Extends:
     def y(self):
         return self.y_max - self.y_min
 
-    def sample_uniform(self):
-        """ Sample uniformly point in extend"""
-        pt = np.random.random(2)  # \in [0, 1]^2
-        pt[0] = self.x() * pt[0] + self.x_min
-        pt[1] = self.y() * pt[1] + self.y_min
-        return pt
+
+def sample_uniform(extends):
+    """ Sample uniformly point in extend"""
+    pt = np.random.random(2)  # in [0, 1]^2
+    lower_corner = np.array([extends.x_min, extends.y_min])
+    dim = np.array([extends.x(), extends.y()])
+    return np.multiply(dim, pt) + lower_corner
 
 
 class PixelMap:

@@ -29,7 +29,7 @@ def test_pixelmap_random():
     print "pm -- nb_cells_x : {}".format(pixel_map.nb_cells_x)
     print "pm -- nb_cells_y : {}".format(pixel_map.nb_cells_y)
     for i in range(100):
-        p_g1 = pixel_map.world_to_grid(pixel_map.extends.sample_uniform())
+        p_g1 = pixel_map.world_to_grid(sample_uniform(pixel_map.extends))
         p_w1 = pixel_map.grid_to_world(p_g1)
         p_g2 = pixel_map.world_to_grid(p_w1)
         p_w2 = pixel_map.grid_to_world(p_g2)
