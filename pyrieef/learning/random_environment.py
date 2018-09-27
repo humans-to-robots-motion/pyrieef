@@ -137,7 +137,7 @@ def random_environments(opt):
     # Create structure that contains grids and obstacles
     # The box which defines the workspace, is axis aligned
     # and it's origin is at the center
-    box = Box()
+    box = EnvBox()
     box.dim[0] = lims[0][1] - lims[0][0]
     box.dim[1] = lims[1][1] - lims[1][0]
     box.origin[0] = box.dim[0] / 2.
@@ -205,7 +205,7 @@ def random_environments(opt):
     return data, workspaces
 
 
-if __name__ == '__main__':
+def random_environment_parser():
 
     parser = optparse.OptionParser("usage: %prog [options] arg1 arg2")
 
@@ -243,6 +243,12 @@ if __name__ == '__main__':
                       default=0, type="int", dest='seed',
                       help='Random number seed. -ve values mean random seed')
 
+    return parser
+
+
+if __name__ == '__main__':
+
+    parser = random_environment_parser()
     (options, args) = parser.parse_args()
     # if len(args) != 2:
     #     parser.error("incorrect number of arguments")

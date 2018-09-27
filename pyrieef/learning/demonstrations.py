@@ -33,6 +33,18 @@ from utils.options import *
 from utils.collision_checking import *
 
 
+MAX_ITERATIONS = 100
+ALPHA = 20.
+MARGIN = .03
+OFFSET = 1.
+TRAJ_LENGTH = 20
+
+
+def set_max_gradient_descent_iterations(n):
+    global MAX_ITERATIONS
+    MAX_ITERATIONS = n
+
+
 def optimize(path, workspace, costmap, verbose=False):
     T = len(path) - 1
     trajectory = Trajectory(T, 2)
@@ -46,7 +58,8 @@ def optimize(path, workspace, costmap, verbose=False):
         q_goal=trajectory.final_configuration(),
         box=workspace.box,
         signed_distance_field=sdf)
-    optimizer.obstacle_potential = CostGridPotential2D(sdf, 20., .03, 1.)
+    optimizer.obstacle_potential = CostGridPotential2D(
+        sdf, ALPHA, MARGIN, OFFSET)
     optimizer.verbose = verbose
     optimizer.set_scalars(
         obstacle_scalar=1.,
@@ -60,8 +73,9 @@ def optimize(path, workspace, costmap, verbose=False):
     optimizer.add_attractor(trajectory)
     optimizer.create_objective()
     t_start = time.time()
+    # print(optimizer.verbose)
     [dist, traj, gradient, deltas] = optimizer.optimize(
-        trajectory.configuration(0), 100, trajectory,
+        trajectory.configuration(0), MAX_ITERATIONS, trajectory,
         optimizer="newton")
     if verbose:
         print("time : {}".format(time.time() - t_start))
@@ -71,7 +85,7 @@ def optimize(path, workspace, costmap, verbose=False):
 def compute_demonstration(
         workspace, converter, nb_points, show_result, average_cost, verbose):
     phi = CostGridPotential2D(
-        SignedDistanceWorkspaceMap(workspace), 20., .03, 1.)
+        SignedDistanceWorkspaceMap(workspace), ALPHA, MARGIN, OFFSET)
     costmap = phi(workspace.box.stacked_meshgrid(nb_points)).transpose()
     resample = True
     while resample:
@@ -94,16 +108,16 @@ def compute_demonstration(
         traj[i] = pixel_map.grid_to_world(np.array(p))
         trajectory.configuration(i)[:] = traj[i]
 
-    nb_config = 20
-    interpolated_traj = [None] * nb_config
-    for i, s in enumerate(np.linspace(0, 1, nb_config)):
+    interpolated_traj = [None] * TRAJ_LENGTH
+    for i, s in enumerate(np.linspace(0, 1, TRAJ_LENGTH)):
         interpolated_traj[i] = trajectory.configuration_at_parameter(s)
 
-    optimized_trajectory = optimize(interpolated_traj, workspace, verbose)
+    optimized_trajectory = optimize(
+        interpolated_traj, workspace, None, verbose)
     if collision_check_trajectory(workspace, optimized_trajectory):
         print("Warning: has collision !!!")
 
-    result = [None] * nb_config
+    result = [None] * TRAJ_LENGTH
     for i in range(len(result)):
         result[i] = optimized_trajectory.configuration(i)
 
