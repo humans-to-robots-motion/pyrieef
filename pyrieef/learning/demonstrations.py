@@ -46,7 +46,7 @@ def optimize(path, workspace, costmap, verbose=False):
         q_goal=trajectory.final_configuration(),
         box=workspace.box,
         signed_distance_field=sdf)
-    optimizer.costmap = CostGridPotential2D(sdf, 20., .03, 1.)
+    optimizer.obstacle_potential = CostGridPotential2D(sdf, 20., .03, 1.)
     optimizer.verbose = verbose
     optimizer.set_scalars(
         obstacle_scalar=1.,

@@ -26,39 +26,49 @@ from pyrieef.rendering.optimization import *
 from pyrieef.optimization import algorithms
 
 
-def initialize_objective(trajectory):
+def initialize_objective(trajectory, workspace, costmap):
     objective = MotionOptimization2DCostMap(
         box=EnvBox(origin=np.array([0, 0]), dim=np.array([1., 1.])),
         T=trajectory.T(),
         q_init=trajectory.initial_configuration(),
-        q_goal=trajectory.final_configuration()
+        q_goal=trajectory.final_configuration(),
+        signed_distance_field=SignedDistanceWorkspaceMap(workspace)
     )
+
     objective.create_clique_network()
+
+    if costmap is not None:
+        objective.costmap = costmap
+        objective.add_costgrid_terms()
+    else:
+        objective.obstacle_potential_from_sdf()
+        objective.add_obstacle_terms()
+
     objective.add_smoothness_terms(2)
     # objective.add_smoothness_terms(1)
-    objective.add_obstacle_terms()
+
     objective.add_box_limits()
     objective.add_init_and_terminal_terms()
     objective.create_objective()
     return objective
 
 
-def motion_optimimization(workspace, costmap):
+def motion_optimimization(workspace, costmap=None):
     print "Checkint Motion Optimization"
     trajectory = linear_interpolation_trajectory(
         q_init=-.22 * np.ones(2),
         q_goal=.3 * np.ones(2),
         T=22
     )
-    sdf = SignedDistanceWorkspaceMap(workspace, costmap)
-    objective = initialize_objective(trajectory, sdf)
+    objective = initialize_objective(trajectory, workspace, costmap)
     f = TrajectoryOptimizationViewer(objective, draw=False, draw_gradient=True)
     algorithms.newton_optimize_trajectory(f, trajectory)
     f.draw(trajectory)
 
 
-def run_example():
+def plot_costmaps():
     workspace = sample_workspace(nb_circles=4)
+    im = plt.imshow(mat, extent=workspace.box.box_extends())
 
 
 if __name__ == "__main__":
