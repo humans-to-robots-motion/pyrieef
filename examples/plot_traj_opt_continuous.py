@@ -21,6 +21,7 @@ import demos_common_imports
 from scipy import optimize
 from pyrieef.motion.objective import *
 from pyrieef.rendering.optimization import *
+from pyrieef.optimization import algorithms
 import time
 from numpy.testing import assert_allclose
 
@@ -65,17 +66,7 @@ def motion_optimimization():
     f = TrajectoryOptimizationViewer(objective, draw=False, draw_gradient=True)
     for t in range(T + 1):
         initialize_objective(objective, trajectory)
-        t_start = time.time()
-        x = trajectory.active_segment()
-        res = optimize.minimize(
-            x0=x,
-            method='Newton-CG',
-            fun=f.forward,
-            jac=f.gradient,
-            hess=f.hessian,
-            options={'maxiter': 100, 'gtol': 1e-05, 'disp': False}
-        )
-        trajectory.active_segment()[:] = res.x
+        algorithms.newton_optimize_trajectory(objective.objective, trajectory)
         f.draw(trajectory)
         resample(trajectory)
 
