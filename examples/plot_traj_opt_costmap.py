@@ -24,6 +24,7 @@ import time
 from numpy.testing import assert_allclose
 from pyrieef.rendering.optimization import *
 from pyrieef.optimization import algorithms
+from pyrieef.rendering.workspace_renderer import WorkspaceDrawer
 
 
 def initialize_objective(trajectory, workspace, costmap):
@@ -68,14 +69,30 @@ def motion_optimimization(workspace, costmap=None):
 
 def plot_costmaps():
     workspace = sample_workspace(nb_circles=4)
-    im = plt.imshow(mat, extent=workspace.box.box_extent())
+    grid_sparse = workspace.box.stacked_meshgrid(24)
+    grid_dense = workspace.box.stacked_meshgrid(100)
+    extent = workspace.box.box_extent()
+    sdf = SignedDistanceWorkspaceMap(workspace)
+
+    viewer = WorkspaceDrawer(workspace, wait_for_keyboard=True, 
+        rows=1, cols=2, scale=1.)
+
+    viewer.set_drawing_axis(0)
+    viewer.set_workspace(workspace)
+    viewer.draw_ws_img(sdf(grid_dense))
+    viewer.draw_ws_obstacles()
+
+    viewer.set_drawing_axis(1)
+    viewer.set_workspace(workspace)
+    viewer.draw_ws_img(sdf(grid_sparse))
+    viewer.draw_ws_obstacles()
+
+    viewer.show_once()
 
 
 if __name__ == "__main__":
 
     while True:
-
-        motion_optimimization()
-
-        if raw_input("Press [q] to quit or enter to continue : ") == "q":
-            break
+        plot_costmaps()
+        # if raw_input("Press [q] to quit or enter to continue : ") == "q":
+        #     break
