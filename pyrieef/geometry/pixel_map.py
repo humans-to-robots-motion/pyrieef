@@ -121,3 +121,11 @@ class RegressedPixelGridSpline(DifferentiableMap):
         J[0, 0] = self._interp_spline(p[0], p[1], dx=1)
         J[0, 1] = self._interp_spline(p[0], p[1], dy=1)
         return J
+
+
+def costmap_from_matrix(extends, matrix):
+    """ Creates a costmap wich is continuously defined given a matrix """
+    assert matrix.shape[0] == matrix.shape[1]
+    assert extends.x() == extends.y()
+    resolution = extends.x() / matrix.shape[0]
+    return RegressedPixelGridSpline(matrix, resolution, extends)

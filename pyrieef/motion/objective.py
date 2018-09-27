@@ -31,6 +31,7 @@ class MotionOptimization2DCostMap:
     def __init__(self, T=10, n=2,
                  box=EnvBox(np.array([0., 0.]), np.array([2., 2.])),
                  signed_distance_field=None,
+                 costmap=None,
                  q_init=None,
                  q_goal=None):
         self.verbose = False
@@ -38,7 +39,8 @@ class MotionOptimization2DCostMap:
         self.T = T                      # time steps
         self.dt = 0.1                   # sample rate
         self.trajectory_space_dim = (self.config_space_dim * (self.T + 2))
-        self.workspace = None
+        self.signed_distance_field = signed_distance_field
+        self.costmap = costmap
         self.objective = None
 
         self.q_goal = q_goal if q_goal is not None else .3 * np.ones(2)
@@ -57,9 +59,8 @@ class MotionOptimization2DCostMap:
         # to create a trajectory optimization problem
         self.box = box
         self.extends = box.extends()
-        self.sdf = signed_distance_field
-        if self.sdf is None:
-            self.create_workspace()
+        if self.signed_distance_field is None and self.costmap is None:
+            self.create_sdf_hardcoded_workspace()
 
         # Create metric for natural gradient descent
         self.create_smoothness_metric()
@@ -87,8 +88,8 @@ class MotionOptimization2DCostMap:
         self._eta = eta
 
     def obstacle_potential_from_sdf(self):
-        return SimplePotential2D(self.sdf)
-        # return CostGridPotential2D(self.sdf,
+        return SimplePotential2D(self.signed_distance_field)
+        # return CostGridPotential2D(self.signed_distance_field,
         #                            alpha=10.,
         #                            margin=.03,
         #                            offset=1.)
@@ -97,11 +98,11 @@ class MotionOptimization2DCostMap:
         """ compute sum of acceleration """
         return self.objective.forward(trajectory.active_segment())
 
-    def create_workspace(self):
-        self.workspace = Workspace(self.box)
-        self.workspace.obstacles.append(Circle(np.array([0.2, .15]), .1))
-        self.workspace.obstacles.append(Circle(np.array([-.1, .15]), .1))
-        self.sdf = SignedDistanceWorkspaceMap(self.workspace)
+    def create_sdf_hardcoded_workspace(self):
+        workspace = Workspace(self.box)
+        workspace.obstacles.append(Circle(np.array([0.2, .15]), .1))
+        workspace.obstacles.append(Circle(np.array([-.1, .15]), .1))
+        self.signed_distance_field = SignedDistanceWorkspaceMap(workspace)
 
     def create_smoothness_metric(self):
         """ TODO this does not seem to work at all... """
@@ -220,18 +221,11 @@ class MotionOptimization2DCostMap:
             self.add_isometric_potential_to_all_cliques(
                 self.obstacle_potential, self._obstacle_scalar)
 
-    def add_costgrid_terms(self, matrix, scalar):
+    def add_costgrid_terms(self, scalar):
         """ Takes a matrix and adds a isometric potential term 
             to all cliques """
-        assert matrix.shape[0] == matrix.shape[1]
-        assert self.extends.x() == self.extends.y()
 
-        resolution = self.extends.x() / matrix.shape[0]
-        self.costmap = RegressedPixelGridSpline(
-            matrix, resolution, self.extends())
-
-        self.add_isometric_potential_to_all_cliques(
-            self.costmap, scalar)
+        self.add_isometric_potential_to_all_cliques(self.costmap, scalar)
 
     def add_box_limits(self):
         v_lower = np.array([self.extends.x_min, self.extends.y_min])

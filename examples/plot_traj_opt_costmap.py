@@ -23,7 +23,8 @@ from pyrieef.motion.objective import *
 import time
 from numpy.testing import assert_allclose
 from pyrieef.rendering.optimization import *
-from pyrieef.optimization.algorithms import *
+from pyrieef.optimization import algorithms
+
 
 def initialize_objective(trajectory):
     objective = MotionOptimization2DCostMap(
@@ -42,17 +43,17 @@ def initialize_objective(trajectory):
     return objective
 
 
-def motion_optimimization(workspace):
+def motion_optimimization(workspace, costmap):
     print "Checkint Motion Optimization"
     trajectory = linear_interpolation_trajectory(
         q_init=-.22 * np.ones(2),
         q_goal=.3 * np.ones(2),
         T=22
     )
-    sdf = SignedDistanceWorkspaceMap(workspace)
+    sdf = SignedDistanceWorkspaceMap(workspace, costmap)
     objective = initialize_objective(trajectory, sdf)
     f = TrajectoryOptimizationViewer(objective, draw=False, draw_gradient=True)
-    newton_optimize_trajectory(f, trajectory)
+    algorithms.newton_optimize_trajectory(f, trajectory)
     f.draw(trajectory)
 
 
