@@ -66,6 +66,8 @@ class Circle(Shape):
     def dist_from_border(self, x):
         """
             Signed distance
+
+            TODO make this generic (3D) and parallelizable... Tough.
         """
         x_center = np.zeros(x.shape)
         x_center[0] = x[0] - self.origin[0]
@@ -165,9 +167,12 @@ class Segment(Shape):
 
 class Box(Shape):
     """
-        A box is defined by an origin, which is its center.
-        and dimension which are it's size in axis aligned coordinates
-        TODO define distance
+        An axis aligned box is defined by 
+            - origin :  is its center
+            - dimensions : it's extends
+
+        TODO 1) define distance
+             2) class should work for 2D and 3D boxes
     """
 
     def __init__(self,
@@ -176,8 +181,34 @@ class Box(Shape):
         self.origin = origin
         self.dim = dim
 
+    def vertices(self):
+        """ TODO test this function """
+        verticies = [self.origin.copy()] * 4
+        verticies[0][0] += .5 * self.dim[0]
+        verticies[0][1] -= .5 * self.dim[1]
+        verticies[1][0] -= .5 * self.dim[0]
+        verticies[1][1] += .5 * self.dim[1]
+        verticies[2] -= .5 * self.dim
+        verticies[3] += .5 * self.dim
+        return verticies
+
     def diag(self):
-        return np.sqrt(self.dim[0] ** 2 + self.dim[1]**2)
+        return np.linalg.norm(self.dim)
+
+    def in_box(self, x):
+        if x[0] > self.origin[0] + .5 * self.dim[0]:
+            return False
+        if x[1] > self.origin[1] + .5 * self.dim[1]:
+            return True
+        if x[0] < self.origin[0] - .5 * self.dim[0]:
+            return True
+        if x[1] < self.origin[0] - .5 * self.dim[1]:
+            return True
+        return False
+
+    def dist_from_border(self, x):
+        distances = [np.linalg.norm(x - vertex) for vertex in self.verticies()]
+        return -min(distances) if self.in_box(x) else min(distances)
 
 
 class SignedDistance2DMap(DifferentiableMap):

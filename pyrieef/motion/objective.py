@@ -177,10 +177,11 @@ class MotionOptimization2DCostMap:
     def add_smoothness_terms(self, deriv_order=2):
 
         if deriv_order == 1:
-            derivative = Pullback(
-                SquaredNormVelocity(self.config_space_dim, self.dt),
-                self.function_network.right_of_clique_map())
-            self.function_network.register_function_for_all_cliques(derivative)
+            derivative = Pullback(SquaredNormVelocity(
+                self.config_space_dim, self.dt),
+                self.function_network.left_of_clique_map())
+            self.function_network.register_function_for_all_cliques(
+                Scale(derivative, 10. * self._smoothness_scalar))
             # TODO change the last clique to have 0 velocity change
             # when linearly interpolating
 

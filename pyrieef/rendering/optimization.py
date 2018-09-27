@@ -70,8 +70,9 @@ class TrajectoryOptimizationViewer:
         q_init = self.objective.q_init
         for k in range(self.objective.T + 2):
             q = trajectory.configuration(k)
-            self.viewer.draw_ws_circle(
-                .01, q, color=(0, 0, 1) if k == 0 else (0, 1, 0))
+            color = (0, 0, 1) if k == 0 else (0, 1, 0)
+            color = (1, 0, 0) if k == trajectory.T() else color
+            self.viewer.draw_ws_circle(.01, q, color)
             if g_traj is not None:
                 self.viewer.draw_ws_line(q, g_traj.configuration(k))
         self.viewer.show()
