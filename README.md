@@ -10,7 +10,7 @@ Install
 
 Run all tests
 
-    bash -c pytest tests
+    pytest tests
 
 Result of
 
