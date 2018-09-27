@@ -29,7 +29,7 @@ def plot_results(workspace, x_init, x_goal, trajectory, optimizer):
     from mpl_toolkits.mplot3d import Axes3D
     plt.figure(figsize=(7, 6.5))
     plt.axis('equal')
-    plt.axis(workspace.box.box_extends())
+    plt.axis(workspace.box.box_extend())
     colorst = [cm.gist_ncar(i) for i in np.linspace(
         0, 0.9, len(workspace.obstacles))]
     for i, o in enumerate(workspace.obstacles):
@@ -49,7 +49,7 @@ def plot_results(workspace, x_init, x_goal, trajectory, optimizer):
     color_style = plt.cm.bone
     color_style = plt.cm.magma
     im = plt.imshow(Z,
-                    extent=workspace.box.box_extends(),
+                    extent=workspace.box.box_extend(),
                     origin='lower',
                     interpolation='bilinear',
                     cmap=color_style)
@@ -80,7 +80,7 @@ def trajectory_optimization():
     workspace.obstacles.append(Circle(np.array([0.2, .0]), .1))
     workspace.obstacles.append(Circle(np.array([-.2, .0]), .1))
     signed_distance_field = SignedDistanceWorkspaceMap(workspace)
-    extends = workspace.box.extends()
+    extent = workspace.box.extent()
     optimizer = MotionOptimization2DCostMap(
         T=20, n=2, box=workspace.box,
         signed_distance_field=signed_distance_field)

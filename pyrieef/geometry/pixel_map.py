@@ -33,7 +33,7 @@ def sdf(image):
     return dist1 - dist2
 
 
-class Extends:
+class Extent:
 
     def __init__(self, sides=.5):
         self.x_min = -sides
@@ -48,11 +48,11 @@ class Extends:
         return self.y_max - self.y_min
 
 
-def sample_uniform(extends):
+def sample_uniform(extent):
     """ Sample uniformly point in extend"""
     pt = np.random.random(2)  # in [0, 1]^2
-    lower_corner = np.array([extends.x_min, extends.y_min])
-    dim = np.array([extends.x(), extends.y()])
+    lower_corner = np.array([extent.x_min, extent.y_min])
+    dim = np.array([extent.x(), extent.y()])
     return np.multiply(dim, pt) + lower_corner
 
 
@@ -60,16 +60,16 @@ class PixelMap:
     """
     Implements an axis aligned regular pixel-grid map. It follows the
     convention  that we use on the C++ version of the class. which means
-    that the min and max extends are the origin of the world coordinates.
+    that the min and max extent are the origin of the world coordinates.
     """
 
-    def __init__(self, resolution, extends=Extends()):
-        self.extends = extends
+    def __init__(self, resolution, extent=Extent()):
+        self.extent = extent
         self.resolution = resolution
-        self.origin_minus = np.array([self.extends.x_min, self.extends.y_min])
+        self.origin_minus = np.array([self.extent.x_min, self.extent.y_min])
         self.origin = self.origin_minus + 0.5 * self.resolution
-        self.nb_cells_x = int(self.extends.x() / self.resolution)
-        self.nb_cells_y = int(self.extends.y() / self.resolution)
+        self.nb_cells_x = int(self.extent.x() / self.resolution)
+        self.nb_cells_y = int(self.extent.y() / self.resolution)
 
     def world_to_matrix(self, x):
         """
@@ -96,8 +96,8 @@ class RegressedPixelGridSpline(DifferentiableMap):
     matrix.
     """
 
-    def __init__(self, matrix, resolution, extends=Extends()):
-        self._extends = extends
+    def __init__(self, matrix, resolution, extent=Extent()):
+        self._extends = extent
         x = np.arange(self._extends.x_min, self._extends.x_max, resolution)
         y = np.arange(self._extends.y_min, self._extends.y_max, resolution)
         self._interp_spline = RectBivariateSpline(x, y, matrix)
@@ -108,7 +108,7 @@ class RegressedPixelGridSpline(DifferentiableMap):
     def input_dimension(self):
         return 2
 
-    def extends(self):
+    def extent(self):
         return self._extends
 
     def forward(self, p):
@@ -123,9 +123,9 @@ class RegressedPixelGridSpline(DifferentiableMap):
         return J
 
 
-def costmap_from_matrix(extends, matrix):
+def costmap_from_matrix(extent, matrix):
     """ Creates a costmap wich is continuously defined given a matrix """
     assert matrix.shape[0] == matrix.shape[1]
-    assert extends.x() == extends.y()
-    resolution = extends.x() / matrix.shape[0]
-    return RegressedPixelGridSpline(matrix, resolution, extends)
+    assert extent.x() == extent.y()
+    resolution = extent.x() / matrix.shape[0]
+    return RegressedPixelGridSpline(matrix, resolution, extent)

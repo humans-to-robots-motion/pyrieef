@@ -58,13 +58,13 @@ class MotionOptimization2DCostMap:
         # We only need the signed distance field
         # to create a trajectory optimization problem
         self.box = box
-        self.extends = box.extends()
+        self.extent = box.extent()
         if self.signed_distance_field is None and self.costmap is None:
             self.create_sdf_hardcoded_workspace()
 
         # Create metric for natural gradient descent
         self.create_smoothness_metric()
-        self.obstacle_potential = self.obstacle_potential_from_sdf()
+        self.obstacle_potential_from_sdf()
 
         # Here we combine everything to make an objective
         # TODO see why n==1 doesn't work...
@@ -88,8 +88,9 @@ class MotionOptimization2DCostMap:
         self._eta = eta
 
     def obstacle_potential_from_sdf(self):
-        return SimplePotential2D(self.signed_distance_field)
-        # return CostGridPotential2D(self.signed_distance_field,
+        self.obstacle_potential = SimplePotential2D(self.signed_distance_field)
+        # self.obstacle_potential = CostGridPotential2D(
+        #     self.signed_distance_field,
         #                            alpha=10.,
         #                            margin=.03,
         #                            offset=1.)
@@ -143,8 +144,8 @@ class MotionOptimization2DCostMap:
         return A
 
     def add_attractor(self, trajectory):
-        """ Add an attractor to each clique scalled by the distance 
-            to the goal, it ensures that the trajectory does not slow down 
+        """ Add an attractor to each clique scalled by the distance
+            to the goal, it ensures that the trajectory does not slow down
             in time as it progresses towards the goal.
             This is Model Predictive Control grounded scheme.
             TODO check the literature to set this appropriatly. """
@@ -196,8 +197,8 @@ class MotionOptimization2DCostMap:
                 deriv_order))
 
     def add_isometric_potential_to_all_cliques(self, potential, scalar):
-        """ 
-        Apply the following euqation to all cliques: 
+        """
+        Apply the following euqation to all cliques:
 
                 c(x_t) | d/dt x_t |
 
@@ -215,21 +216,21 @@ class MotionOptimization2DCostMap:
             Scale(ProductFunction(cost, squared_norm_vel), scalar))
 
     def add_obstacle_terms(self, geodesic=False):
-        if geodesic:
-            pass
-        else:
-            self.add_isometric_potential_to_all_cliques(
-                self.obstacle_potential, self._obstacle_scalar)
-
-    def add_costgrid_terms(self, scalar):
-        """ Takes a matrix and adds a isometric potential term 
+        """ Takes a matrix and adds a isometric potential term
             to all cliques """
+        assert self.obstacle_potential is not None
+        self.add_isometric_potential_to_all_cliques(
+            self.obstacle_potential, self._obstacle_scalar)
 
+    def add_costgrid_terms(self, scalar=1.):
+        """ Takes a matrix and adds a isometric potential term
+            to all cliques """
+        assert self.costmap is not None
         self.add_isometric_potential_to_all_cliques(self.costmap, scalar)
 
     def add_box_limits(self):
-        v_lower = np.array([self.extends.x_min, self.extends.y_min])
-        v_upper = np.array([self.extends.x_max, self.extends.y_max])
+        v_lower = np.array([self.extent.x_min, self.extent.y_min])
+        v_upper = np.array([self.extent.x_max, self.extent.y_max])
         box_limits = BoundBarrier(v_lower, v_upper)
         self.function_network.register_function_for_all_cliques(Pullback(
             box_limits, self.function_network.center_of_clique_map()))

@@ -70,14 +70,14 @@ for obstacles in workspace.obstacles:
     Y = np.array(points)[:, 1]
     plt.plot(X, Y, "b", linewidth=2.0)
 
-extends = Extends(workspace.box.dim[0] / 2.)
-grid = PixelMap(0.01, extends)
+extent = Extent(workspace.box.dim[0] / 2.)
+grid = PixelMap(0.01, extent)
 matrix = np.zeros((grid.nb_cells_x, grid.nb_cells_y))
 for i in range(grid.nb_cells_x):
     for j in range(grid.nb_cells_y):
         p = grid.grid_to_world(np.array([i, j]))
 plt.axis('equal')
-plt.axis(workspace.box.box_extends())
+plt.axis(workspace.box.box_extend())
 
 x_goal = np.array([0.4, 0.4])
 nx, ny = (3, 3)

@@ -83,12 +83,12 @@ def sample_circle_workspace(box,
         nobjs_max circles that do not intersect 
         todo replace the random environment script to use this function """
     workspace = Workspace(box)
-    extends = box.extends()
+    extent = box.extent()
     lims = np.array([[0., 1.], [0., 1.]])
-    lims[0][1] = extends.x_max
-    lims[0][0] = extends.x_min
-    lims[1][1] = extends.y_max
-    lims[1][0] = extends.y_min
+    lims[0][1] = extent.x_max
+    lims[0][0] = extent.x_min
+    lims[1][1] = extent.y_max
+    lims[1][0] = extent.y_min
     diagonal = box.diag()
     minrad = .10 * diagonal
     maxrad = .15 * diagonal
@@ -142,7 +142,7 @@ def random_environments(opt):
     box.dim[1] = lims[1][1] - lims[1][0]
     box.origin[0] = box.dim[0] / 2.
     box.origin[1] = box.dim[1] / 2.
-    grid = PixelMap(resolution, box.extends())
+    grid = PixelMap(resolution, box.extent())
     grid_to_world = np.zeros((grid.nb_cells_x, grid.nb_cells_y, 2))
     for i in range(grid.nb_cells_x):
         for j in range(grid.nb_cells_y):

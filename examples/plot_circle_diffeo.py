@@ -42,8 +42,8 @@ points = workspace.all_points()
 X = np.array(points)[:, 0]
 Y = np.array(points)[:, 1]
 
-extends = Extends(workspace.box.dim[0] / 2.)
-grid = PixelMap(0.01, extends)
+extent = Extent(workspace.box.dim[0] / 2.)
+grid = PixelMap(0.01, extent)
 matrix = np.zeros((grid.nb_cells_x, grid.nb_cells_y))
 for i in range(grid.nb_cells_x):
     for j in range(grid.nb_cells_y):
@@ -51,12 +51,12 @@ for i in range(grid.nb_cells_x):
         # TODO why is it this way... (j before i)
         # these are matrix coordinates...
         # matrix[j, i] = simulation.PotentialCausedByObject(p)
-# plt.imshow(matrix, origin='lower',extent=workspace.box.Extends())
+# plt.imshow(matrix, origin='lower',extent=workspace.box.Extent())
 # plt.scatter( X, Y )
 plt.plot(X, Y, "k", linewidth=2.0)
 # plt.ylabel('some points')
 plt.axis('equal')
-plt.axis(workspace.box.box_extends())
+plt.axis(workspace.box.box_extend())
 
 x_goal = np.array([0.4, 0.4])
 nx, ny = (3, 3)

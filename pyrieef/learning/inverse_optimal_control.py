@@ -84,7 +84,7 @@ class Learch2D(Learch):
                 self._nb_points, self._workspaces[k])
             self._goodness_maps[k] = goodness_map(
                 self._demonstrations[k],
-                self._nb_points, self._workspaces[k].box.extends(),
+                self._nb_points, self._workspaces[k].box.extent(),
                 self._goodness_scalar,
                 self._goodness_stddev)
 

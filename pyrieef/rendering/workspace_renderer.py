@@ -55,7 +55,7 @@ class WorkspaceRender:
 
     def set_workspace(self, workspace):
         self._workspace = workspace
-        self._extends = workspace.box.extends()
+        self._extends = workspace.box.extent()
 
     @abstractmethod
     def draw_ws_circle(self, radius, origin, color=(0, 1, 0)):
@@ -94,12 +94,12 @@ class WorkspaceDrawer(WorkspaceRender):
         if rows > 1 or cols > 1:
             for ax in self._axes.flatten():
                 ax.axis('equal')
-                ax.axis(self._workspace.box.box_extends())
+                ax.axis(self._workspace.box.box_extend())
             self.set_drawing_axis(0)
         else:
             self._ax = self._axes
             self._ax.axis('equal')
-            self._ax.axis(self._workspace.box.box_extends())
+            self._ax.axis(self._workspace.box.box_extend())
             self._axes = None
 
     def set_drawing_axis(self, i):
@@ -107,7 +107,7 @@ class WorkspaceDrawer(WorkspaceRender):
         if self._axes is not None:
             self._ax = self._axes.flatten()[i]
             self._ax.axis('equal')
-            self._ax.axis(self._workspace.box.box_extends())
+            self._ax.axis(self._workspace.box.box_extend())
 
     def draw_ws_obstacles(self):
         colorst = [cm.gist_ncar(i) for i in np.linspace(
@@ -133,7 +133,7 @@ class WorkspaceDrawer(WorkspaceRender):
         color_style = plt.cm.viridis
         im = self._ax.imshow(
             Z.transpose(),
-            extent=self._workspace.box.box_extends(),
+            extent=self._workspace.box.box_extend(),
             origin='lower',
             interpolation='nearest',
             # vmin=0,

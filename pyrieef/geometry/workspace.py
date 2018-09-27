@@ -169,7 +169,7 @@ class Box(Shape):
     """
         An axis aligned box (hypercube) defined by 
             - origin    : its center
-            - dim       : its extends
+            - dim       : its extent
 
         TODO 1) define distance
              2) class should work for 2D and 3D boxes
@@ -297,21 +297,21 @@ class EnvBox(Box):
                  dim=np.array([1., 1.])):
         Box.__init__(self, origin, dim)
 
-    def box_extends(self):
+    def box_extend(self):
         return np.array([self.origin[0] - self.dim[0] / 2.,
                          self.origin[0] + self.dim[0] / 2.,
                          self.origin[1] - self.dim[1] / 2.,
                          self.origin[1] + self.dim[1] / 2.,
                          ])
 
-    def extends(self):
-        box_extends = self.box_extends()
-        extends = Extends()
-        extends.x_min = box_extends[0]
-        extends.x_max = box_extends[1]
-        extends.y_min = box_extends[2]
-        extends.y_max = box_extends[3]
-        return extends
+    def extent(self):
+        box_extend = self.box_extend()
+        extent = Extent()
+        extent.x_min = box_extend[0]
+        extent.x_max = box_extend[1]
+        extent.y_min = box_extend[2]
+        extent.y_max = box_extend[3]
+        return extent
 
     def meshgrid(self, nb_points=100):
         """ This mesh grid definition matches the one in the PixelMap class
@@ -320,11 +320,11 @@ class EnvBox(Box):
             to the number of cells for the PixelMap"""
         assert self.dim[0] == self.dim[1]
         resolution = self.dim[0] / nb_points
-        extends = self.extends()
-        x_min = extends.x_min + 0.5 * resolution
-        x_max = extends.x_max - 0.5 * resolution
-        y_min = extends.y_min + 0.5 * resolution
-        y_max = extends.y_max - 0.5 * resolution
+        extent = self.extent()
+        x_min = extent.x_min + 0.5 * resolution
+        x_max = extent.x_max - 0.5 * resolution
+        y_min = extent.y_min + 0.5 * resolution
+        y_max = extent.y_max - 0.5 * resolution
         x = np.linspace(x_min, x_max, nb_points)
         y = np.linspace(y_min, y_max, nb_points)
         return np.meshgrid(x, y)
@@ -351,10 +351,10 @@ def box_from_limits(x_min, x_max, y_min, y_max):
 
 
 def pixelmap_from_box(nb_points, box):
-    extends = box.extends()
-    assert extends.x() == extends.y()  # Test is square
-    resolution = extends.x() / nb_points
-    return PixelMap(resolution, extends)
+    extent = box.extent()
+    assert extent.x() == extent.y()  # Test is square
+    resolution = extent.x() / nb_points
+    return PixelMap(resolution, extent)
 
 
 class Workspace:
@@ -414,10 +414,10 @@ class Workspace:
         return points
 
     def pixel_map(self, nb_points):
-        extends = self.box.extends()
-        assert extends.x() == extends.y()
-        resolution = extends.x() / nb_points
-        return PixelMap(resolution, extends)
+        extent = self.box.extent()
+        assert extent.x() == extent.y()
+        resolution = extent.x() / nb_points
+        return PixelMap(resolution, extent)
 
 
 def sample_circles(nb_circles):
@@ -432,7 +432,7 @@ def sample_workspace(nb_circles, radius_parameter=.20):
         the radius parameter specifies the 
         max fraction of workspace diagonal used for a circle radius. """
     workspace = Workspace()
-    extends = workspace.box.extends()
+    extent = workspace.box.extent()
     max_radius = radius_parameter * workspace.box.diag()
     workspace.obstacles = [None] * nb_circles
     for i in range(nb_circles):

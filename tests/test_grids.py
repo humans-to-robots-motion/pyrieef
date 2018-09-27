@@ -29,7 +29,7 @@ def test_pixelmap_random():
     print "pm -- nb_cells_x : {}".format(pixel_map.nb_cells_x)
     print "pm -- nb_cells_y : {}".format(pixel_map.nb_cells_y)
     for i in range(100):
-        p_g1 = pixel_map.world_to_grid(sample_uniform(pixel_map.extends))
+        p_g1 = pixel_map.world_to_grid(sample_uniform(pixel_map.extent))
         p_w1 = pixel_map.grid_to_world(p_g1)
         p_g2 = pixel_map.world_to_grid(p_w1)
         p_w2 = pixel_map.grid_to_world(p_g2)
@@ -44,13 +44,13 @@ def test_pixelmap_meshgrid():
     print "pm -- origin : {}".format(pixel_map.origin)
     print "pm -- nb_cells_x : {}".format(pixel_map.nb_cells_x)
     print "pm -- nb_cells_y : {}".format(pixel_map.nb_cells_y)
-    extends = pixel_map.extends
-    nb_points = int(extends.x_max - extends.x_min) / resolution
+    extent = pixel_map.extent
+    nb_points = int(extent.x_max - extent.x_min) / resolution
     print "nb_points : ", nb_points
-    x_min = extends.x_min + 0.5 * resolution
-    x_max = extends.x_max - 0.5 * resolution
-    y_min = extends.y_min + 0.5 * resolution
-    y_max = extends.y_max - 0.5 * resolution
+    x_min = extent.x_min + 0.5 * resolution
+    x_max = extent.x_max - 0.5 * resolution
+    y_min = extent.y_min + 0.5 * resolution
+    y_max = extent.y_max - 0.5 * resolution
     x = np.linspace(x_min, x_max, nb_points)
     y = np.linspace(y_min, y_max, nb_points)
     print x
@@ -78,7 +78,7 @@ def test_regressed_grid():
     interp_spline = RectBivariateSpline(x, y, Z.transpose())
 
     # same but with DifferentiableMap structure
-    f = RegressedPixelGridSpline(Z.transpose(), ds1, Extends(l))
+    f = RegressedPixelGridSpline(Z.transpose(), ds1, Extent(l))
 
     # Regularly-spaced, fine grid
 
