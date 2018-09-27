@@ -98,9 +98,23 @@ def test_workspace_to_occupancy_map():
         assert_allclose(occ[i, j], v)
 
 
+def test_inside_box():
+    for n in [2, 3]:
+        box = EnvBox(
+            origin=np.random.rand(n),
+            dim=np.random.rand(n) + .5 * np.ones(n))
+        for i in range(50):
+            p = box.sample_uniform()
+            assert box.is_inside(p)
+            p = np.random.random(box.origin.size)
+            assert not box.is_inside(p + box.upper_corner())
+            assert not box.is_inside(-1. * p + box.lower_corner())
+
+
 test_ellipse()
 test_sdf_derivatives()
 test_sdf_workspace()
 test_meshgrid()
 test_sdf_grid()
 test_workspace_to_occupancy_map()
+test_inside_box()

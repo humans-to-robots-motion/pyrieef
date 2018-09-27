@@ -167,9 +167,9 @@ class Segment(Shape):
 
 class Box(Shape):
     """
-        An axis aligned box is defined by 
-            - origin :  is its center
-            - dimensions : it's extends
+        An axis aligned box (hypercube) defined by 
+            - origin    : its center
+            - dim       : its extends
 
         TODO 1) define distance
              2) class should work for 2D and 3D boxes
@@ -182,14 +182,26 @@ class Box(Shape):
         self.origin = origin
         self.dim = dim
 
-    def lower_corner(self):
-        return self.origin - .5 * self.dim
-
     def upper_corner(self):
         return self.origin + .5 * self.dim
 
+    def lower_corner(self):
+        return self.origin - .5 * self.dim
+
     def diag(self):
         return np.linalg.norm(self.dim)
+
+    def is_inside(self, x):
+        """ works (tested) for arbitrary dimensions, 2d and 3d,
+            might not work if called on meshgrid data """
+        assert x.size == self.origin.size
+        for x_i, corner_i in zip(x, self.lower_corner()):
+            if x_i < corner_i:
+                return False
+        for x_i, corner_i in zip(x, self.upper_corner()):
+            if x_i > corner_i:
+                return False
+        return True
 
     def vertices(self):
         """ TODO test this function """
@@ -201,18 +213,6 @@ class Box(Shape):
         verticies[2] -= .5 * self.dim
         verticies[3] += .5 * self.dim
         return verticies
-
-    def is_inside(self, x):
-
-        lower_corner = self.lower_corner()
-        if x[0] < lower_corner[0] or x[1] < lower_corner[1]:
-            return False
-
-        upper_corner = self.upper_corner()
-        if x[1] > upper_corner[1] or x[1] > upper_corner[1]:
-            return False
-
-        return True
 
     def dist_from_border(self, x):
         distances = [np.linalg.norm(x - vertex) for vertex in self.verticies()]
@@ -335,8 +335,8 @@ class EnvBox(Box):
 
     def sample_uniform(self):
         """ Sample uniformly point in extend"""
-        pt = np.random.random(self.origin.size)  # in [0, 1]^n
-        return np.multiply(self.dim, pt) + self.lower_corner()
+        p = np.random.random(self.origin.size)  # p in [0, 1]^n
+        return np.multiply(self.dim, p) + self.lower_corner()
 
     def __str__(self):
         return "origin : {}, dim : {}".format(self.origin, self.dim)
