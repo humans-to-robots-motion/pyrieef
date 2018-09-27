@@ -18,43 +18,41 @@
 #                                        Jim Mainprice on Sunday June 13 2018
 
 import demos_common_imports
-from scipy import optimize
-from pyrieef.motion.objective import *
 import time
+import numpy as np
 from numpy.testing import assert_allclose
-from rendering.optimization import *
 
+from pyrieef.geometry.workspace import EnvBox
+from pyrieef.motion.trajectory import linear_interpolation_trajectory
+from pyrieef.motion.objective import MotionOptimization2DCostMap
+from pyrieef.optimization import algorithms
+from pyrieef.rendering.optimization import TrajectoryOptimizationViewer
 
-def motion_optimimization():
-    print "Checkint Motion Optimization"
-    trajectory = linear_interpolation_trajectory(
-        q_init=-.22 * np.ones(2),
-        q_goal=.3 * np.ones(2),
-        T=22
-    )
-    objective = MotionOptimization2DCostMap(
-        box=EnvBox(origin=np.array([0, 0]), dim=np.array([1., 1.])),
+# ----------------------------------------------------------------------------
+print "Run Motion Optimization"
+trajectory = linear_interpolation_trajectory(
+    q_init=-.22 * np.ones(2),
+    q_goal=.3 * np.ones(2),
+    T=22
+)
+
+# ----------------------------------------------------------------------------
+# The Objective function is wrapped in the optimization viewer object
+# which draws the trajectory as it is being optimized
+objective = TrajectoryOptimizationViewer(
+    MotionOptimization2DCostMap(
+        box=EnvBox(
+            origin=np.array([0, 0]),
+            dim=np.array([1., 1.])),
         T=trajectory.T(),
         q_init=trajectory.initial_configuration(),
-        q_goal=trajectory.final_configuration()
-    )
-    f = TrajectoryOptimizationViewer(objective, draw=False, draw_gradient=True)
-    t_start = time.time()
-    x = trajectory.active_segment()
-    res = optimize.minimize(
-        x0=x,
-        method='Newton-CG',
-        fun=f.forward,
-        jac=f.gradient,
-        hess=f.hessian,
-        options={'maxiter': 100, 'gtol': 1e-05, 'disp': True}
-    )
-    print "optimization done in {} sec.".format(time.time() - t_start)
-    print "gradient norm : ", np.linalg.norm(res.jac)
+        q_goal=trajectory.final_configuration()),
+    draw=True,
+    draw_gradient=True)
 
-if __name__ == "__main__":
-    motion_optimimization()
-    raw_input("Press Enter to continue...")
-    # Can do some profiling here
-    # import cProfile
-    # cProfile.run('motion_optimimization()')
+# ----------------------------------------------------------------------------
+# Runs a Newton optimization algorithm on the objective
+# ----------------------------------------------------------------------------
+algorithms.newton_optimize_trajectory(objective, trajectory)
+
+raw_input("Press Enter to continue...")

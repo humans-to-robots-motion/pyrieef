@@ -20,9 +20,9 @@
 import demos_common_imports
 from scipy import optimize
 from pyrieef.motion.objective import *
+from pyrieef.rendering.optimization import *
 import time
 from numpy.testing import assert_allclose
-from rendering.optimization import *
 
 
 def initialize_objective(objective, trajectory):

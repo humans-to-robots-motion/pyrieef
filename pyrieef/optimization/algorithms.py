@@ -17,10 +17,22 @@
 #
 #                                        Jim Mainprice on Sunday June 13 2018
 
-# import scipy.optimize as opt
-import scipy
 from scipy import optimize
-from numpy.testing import assert_allclose
 import numpy as np
+import time
 
 
+def newton_optimize_trajectory(objective, trajectory):
+    t_start = time.time()
+    res = optimize.minimize(
+        x0=trajectory.active_segment(),
+        method='Newton-CG',
+        fun=objective.forward,
+        jac=objective.gradient,
+        hess=objective.hessian,
+        options={'maxiter': 100, 'gtol': 1e-05, 'disp': True}
+    )
+    print "optimization done in {} sec.".format(time.time() - t_start)
+    print "gradient norm : ", np.linalg.norm(res.jac)
+    trajectory.active_segment()[:] = res.x
+    return res

@@ -26,6 +26,7 @@ from pyrieef.geometry.pixel_map import *
 from pyrieef.geometry.geodesics import *
 from pyrieef.geometry.diffeomorphisms import *
 from pyrieef.geometry.utils import *
+
 import itertools
 
 

@@ -22,8 +22,8 @@ from scipy import optimize
 from pyrieef.motion.objective import *
 import time
 from numpy.testing import assert_allclose
-from rendering.optimization import *
-
+from pyrieef.rendering.optimization import *
+from pyrieef.optimization.algorithms import *
 
 def initialize_objective(trajectory):
     objective = MotionOptimization2DCostMap(
@@ -42,33 +42,29 @@ def initialize_objective(trajectory):
     return objective
 
 
-def motion_optimimization():
+def motion_optimimization(workspace):
     print "Checkint Motion Optimization"
     trajectory = linear_interpolation_trajectory(
         q_init=-.22 * np.ones(2),
         q_goal=.3 * np.ones(2),
         T=22
     )
-    objective = initialize_objective(trajectory)
+    sdf = SignedDistanceWorkspaceMap(workspace)
+    objective = initialize_objective(trajectory, sdf)
     f = TrajectoryOptimizationViewer(objective, draw=False, draw_gradient=True)
-    t_start = time.time()
-    x = trajectory.active_segment()
-    res = optimize.minimize(
-        x0=x,
-        method='Newton-CG',
-        fun=f.forward,
-        jac=f.gradient,
-        hess=f.hessian,
-        options={'maxiter': 100, 'gtol': 1e-05, 'disp': True}
-    )
-    trajectory.active_segment()[:] = res.x
+    newton_optimize_trajectory(f, trajectory)
     f.draw(trajectory)
-    print "optimization done in {} sec.".format(time.time() - t_start)
-    print "gradient norm : ", np.linalg.norm(res.jac)
+
+
+def run_example():
+    workspace = sample_workspace(nb_circles=4)
+
 
 if __name__ == "__main__":
-    motion_optimimization()
-    raw_input("Press Enter to continue...")
-    # Can do some profiling here
-    # import cProfile
-    # cProfile.run('motion_optimimization()')
+
+    while True:
+
+        motion_optimimization()
+
+        if raw_input("Press [q] to quit or enter to continue : ") == "q":
+            break
