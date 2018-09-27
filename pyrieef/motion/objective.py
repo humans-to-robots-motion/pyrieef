@@ -39,6 +39,7 @@ class MotionOptimization2DCostMap:
         self.T = T                      # time steps
         self.dt = 0.1                   # sample rate
         self.trajectory_space_dim = (self.config_space_dim * (self.T + 2))
+        self.workspace = None
         self.signed_distance_field = signed_distance_field
         self.costmap = costmap
         self.objective = None
@@ -94,6 +95,7 @@ class MotionOptimization2DCostMap:
         #                            alpha=10.,
         #                            margin=.03,
         #                            offset=1.)
+        return self.obstacle_potential
 
     def cost(self, trajectory):
         """ compute sum of acceleration """
@@ -104,6 +106,7 @@ class MotionOptimization2DCostMap:
         workspace.obstacles.append(Circle(np.array([0.2, .15]), .1))
         workspace.obstacles.append(Circle(np.array([-.1, .15]), .1))
         self.signed_distance_field = SignedDistanceWorkspaceMap(workspace)
+        self.workspace = workspace
 
     def create_smoothness_metric(self):
         """ TODO this does not seem to work at all... """

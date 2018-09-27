@@ -94,12 +94,12 @@ class WorkspaceDrawer(WorkspaceRender):
         if rows > 1 or cols > 1:
             for ax in self._axes.flatten():
                 ax.axis('equal')
-                ax.axis(self._workspace.box.box_extend())
+                ax.axis(self._workspace.box.box_extent())
             self.set_drawing_axis(0)
         else:
             self._ax = self._axes
             self._ax.axis('equal')
-            self._ax.axis(self._workspace.box.box_extend())
+            self._ax.axis(self._workspace.box.box_extent())
             self._axes = None
 
     def set_drawing_axis(self, i):
@@ -107,7 +107,7 @@ class WorkspaceDrawer(WorkspaceRender):
         if self._axes is not None:
             self._ax = self._axes.flatten()[i]
             self._ax.axis('equal')
-            self._ax.axis(self._workspace.box.box_extend())
+            self._ax.axis(self._workspace.box.box_extent())
 
     def draw_ws_obstacles(self):
         colorst = [cm.gist_ncar(i) for i in np.linspace(
@@ -133,7 +133,7 @@ class WorkspaceDrawer(WorkspaceRender):
         color_style = plt.cm.viridis
         im = self._ax.imshow(
             Z.transpose(),
-            extent=self._workspace.box.box_extend(),
+            extent=self._workspace.box.box_extent(),
             origin='lower',
             interpolation='nearest',
             # vmin=0,
@@ -172,6 +172,7 @@ class WorkspaceOpenGl(WorkspaceRender):
 
     def __init__(self, workspace, display=None):
         WorkspaceRender.__init__(self, workspace)
+        print self._workspace.box
         self._scale = 700.
         self.width = self._scale * (self._extends.x_max - self._extends.x_min)
         self.height = self._scale * (self._extends.y_max - self._extends.y_min)
@@ -183,6 +184,8 @@ class WorkspaceOpenGl(WorkspaceRender):
 
         # Draw WS obstacles
         # self.draw_ws_obstacles()
+
+        
 
     def draw_ws_circle(self, radius, origin, color=(0, 1, 0)):
         t = Transform(translation=self._scale * (

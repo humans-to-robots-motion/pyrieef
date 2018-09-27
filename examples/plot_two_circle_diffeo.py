@@ -77,7 +77,7 @@ for i in range(grid.nb_cells_x):
     for j in range(grid.nb_cells_y):
         p = grid.grid_to_world(np.array([i, j]))
 plt.axis('equal')
-plt.axis(workspace.box.box_extend())
+plt.axis(workspace.box.box_extent())
 
 x_goal = np.array([0.4, 0.4])
 nx, ny = (3, 3)

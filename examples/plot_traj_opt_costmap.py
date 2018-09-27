@@ -68,7 +68,7 @@ def motion_optimimization(workspace, costmap=None):
 
 def plot_costmaps():
     workspace = sample_workspace(nb_circles=4)
-    im = plt.imshow(mat, extent=workspace.box.box_extend())
+    im = plt.imshow(mat, extent=workspace.box.box_extent())
 
 
 if __name__ == "__main__":

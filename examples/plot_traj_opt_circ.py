@@ -29,7 +29,7 @@ def plot_results(workspace, x_init, x_goal, trajectory, optimizer):
     from mpl_toolkits.mplot3d import Axes3D
     plt.figure(figsize=(7, 6.5))
     plt.axis('equal')
-    plt.axis(workspace.box.box_extend())
+    plt.axis(workspace.box.box_extent())
     colorst = [cm.gist_ncar(i) for i in np.linspace(
         0, 0.9, len(workspace.obstacles))]
     for i, o in enumerate(workspace.obstacles):
@@ -49,7 +49,7 @@ def plot_results(workspace, x_init, x_goal, trajectory, optimizer):
     color_style = plt.cm.bone
     color_style = plt.cm.magma
     im = plt.imshow(Z,
-                    extent=workspace.box.box_extend(),
+                    extent=workspace.box.box_extent(),
                     origin='lower',
                     interpolation='bilinear',
                     cmap=color_style)

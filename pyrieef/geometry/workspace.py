@@ -297,7 +297,7 @@ class EnvBox(Box):
                  dim=np.array([1., 1.])):
         Box.__init__(self, origin, dim)
 
-    def box_extend(self):
+    def box_extent(self):
         return np.array([self.origin[0] - self.dim[0] / 2.,
                          self.origin[0] + self.dim[0] / 2.,
                          self.origin[1] - self.dim[1] / 2.,
@@ -305,12 +305,12 @@ class EnvBox(Box):
                          ])
 
     def extent(self):
-        box_extend = self.box_extend()
+        box_extent = self.box_extent()
         extent = Extent()
-        extent.x_min = box_extend[0]
-        extent.x_max = box_extend[1]
-        extent.y_min = box_extend[2]
-        extent.y_max = box_extend[3]
+        extent.x_min = box_extent[0]
+        extent.x_max = box_extent[1]
+        extent.y_min = box_extent[2]
+        extent.y_max = box_extent[3]
         return extent
 
     def meshgrid(self, nb_points=100):

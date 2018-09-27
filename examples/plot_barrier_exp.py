@@ -60,11 +60,11 @@ for i in range(grid.nb_cells_x):
         # TODO why is it this way... (j before i)
         # these are matrix coordinates...
         matrix[j, i] = simulation.PotentialCausedByObject(p)
-plt.imshow(matrix, origin='lower', extent=workspace.box.box_extend())
+plt.imshow(matrix, origin='lower', extent=workspace.box.box_extent())
 plt.scatter(X, Y)
 plt.ylabel('some points')
 plt.axis('equal')
-plt.axis(workspace.box.box_extend())
+plt.axis(workspace.box.box_extent())
 
 print "Compute geodesics..."
 x_goal = np.array([0.4, -0.4])
