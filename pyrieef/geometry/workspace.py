@@ -173,6 +173,7 @@ class Box(Shape):
 
         TODO 1) define distance
              2) class should work for 2D and 3D boxes
+             3) test this function
     """
 
     def __init__(self,
@@ -195,20 +196,21 @@ class Box(Shape):
     def diag(self):
         return np.linalg.norm(self.dim)
 
-    def in_box(self, x):
-        if x[0] > self.origin[0] + .5 * self.dim[0]:
+    def is_inside(self, x):
+
+        lower_corner = self.origin - .5 * self.dim
+        if x[0] < lower_corner[0] or x[1] < lower_corner[1]:
             return False
-        if x[1] > self.origin[1] + .5 * self.dim[1]:
-            return True
-        if x[0] < self.origin[0] - .5 * self.dim[0]:
-            return True
-        if x[1] < self.origin[0] - .5 * self.dim[1]:
-            return True
-        return False
+
+        upper_corner = self.origin + .5 * self.dim
+        if x[1] > upper_corner[1] or x[1] > upper_corner[1]:
+            return False
+
+        return True
 
     def dist_from_border(self, x):
         distances = [np.linalg.norm(x - vertex) for vertex in self.verticies()]
-        return -min(distances) if self.in_box(x) else min(distances)
+        return min(distances) if not self.is_inside(x) else -min(distances)
 
 
 class SignedDistance2DMap(DifferentiableMap):
