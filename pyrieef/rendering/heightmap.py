@@ -20,23 +20,49 @@
 import os
 
 import pyglet
-from pyglet import gl
-from pyglet.gl import glu
+from pyglet import *
+from pyglet.gl import *
 
 from itertools import izip
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 cmap = plt.get_cmap('viridis')
+# cmap = plt.get_cmap('hot')
 
-from skimage import data
-from skimage.util import img_as_float
-from skimage.transform import rescale, resize
-from skimage.color import rgb2gray
 
 # colors
 BLACK = (0, 0, 0, 1)
 WHITE = (1, 1, 1, 1)
 GRAY = (0.5, 0.5, 0.5)
+
+
+def potential_surface(nb_points):
+    """ compute an abstract surface """
+    import numpy as np
+
+    def flux_qubit_potential(phi_m, phi_p):
+        alpha = 0.7
+        phi_ext = 2 * np.pi * 0.5
+        return 2 + alpha - 2 * np.cos(phi_p) * np.cos(phi_m) - alpha * np.cos(
+            phi_ext - 2 * phi_p)
+    phi_m = np.linspace(0, 2 * np.pi, nb_points)
+    phi_p = np.linspace(0, 2 * np.pi, nb_points)
+    X, Y = np.meshgrid(phi_p, phi_m)
+    Z = flux_qubit_potential(X, Y).T
+    return Z
+
+
+def image_surface(nb_points):
+    """ generate surface from data """
+    from skimage import data
+    from skimage.util import img_as_float
+    from skimage.transform import rescale, resize
+    from skimage.color import rgb2gray
+    shape = (nb_points, nb_points)
+    image = img_as_float(resize(rgb2gray(data.astronaut()), shape))
+    print image.shape
+    print type(image)
+    return image
 
 
 class Heightmap:
@@ -56,7 +82,7 @@ class Heightmap:
         # translation and rotation values
         self.x = self.y = self.z = 0  # heightmap translation
         self.rx = self.ry = self.rz = 0  # heightmap rotation
-        self.z = -40
+        self.z = -50
 
     # def get_verticies(self, Z):
 
@@ -112,7 +138,7 @@ class Heightmap:
         for i, row in enumerate(self.vertices):
             self.colors[i] = []
             for v_x, v_y, v_z in izip(*[iter(row)] * 3):
-                color = cmap(v_z)
+                color = cmap(v_z / dz)
                 color = (
                     int(255 * color[0]),
                     int(255 * color[1]),
@@ -123,17 +149,20 @@ class Heightmap:
         self.z_length = max_z * dz
 
     def draw(self, black=False):
-        gl.glLoadIdentity()
+        glLoadIdentity()
         # position (move away 3 times the
         # z_length of the heightmap in the z
         # axis)
-        gl.glTranslatef(self.x, self.y, self.z - self.z_length * 3)
+        # print "x : ", self.x
+        # print "y : ", self.y
+        # print "z : ", self.z
+        glTranslatef(self.x, self.y, self.z - self.z_length * 3)
         # rotation
-        gl.glRotatef(self.rx - 40, 1, 0, 0)
-        gl.glRotatef(self.ry, 0, 1, 0)
-        gl.glRotatef(self.rz - 40, 0, 0, 1)
+        glRotatef(self.rx - 40, 1, 0, 0)
+        glRotatef(self.ry, 0, 1, 0)
+        glRotatef(self.rz - 40, 0, 0, 1)
         # color
-        # gl.glColor3f(*BLACK)
+        # glColor3f(*BLACK)
 
         # draws the primitives (GL_TRIANGLE_STRIP)
         for i, row in enumerate(self.vertices):
@@ -147,55 +176,115 @@ class Heightmap:
 
             vlist = pyglet.graphics.vertex_list(
                 self.image_width * 2,
-                ('v3f', row),
-                ('t3f', normals),
-                ('c3B', colors))
-            vlist.draw(gl.GL_TRIANGLE_STRIP)
+                ('v3f/static', row),
+                # ('t3f/static', normals),
+                ('c3B/static', colors))
+            vlist.draw(GL_TRIANGLE_STRIP)
+
+
+def setup():
+
+    def _gl_vector(*args):
+        return (GLfloat * len(args))(*args)
+
+    light0pos = [20.0,   20.0, 20.0, 1.0]  # positional light !
+    light1pos = [-20.0, -20.0, 20.0, 0.0]  # infinitely away light !
+
+    glClearColor(1, 1, 1, 1)
+    #glColor3f(1, 0, 0)
+
+    glEnable(GL_DEPTH_TEST)
+    # glEnable(GL_CULL_FACE)
+    glEnable(GL_LIGHTING)
+    glEnable(GL_LIGHT0)
+    glEnable(GL_LIGHT1)
+
+    glLightfv(GL_LIGHT0, GL_POSITION, _gl_vector(*light0pos))
+    glLightfv(GL_LIGHT0, GL_SPECULAR, _gl_vector(.5, .5, 1, 1))
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, _gl_vector(1, 1, 1, 1))
+    glLightfv(GL_LIGHT1, GL_POSITION, _gl_vector(*light1pos))
+    glLightfv(GL_LIGHT1, GL_DIFFUSE, _gl_vector(.5, .5, .5, 1))
+    glLightfv(GL_LIGHT1, GL_SPECULAR, _gl_vector(1, 1, 1, 1))
+
+    # glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE)
+    glEnable(GL_COLOR_MATERIAL)
+    # glShadeModel(GL_SMOOTH)
+
+    # glMaterialfv(GL_FRONT, GL_AMBIENT,
+    #              _gl_vector(0.192250, 0.192250, 0.192250))
+    # glMaterialfv(GL_FRONT, GL_DIFFUSE,
+    #              _gl_vector(0.507540, 0.507540, 0.507540))
+    # glMaterialfv(GL_FRONT, GL_SPECULAR,
+    #              _gl_vector(.5082730, .5082730, .5082730))
+
+    # glMaterialf(GL_FRONT, GL_SHININESS,
+    #             .4 * 128.0)
+
+    glEnable(GL_BLEND)
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 window = pyglet.window.Window(
-    width=1000, height=800, caption='Heightmap', resizable=True)
+    width=400, height=400, caption='Heightmap', resizable=True)
 
 # background color
-gl.glClearColor(*WHITE)
+glClearColor(*WHITE)
 
-# image
-image = img_as_float(resize(rgb2gray(data.astronaut()), (50, 50)))
-print image.shape
+# clears the background with the background color
+glClear(GL_COLOR_BUFFER_BIT)
+
+# setup()
+
+
+# image = potential_surface(50)
+image = image_surface(50)
+image -= image.min()
+image /= image.max()
 
 # heightmap
 height_map = Heightmap()
-height_map.load(image, 1, 1, 3.)
+height_map.load(image, 1, 1, 10.)
 
 
 @window.event
 def on_resize(width, height):
-    # sets the viewport
-    gl.glViewport(0, 0, width, height)
 
-    gl.glClear(gl.GL_COLOR_BUFFER_BIT)
+    # sets the viewport
+    glViewport(0, 0, 2 * width, 2 * height)
+    glClear(GL_COLOR_BUFFER_BIT)
 
     # sets the projection
-    gl.glMatrixMode(gl.GL_PROJECTION)
-    gl.glLoadIdentity()
-    glu.gluPerspective(60.0, width / float(height), 0.1, 1000.0)
+    glMatrixMode(GL_PROJECTION)
+    glLoadIdentity()
+    gluPerspective(60.0, width / float(height), 0.1, 1000.0)
 
     # sets the model view
-    gl.glMatrixMode(gl.GL_MODELVIEW)
-    gl.glLoadIdentity()
+    glMatrixMode(GL_MODELVIEW)
+    glLoadIdentity()
+
+    setup()
+    height_map.draw()
 
     return pyglet.event.EVENT_HANDLED
+
+# Define a simple function to create ctypes arrays of floats:
 
 
 @window.event
 def on_draw():
-    # clears the background with the background color
-    gl.glClear(gl.GL_COLOR_BUFFER_BIT)
 
-    gl.glPolygonMode(gl.GL_FRONT_AND_BACK, gl.GL_FILL)  # fill mode
+    # clears the background with the background color
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+    setup()
+
+    glPolygonMode(GL_FRONT, GL_FILL)  # fill mode
     height_map.draw()
 
-    gl.glPolygonMode(gl.GL_FRONT_AND_BACK, gl.GL_LINE)  # wire-frame mode
-    height_map.draw(black=True)
+    # glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)  # wire-frame mode
+    # height_map.draw(black=True)
+
+    # glEnable(GL_DEPTH_TEST)
+    # glEnable(GL_LIGHTING)
+    # glDisable(GL_TEXTURE_2D)
 
 
 @window.event
@@ -214,6 +303,13 @@ def on_mouse_drag(x, y, dx, dy, button, modifiers):
     if button == pyglet.window.mouse.MIDDLE:
         height_map.x += dx / 10.0
         height_map.y += dy / 10.0
+
+
+def update(dt):
+    # height_map.ry += 10 * dt
+    # height_map.rx -= 10. * dt
+    height_map.rz -= 10. * dt
+pyglet.clock.schedule(update)
 
 
 pyglet.app.run()
