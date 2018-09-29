@@ -114,7 +114,7 @@ def draw_grids(data):
     plt.close(fig)
 
 
-def draw_all_workspaces(basename, scale, multicol=True):
+def draw_all_workspaces(basename, scale, multicol=False):
     dataset = load_workspace_dataset(basename)
     rows = 1
     cols = 1
@@ -126,7 +126,7 @@ def draw_all_workspaces(basename, scale, multicol=True):
     for workspaces in izip(*[iter(dataset)] * (rows * cols)):
         viewer = render.WorkspaceDrawer(
             workspaces[0].workspace,
-            wait_for_keyboard=False, rows=rows, cols=cols, scale=scale)
+            wait_for_keyboard=True, rows=rows, cols=cols, scale=scale)
         for k, ws in enumerate(workspaces):
             viewer.set_drawing_axis(k)
             viewer.set_workspace(ws.workspace)
@@ -137,6 +137,24 @@ def draw_all_workspaces(basename, scale, multicol=True):
                     configurations = trajectory.list_configurations()
                     viewer.draw_ws_line(configurations, color="r")
                     viewer.draw_ws_point(configurations[0], color="k")
+                    dt = 0.1
+                    for t in range(1, trajectory.T() + 1):
+                        # the acceleration at t = 0 is 0
+                        # we can insert it in the data or not..
+                        a_t = trajectory.acceleration(t, dt)
+                        v_t = trajectory.velocity(t, dt)
+                        q_t = trajectory.configuration(t)
+                        # Integration in time
+                        # it is normal that the acceleration does not
+                        # correlate with the direction of motion because
+                        # the velocity should, not acceleration
+                        q_t_1 = v_t * dt + a_t * (dt**2)
+                        q_t_0 = v_t * dt
+                        scale_direction = 4.
+                        viewer.draw_ws_line_fill(
+                            [q_t, q_t + scale_direction * q_t_0], color="k")
+                        viewer.draw_ws_point(q_t + q_t_1, color="k", shape='o')
+
         viewer.show_once()
         time.sleep(t_sleep)
 

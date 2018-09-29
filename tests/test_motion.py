@@ -59,7 +59,7 @@ def test_integration():
     dt = 0.1
     trajectory = Trajectory(T=20, n=2)
     trajectory.x()[:] = np.random.random(trajectory.x().size)
-    print trajectory
+    # print trajectory
 
     """
     Test velocity integration
@@ -492,20 +492,20 @@ def test_optimize():
     objective.optimize(q_init, nb_steps=5, optimizer="newton")
 
 if __name__ == "__main__":
-    test_finite_differences()
+    # test_finite_differences()
     test_integration()
-    test_cliques()
-    test_trajectory()
-    test_continuous_trajectory()
-    test_squared_norm_derivatives()
-    test_bound_barrier()
-    test_obstacle_potential()
-    test_motion_optimimization_2d()
-    test_motion_optimimization_smoothness_metric()
-    test_center_of_clique()
-    test_linear_interpolation()
-    test_linear_interpolation_velocity()
-    test_linear_interpolation_optimal_potential()
-    test_smoothness_metric()
-    test_trajectory_objective()
-    test_optimize()
+    # test_cliques()
+    # test_trajectory()
+    # test_continuous_trajectory()
+    # test_squared_norm_derivatives()
+    # test_bound_barrier()
+    # test_obstacle_potential()
+    # test_motion_optimimization_2d()
+    # test_motion_optimimization_smoothness_metric()
+    # test_center_of_clique()
+    # test_linear_interpolation()
+    # test_linear_interpolation_velocity()
+    # test_linear_interpolation_optimal_potential()
+    # test_smoothness_metric()
+    # test_trajectory_objective()
+    # test_optimize()

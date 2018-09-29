@@ -72,8 +72,8 @@ class Heightmap:
         self.y_length = (self.image_height - 1) * dy
 
         # used for centering the heightmap
-        half_x_length = self.x_length / 2.0
-        half_y_length = self.y_length / 2.0
+        half_x_length = self.x_length / 2.
+        half_y_length = self.y_length / 2.
 
         max_z = 0
 
