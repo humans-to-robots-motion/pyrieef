@@ -200,17 +200,21 @@ class Scale(DifferentiableMap):
 
 
 class SumOfTerms(DifferentiableMap):
-    """ Sums term s"""
+    """ Sums n differentiable maps """
 
     def __init__(self, functions):
+        nb_functions = len(functions)
+        assert nb_functions > 0
         self._functions = functions
+        if nb_functions > 1:
+            for f in self._functions:
+                assert f.output_dimension() == self.output_dimension()
+                assert f.input_dimension() == self.input_dimension()
 
     def output_dimension(self):
-        assert len(self._functions) > 0
         return self._functions[0].output_dimension()
 
     def input_dimension(self):
-        assert len(self._functions) > 0
         return self._functions[0].input_dimension()
 
     def forward(self, q):

@@ -127,10 +127,16 @@ class BoundBarrier(DifferentiableMap):
         for i, x_i in enumerate(x):
             l_dist = x_i - self._v_lower[i]
             u_dist = self._v_upper[i] - x_i
-            if l_dist < self._margin or u_dist < self._margin:
-                return float("inf")
+            if x.shape == (self.input_dimension(),):
+                if l_dist < self._margin or u_dist < self._margin:
+                    return float("inf")
             value += -self._alpha * np.log(l_dist)
             value += -self._alpha * np.log(u_dist)
+        if not x.shape == (self.input_dimension(),):
+            over_limit = l_dist < self._margin
+            under_limit = u_dist < self._margin
+            l_dist = np.where(over_limit, float("inf"), l_dist)
+            u_dist = np.where(under_limit, float("inf"), u_dist)
         return value
 
     def jacobian(self, x):
