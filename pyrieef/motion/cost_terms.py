@@ -131,7 +131,7 @@ class BoundBarrier(DifferentiableMap):
                 if l_dist < self._margin or u_dist < self._margin:
                     return float("inf")
 
-            # Log barrier log(d_u) + log(d_l)
+            # Log barrier f(x_i) = -log(d_u) + -log(d_l)
             value += -self._alpha * np.log(l_dist)
             value += -self._alpha * np.log(u_dist)
 
