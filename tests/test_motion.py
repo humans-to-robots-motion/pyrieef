@@ -89,9 +89,9 @@ def test_integration():
     q_t0 = trajectory.configuration(0).copy()
     trajectory_zero.configuration(0)[:] = q_t0
     for t in range(trajectory.T() + 1):
-        a_t = trajectory.acceleration(t, dt)
-        v_t = trajectory_zero.velocity(t, dt)
         q_t = trajectory_zero.configuration(t)
+        v_t = trajectory_zero.velocity(t, dt)
+        a_t = trajectory.acceleration(t, dt)
         q_t1 = q_t + v_t * dt + a_t * (dt ** 2)
         trajectory_zero.configuration(t + 1)[:] = q_t1
         assert_allclose(q_t1, trajectory.configuration(t + 1))

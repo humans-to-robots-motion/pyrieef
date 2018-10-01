@@ -48,7 +48,7 @@ def test_demonstrations():
             sample_workspace(nb_circles=3), converter, nb_points=nb_points,
             show_result=False, average_cost=average_cost, verbose=True)
         assert trajectories[k].n() == 2
-        assert trajectories[k].T() == 19
+        assert trajectories[k].T() == TRAJ_LENGTH - 1
     print "time : {} sec.".format(time.time() - t_start)
 
 if __name__ == "__main__":

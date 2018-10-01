@@ -37,7 +37,7 @@ MAX_ITERATIONS = 100
 ALPHA = 20.
 MARGIN = .03
 OFFSET = 1.
-TRAJ_LENGTH = 20
+TRAJ_LENGTH = 50
 
 
 def set_max_gradient_descent_iterations(n):
@@ -139,11 +139,12 @@ def compute_demonstration(
 if __name__ == '__main__':
 
     parser = optparse.OptionParser("usage: %prog [options] arg1 arg2")
+    parser.add_option('--nb_points', type="int", default=24)
     add_boolean_options(parser, ['verbose', 'show_result', 'average_cost'])
     (options, args) = parser.parse_args()
     verbose = options.verbose
     show_demo_id = -1
-    nb_points = 24
+    nb_points = options.nb_points
     print(" -- options : ", options)
 
     converter = CostmapToSparseGraph(
