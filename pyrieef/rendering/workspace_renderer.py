@@ -237,6 +237,7 @@ class WorkspaceHeightmap(WorkspaceRender):
     def __init__(self, workspace):
         WorkspaceRender.__init__(self, workspace)
         print self._workspace.box
+        self._extent = self._workspace.box.extent()
         self._scale = 1.
         self.width = 50
         self.height = 50
@@ -262,18 +263,32 @@ class WorkspaceHeightmap(WorkspaceRender):
         return None
 
     def draw_ws_line(self, p1, p2, color=(1, 0, 0)):
-        # corner = np.array([self._extends.x_min, self._extends.y_min])
-        # p1_ws = self._scale * (p1 - corner)
-        # p2_ws = self._scale * (p2 - corner)
-        # self.gl.draw_line(p1_ws, p2_ws, linewidth=7, color=(1, 0, 0))
-        return None
+        corner = np.array([self._extent.x_min, self._extent.y_min])
+        p1_ws = p1 - corner
+        p2_ws = p2 - corner
+        T = self._height_map.transform()
+        self._height_map.add_sphere_to_draw(np.array(T * p1_ws))
+        self._height_map.add_sphere_to_draw(np.array(T * p2_ws))
+
+    def draw_ws_sphere(self, p, color=(1, 0, 0)):
+        T = self._height_map.transform(*self._workspace.box.box_extent())
+        corner = np.array([self._extent.x_min, self._extent.y_min])
+        p_ws = p - corner
+        p_3d = np.matrix(np.ones((3, 1)))
+        p_3d[0] = p_ws[0]
+        p_3d[1] = p_ws[1]
+        p = T * p_3d
+        p[2] = 10.
+        print p.shape
+        # p = np.zeros(3)
+        self._height_map.add_sphere_to_draw(p, radius=1.)
 
     def draw_ws_background(self, function):
         Z = function(self._workspace.box.stacked_meshgrid(self.width))
         print Z.shape
         Z = (Z - np.ones(Z.shape) * Z.min()) / Z.max()
         # Z = np.flip(Z, 1)
-        self._height_map.load(Z, 2, 2, 50.)
+        self._height_map.load(Z, 2, 2, 10.)
 
     def draw_ws_obstacles(self):
         # for i, o in enumerate(self._workspace.obstacles):

@@ -33,4 +33,6 @@ p_lower = np.array([extent.x_min, extent.y_min])
 p_upper = np.array([extent.x_max, extent.y_max])
 sdf = SumOfTerms([sdf, BoundBarrier(p_lower, p_upper, alpha=20.)])
 viewer.draw_ws_background(sdf)
+for o in workspace.obstacles:
+    viewer.draw_ws_sphere(o.origin)
 viewer.show()
