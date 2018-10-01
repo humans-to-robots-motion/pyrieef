@@ -177,7 +177,7 @@ class Pullback(Compose):
 
 
 class Scale(DifferentiableMap):
-    """Scales a function by a constant"""
+    """ Scales a function by a constant """
 
     def __init__(self, f, alpha):
         self._f = f
@@ -199,8 +199,32 @@ class Scale(DifferentiableMap):
         return self._alpha * self._f.hessian(q)
 
 
+class SumOfTerms(DifferentiableMap):
+    """ Sums term s"""
+
+    def __init__(self, functions):
+        self._functions = functions
+
+    def output_dimension(self):
+        assert len(self._functions) > 0
+        return self._functions[0].output_dimension()
+
+    def input_dimension(self):
+        assert len(self._functions) > 0
+        return self._functions[0].input_dimension()
+
+    def forward(self, q):
+        return sum(f(q) for f in self._functions)
+
+    def jacobian(self, q):
+        return sum(f.jacobian(q) for f in self._functions)
+
+    def hessian(self, q):
+        return sum(f.hessian(q) for f in self._functions)
+
+
 class RangeSubspaceMap(DifferentiableMap):
-    """Take only some outputs"""
+    """ Takes only some outputs """
 
     def __init__(self, n, indices):
         """n is the input dimension, indices are the output"""

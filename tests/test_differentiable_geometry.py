@@ -116,6 +116,22 @@ def test_scale():
     assert check_jacobian_against_finite_difference(g)
 
 
+def test_sum_of_terms():
+    dim = 8
+    f1 = AffineMap(np.random.rand(1, dim), np.random.rand(1))
+    f2 = AffineMap(np.random.rand(1, dim), np.random.rand(1))
+    f3 = AffineMap(np.random.rand(1, dim), np.random.rand(1))
+    sum_of_terms = SumOfTerms([f1, f2, f3])
+
+    print "----------------------"
+    print "Check sum of terms (J implementation) : "
+    assert check_jacobian_against_finite_difference(sum_of_terms)
+
+    print "----------------------"
+    print "Check sum of terms (H implementation) : "
+    assert check_hessian_against_finite_difference(sum_of_terms)
+
+
 def test_quadric():
     # Regular case
     dim = 3
@@ -258,6 +274,7 @@ if __name__ == "__main__":
     test_square_norm()
     test_affine()
     test_scale()
+    test_sum_of_terms()
     test_quadric()
     test_composition()
     test_pullback()

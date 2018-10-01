@@ -19,14 +19,18 @@
 
 from demos_common_imports import *
 import numpy as np
-from pyrieef.geometry.workspace import *
 from pyrieef.rendering.workspace_renderer import WorkspaceHeightmap
-
+from pyrieef.geometry.workspace import *
+from pyrieef.motion.cost_terms import *
 
 np.random.seed(0)
 
 workspace = sample_workspace(nb_circles=4)
 viewer = WorkspaceHeightmap(workspace)
-sdf = SignedDistanceWorkspaceMap(workspace)
+sdf = SimplePotential2D(SignedDistanceWorkspaceMap(workspace))
+extent = workspace.box.extent()
+p_lower = np.array([extent.x_min, extent.y_min])
+p_upper = np.array([extent.x_max, extent.y_max])
+sdf = Compose(sdf, BoundBarrier(p_lower, p_upper))
 viewer.draw_ws_background(sdf)
 viewer.show()
