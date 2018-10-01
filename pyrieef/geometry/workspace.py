@@ -387,6 +387,7 @@ class Workspace:
             closer_to_i = d < d_m
             d_m = np.where(closer_to_i, d, d_m)
             i_m = np.where(closer_to_i, i, i_m)
+
         return [d_m, i_m]
 
     def min_dist_gradient(self, pt):
@@ -437,6 +438,7 @@ def sample_workspace(nb_circles, radius_parameter=.20):
     workspace.obstacles = [None] * nb_circles
     for i in range(nb_circles):
         center = workspace.box.sample_uniform()
+        print "center : ", center
         radius = max_radius * np.random.rand()
         workspace.obstacles[i] = Circle(center, radius)
     return workspace

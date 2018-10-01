@@ -36,7 +36,7 @@ trajectory = linear_interpolation_trajectory(
     T=22
 )
 
-# ----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # The Objective function is wrapped in the optimization viewer object
 # which draws the trajectory as it is being optimized
 objective = TrajectoryOptimizationViewer(
@@ -55,4 +55,6 @@ objective = TrajectoryOptimizationViewer(
 # ----------------------------------------------------------------------------
 algorithms.newton_optimize_trajectory(objective, trajectory)
 
-raw_input("Press Enter to continue...")
+print("Done.")
+while True:
+    objective.draw(trajectory)

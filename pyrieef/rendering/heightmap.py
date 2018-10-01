@@ -39,15 +39,15 @@ WHITE = (1, 1, 1, 1)
 GRAY = (0.5, 0.5, 0.5)
 
 
+def flux_qubit_potential(phi_m, phi_p):
+    alpha = 0.7
+    phi_ext = 2 * np.pi * 0.5
+    return 2 + alpha - 2 * np.cos(phi_p) * np.cos(phi_m) - alpha * np.cos(
+        phi_ext - 2 * phi_p)
+
+
 def potential_surface(nb_points):
     """ generete an abstract mathematical surface """
-    import numpy as np
-
-    def flux_qubit_potential(phi_m, phi_p):
-        alpha = 0.7
-        phi_ext = 2 * np.pi * 0.5
-        return 2 + alpha - 2 * np.cos(phi_p) * np.cos(phi_m) - alpha * np.cos(
-            phi_ext - 2 * phi_p)
     phi_m = np.linspace(0, 2 * np.pi, nb_points)
     phi_p = np.linspace(0, 2 * np.pi, nb_points)
     X, Y = np.meshgrid(phi_p, phi_m)
@@ -68,14 +68,52 @@ def image_surface(nb_points):
     return image
 
 
+def sphere_coordinates(lat, lon):
+    x = -np.cos(np.radians(lat)) * np.cos(np.radians(lon))
+    y = np.sin(np.radians(lat))
+    z = np.cos(np.radians(lat)) * np.sin(np.radians(lon))
+    s = (lon + 180) / 360.0
+    t = (lat + 90) / 180.0
+    return (np.array([x, y, z]), [s, t])
+
+
+def sphere_verticies(origin, radius=1, step=10):
+    """ For the some reason the GLU makes colors as shit 
+        TODO It would be easier to implement with:
+            sphere = gluNewQuadric()
+            gluSphere(sphere, o.radius, 50, 50)
+        This way of proceeding is so stupid...
+        """
+    vlists = []
+    for lat in range(-90, 90, step):
+        verts = []
+        texc = []
+        for lon in range(-180, 181, step):
+            vertex, coord = sphere_coordinates(lat, lon)
+            verts += (radius * vertex + origin).tolist()
+            texc += coord
+
+            vertex, coord = sphere_coordinates(lat + step, lon)
+            verts += (radius * vertex + origin).tolist()
+            texc += coord
+
+        vlist = pyglet.graphics.vertex_list(
+            len(verts) / 3, ('v3f', verts), ('t2f', texc))
+        vlists.append(vlist)
+    return vlists
+
+
 class Primitive:
 
     def __init__(self, object_type, origin, radius, color, alpha):
         self.object_type = object_type
-        self.origin = origin
+        self.origin = np.array(origin).flatten()
         self.radius = radius
         self.color = color
         self.alpha = alpha
+        self.vertices = None
+        if object_type == "sphere":
+            self.vertices = sphere_verticies(self.origin, self.radius)
 
 
 class Heightmap:
@@ -83,6 +121,7 @@ class Heightmap:
     def __init__(self):
 
         self.vertices = []
+        self.objects = []
 
         # heightmap dimensions
         self.x_length = 0
@@ -98,14 +137,18 @@ class Heightmap:
         self.rx = self.ry = self.rz = 0  # heightmap rotation
         self.z = -50
 
-        self.objects = []
+        self._dx = self._dy = self._dz = 1.
+
+        # cash sphere object
+        self._sphere_primitive = Primitive(
+            "sphere", np.zeros(3), 1., (1, 0, 0), 1.)
 
     def transform(self, x_min, x_max, y_min, y_max):
         """ From certain box coordinates to heightmap coordinates """
         T = np.eye(3)
-        T[0, 0] = self.image_width / (x_max - x_min)
-        T[1, 1] = self.image_height / (y_max - y_min)
-        T[0, 2] = -self.half_x_length
+        T[0, 0] = -self.x_length / (x_max - x_min)
+        T[1, 1] = self.y_length / (y_max - y_min)
+        T[0, 2] = self.half_x_length
         T[1, 2] = -self.half_y_length
         return np.matrix(T)
 
@@ -117,6 +160,12 @@ class Heightmap:
 
     def load(self, image, dx, dy, dz):
         """ loads the vertices positions from an image """
+        self.vertices = []
+        self.objects = []
+
+        self._dx = dx
+        self._dy = dy
+        self._dz = dz
 
         # image dimensions
         self.image_width = width = image.shape[0]
@@ -161,39 +210,26 @@ class Heightmap:
         print "Done."
 
     def add_sphere_to_draw(self, origin, radius=1., color=(1, 0, 0), alpha=1.):
-        print origin.shape
-        self.objects.append(Primitive(
-            "sphere",
-            origin,
-            radius,
-            color,
-            alpha))
+        origin_normalzied = origin.copy()
+        origin_normalzied[2] *= self._dz
+        self.objects.append(origin_normalzied)
 
     def draw_objects(self):
-        # glLoadIdentity()
-        # glClear(GL_COLOR_BUFFER_BIT)
+        _gl_setup()
         for o in self.objects:
-            if o.object_type == "sphere":
-                # glEnable(GL_BLEND)
-                # glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-                # glColor3f(o.color[0], o.color[1], o.color[2])
-                glColor4f(0, 0, 0, 1)
-                sphere = gluNewQuadric()
-                glTranslatef(o.origin[0], o.origin[1], o.origin[2])
-                gluSphere(sphere, o.radius, 50, 50)
+            glPushMatrix()
+            glColor3f(1, 0, 0)
+            glTranslatef(o[0], o[1], o[2])
+            for vlist in self._sphere_primitive.vertices:
+                vlist.draw(GL_TRIANGLE_STRIP)
+            glPopMatrix()
 
     def draw(self, black=False):
-        _gl_setup()
-
-        # Draw spheres and other objects
-        # self.draw_objects()
-
         glLoadIdentity()
         glTranslatef(self.x, self.y, self.z - self.z_length * 3)
         glRotatef(self.rx - 40, 1, 0, 0)
         glRotatef(self.ry, 0, 1, 0)
         glRotatef(self.rz - 40, 0, 0, 1)
-        # color
 
         # draws the primitives (GL_TRIANGLE_STRIP)
         for i, row in enumerate(self.vertices):
@@ -206,7 +242,8 @@ class Heightmap:
                 ('c3B/static', colors))
             vlist.draw(GL_TRIANGLE_STRIP)
 
-
+        # Draw spheres and other objects
+        self.draw_objects()
 
 
 def _gl_setup():

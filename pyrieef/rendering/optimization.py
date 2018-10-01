@@ -24,7 +24,7 @@ import numpy as np
 
 class TrajectoryOptimizationViewer:
 
-    """ Wrapper around a Trajectory objective function 
+    """ Wrapper around a Trajectory objective function
         tha can draw the inner optimization quantities """
 
     def __init__(self, objective, draw=True, draw_gradient=True):
@@ -32,6 +32,7 @@ class TrajectoryOptimizationViewer:
         self.viewer = None
         self.draw_gradient_ = False
         self.draw_hessian_ = False
+        self._use_3d_viewer = False
         if draw:
             self.draw_gradient_ = draw_gradient
             self.draw_hessian_ = draw_gradient
@@ -39,10 +40,19 @@ class TrajectoryOptimizationViewer:
 
     def init_viewer(self):
         import workspace_renderer as renderer
-        self.viewer = renderer.WorkspaceOpenGl(
-            self.objective.workspace)
-        self.viewer.draw_ws_background(
-            self.objective.obstacle_potential_from_sdf())
+        if not self._use_3d_viewer:
+            self.viewer = renderer.WorkspaceOpenGl(self.objective.workspace)
+        else:
+            self.viewer = renderer.WorkspaceHeightmap(self.objective.workspace)
+            self.draw_gradient_ = False
+            self.draw_hessian_ = False
+        self.reset_objective(self.objective)
+
+    def reset_objective(self, objective):
+        self.viewer.set_workspace(self.objective.workspace)
+        self.osbatcle_potential = self.objective.obstacle_potential_from_sdf()
+        self.viewer.draw_ws_background(self.osbatcle_potential)
+        self.viewer.reset_objects()
 
     def draw_gradient(self, x):
         g = self.objective.objective.gradient(x)
@@ -55,8 +65,11 @@ class TrajectoryOptimizationViewer:
         return self.objective.objective(x)
 
     def gradient(self, x):
-        if self.draw_gradient_ and self.viewer is not None:
-            self.draw_gradient(x)
+        if self.viewer is not None:
+            if self.draw_gradient_:
+                self.draw_gradient(x)
+            else:
+                self.draw(Trajectory(q_init=self.objective.q_init, x=x))
         return self.objective.objective.gradient(x)
 
     def hessian(self, x):
@@ -65,15 +78,24 @@ class TrajectoryOptimizationViewer:
         return self.objective.objective.hessian(x)
 
     def draw(self, trajectory, g_traj=None):
+
         if self.viewer is None:
             self.init_viewer()
+        if self._use_3d_viewer:
+            self.viewer.reset_objects()
+
         q_init = self.objective.q_init
         for k in range(self.objective.T + 2):
             q = trajectory.configuration(k)
             color = (0, 0, 1) if k == 0 else (0, 1, 0)
             color = (1, 0, 0) if k == trajectory.T() else color
-            self.viewer.draw_ws_circle(.01, q, color)
+            if not self._use_3d_viewer:
+                self.viewer.draw_ws_circle(.01, q, color)
+            else:
+                cost = self.osbatcle_potential(q)
+                self.viewer.draw_ws_sphere(
+                    q, height=self.viewer.normalize_height(cost))
             if g_traj is not None:
                 self.viewer.draw_ws_line(q, g_traj.configuration(k))
+
         self.viewer.show()
-        time.sleep(0.1)

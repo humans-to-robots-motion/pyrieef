@@ -57,6 +57,9 @@ class WorkspaceRender:
         self._workspace = workspace
         self._extends = workspace.box.extent()
 
+    def reset_objects(self):
+        return True
+
     @abstractmethod
     def draw_ws_circle(self, radius, origin, color=(0, 1, 0)):
         raise NotImplementedError()
@@ -124,9 +127,9 @@ class WorkspaceDrawer(WorkspaceRender):
         self.draw_ws_img(Z)
 
     def draw_ws_img(self, Z):
-        """ 
+        """
         Examples of coloring are : [viridis, hot, bone, magma]
-            see page : 
+            see page :
             https://matplotlib.org/examples/color/colormaps_reference.html
         """
         color_style = plt.cm.viridis
@@ -205,7 +208,9 @@ class WorkspaceOpenGl(WorkspaceRender):
 
     def draw_ws_background(self, function):
         Z = function(self._workspace.box.stacked_meshgrid())
-        Z = (Z - np.ones(Z.shape) * Z.min()) / Z.max()
+        self._max_z = Z.max()
+        self._min_z = Z.min()
+        Z = (Z - self._min_z * np.ones(Z.shape)) / (self._max_z - self._min_z)
         Z = rgba2rgb(cmap(Z))
         Z = resize(Z, (self.width, self.height))  # Normalize to [0, 1]
         Z = np.flip(Z, 0)
@@ -227,6 +232,7 @@ class WorkspaceOpenGl(WorkspaceRender):
                 self.gl.add_geom(circ)
 
     def show(self):
+        time.sleep(0.05)
         self.gl.render()
 
 
@@ -239,28 +245,24 @@ class WorkspaceHeightmap(WorkspaceRender):
         print self._workspace.box
         self._extent = self._workspace.box.extent()
         self._scale = 1.
-        self.width = 50
-        self.height = 50
+        self.width = 30
+        self.height = self.width
         self.load_background = True
         self._window = window = pyglet.window.Window(
-            width=int(self._scale * 400),
-            height=int(self._scale * 400),
+            width=int(self._scale * 800),
+            height=int(self._scale * 600),
             caption='Heightmap', resizable=True)
         self._height_map = hm.Heightmap()
-        pyglet.clock.schedule(self.update)
+        self._max_z = None
+        self._min_z = None
+        self.isopen = True
         self._window.push_handlers(self)
+        self._window.on_close = self.window_closed_by_user
+        # pyglet.clock.schedule(self.update)
+        self._t_render_latest = time.time()
 
     def update(self, dt):
         self._height_map.rz -= 10. * dt
-
-    def draw_ws_circle(self, radius, origin, color=(0, 1, 0)):
-        # t = Transform(translation=self._scale * (
-        #     origin - np.array([self._extends.x_min, self._extends.y_min])))
-        # circ = make_circle(self._scale * radius, 30)
-        # circ.add_attr(t)
-        # circ.set_color(*color)
-        # self.gl.add_onetime(circ)
-        return None
 
     def draw_ws_line(self, p1, p2, color=(1, 0, 0)):
         corner = np.array([self._extent.x_min, self._extent.y_min])
@@ -270,38 +272,29 @@ class WorkspaceHeightmap(WorkspaceRender):
         self._height_map.add_sphere_to_draw(np.array(T * p1_ws))
         self._height_map.add_sphere_to_draw(np.array(T * p2_ws))
 
-    def draw_ws_sphere(self, p, color=(1, 0, 0)):
+    def draw_ws_sphere(self, p, height=20., color=(1, 0, 0)):
         T = self._height_map.transform(*self._workspace.box.box_extent())
         corner = np.array([self._extent.x_min, self._extent.y_min])
         p_ws = p - corner
-        p_3d = np.matrix(np.ones((3, 1)))
-        p_3d[0] = p_ws[0]
-        p_3d[1] = p_ws[1]
-        p = T * p_3d
-        p[2] = 10.
-        print p.shape
-        # p = np.zeros(3)
-        self._height_map.add_sphere_to_draw(p, radius=1.)
+        p = T * np.matrix([p_ws[0], p_ws[1], 1]).transpose()
+        p_swap = p.copy()
+        p_swap[0] = p[1]
+        p_swap[1] = p[0]
+        p_swap[2] = height
+        self._height_map.add_sphere_to_draw(p_swap, radius=0.5)
 
     def draw_ws_background(self, function):
         Z = function(self._workspace.box.stacked_meshgrid(self.width))
-        print Z.shape
-        Z = (Z - np.ones(Z.shape) * Z.min()) / Z.max()
-        # Z = np.flip(Z, 1)
-        self._height_map.load(Z, 2, 2, 10.)
+        self._max_z = Z.max()
+        self._min_z = Z.min()
+        Z = (Z - self._min_z * np.ones(Z.shape)) / (self._max_z - self._min_z)
+        self._height_map.load(Z, 2, 2, 20.)
 
-    def draw_ws_obstacles(self):
-        # for i, o in enumerate(self._workspace.obstacles):
-        #     if isinstance(o, Circle):
-        #         circ = make_circle(self._scale * o.radius, 30)
-        #         origin = o.origin - np.array(
-        #             [self._extends.x_min, self._extends.y_min])
-        #         t = Transform(translation=self._scale * origin)
-        #         print "o.origin {}, o.radius {}".format(o.origin, o.radius)
-        #         circ.add_attr(t)
-        #         circ.set_color(*COLORS[i])
-        #         self.gl.add_geom(circ)
-        return None
+    def normalize_height(self, c):
+        return (c - self._min_z) / (self._max_z - self._min_z)
+
+    def reset_objects(self):
+        self._height_map.objects = []
 
     def on_resize(self, width, height):
         hm.resize_gl(width, height)
@@ -314,6 +307,12 @@ class WorkspaceHeightmap(WorkspaceRender):
 
         # glPolygonMode(GL_FRONT, GL_LINE)  # wire-frame mode
         # height_map.draw(black=True)
+
+    def close(self):
+        self.window.close()
+
+    def window_closed_by_user(self):
+        self.isopen = False
 
     def on_mouse_scroll(self, x, y, scroll_x, scroll_y):
         # scroll the MOUSE WHEEL to zoom
@@ -329,5 +328,25 @@ class WorkspaceHeightmap(WorkspaceRender):
             self._height_map.x += dx / 10.0
             self._height_map.y += dy / 10.0
 
+    def render(self, return_rgb_array=False):
+        t_render = time.time()
+        glClearColor(1, 1, 1, 1)
+        self._window.clear()
+        self._window.switch_to()
+        self._window.dispatch_events()
+        self._height_map.draw()
+        self.update(t_render - self._t_render_latest)
+        arr = None
+        if return_rgb_array:
+            buffer = pyglet.image.get_buffer_manager().get_color_buffer()
+            image_data = buffer.get_image_data()
+            arr = np.fromstring(image_data.data, dtype=np.uint8, sep='')
+            arr = arr.reshape(buffer.height, buffer.width, 4)
+            arr = arr[::-1, :, 0:3]
+        self._window.flip()
+        self._t_render_latest = t_render
+        return arr if return_rgb_array else self.isopen
+
     def show(self):
-        pyglet.app.run()
+        # pyglet.app.run()
+        self.render()
