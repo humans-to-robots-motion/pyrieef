@@ -19,15 +19,16 @@
 
 import os
 
+from itertools import izip
+
 import pyglet
 from pyglet import *
 from pyglet.gl import *
 
-from itertools import izip
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 cmap = plt.get_cmap('viridis')
-# cmap = plt.get_cmap('hot')
+# cmap = plt.get_cmap('inferno')
 
 
 # colors
@@ -37,7 +38,7 @@ GRAY = (0.5, 0.5, 0.5)
 
 
 def potential_surface(nb_points):
-    """ compute an abstract surface """
+    """ generete an abstract mathematical surface """
     import numpy as np
 
     def flux_qubit_potential(phi_m, phi_p):
@@ -68,6 +69,7 @@ def image_surface(nb_points):
 class Heightmap:
 
     def __init__(self):
+
         self.vertices = []
 
         # heightmap dimensions
@@ -108,9 +110,6 @@ class Heightmap:
             # a row of triangles
             row = []
             for x in xrange(width):
-                # gets the red component of the pixel
-                # in a grayscale image; the red, green and blue components have
-                # the same value
                 r = image[x, y]
                 # centers the heightmap and inverts the y axis
                 row.extend((
@@ -120,9 +119,6 @@ class Heightmap:
                 # gets the maximum component value
                 max_z = max(max_z, r)
 
-                # gets the red component of the pixel
-                # in a grayscale image; the red, green and blue components have
-                # the same value
                 r = image[x, y + 1]
                 # centers the heightmap and inverts the y axis
                 row.extend((
@@ -150,51 +146,39 @@ class Heightmap:
 
     def draw(self, black=False):
         glLoadIdentity()
-        # position (move away 3 times the
-        # z_length of the heightmap in the z
-        # axis)
-        # print "x : ", self.x
-        # print "y : ", self.y
-        # print "z : ", self.z
         glTranslatef(self.x, self.y, self.z - self.z_length * 3)
-        # rotation
         glRotatef(self.rx - 40, 1, 0, 0)
         glRotatef(self.ry, 0, 1, 0)
         glRotatef(self.rz - 40, 0, 0, 1)
         # color
-        # glColor3f(*BLACK)
 
         # draws the primitives (GL_TRIANGLE_STRIP)
         for i, row in enumerate(self.vertices):
-            normals = [0, 0, 1] * (len(row) / 3)
+            normals = [0, 0, 1] * (len(row) / 3)  # Wrong
             colors = (0, 0, 0) * (len(row) / 3) if black else self.colors[i]
-            # print color
-            assert len(row) == len(normals), "{} {}".format(
-                len(row), len(normals))
-            assert len(colors) == len(normals), "{} {}".format(
-                len(colors), len(normals))
-
             vlist = pyglet.graphics.vertex_list(
                 self.image_width * 2,
                 ('v3f/static', row),
-                # ('t3f/static', normals),
+                ('t3f/static', normals),
                 ('c3B/static', colors))
             vlist.draw(GL_TRIANGLE_STRIP)
 
 
-def setup():
+def _gl_setup():
 
     def _gl_vector(*args):
+        """ Define a simple function to create ctypes arrays of floats """
         return (GLfloat * len(args))(*args)
+
+    # clears the background with the background color
+    # glClear(GL_COLOR_BUFFER_BIT)
 
     light0pos = [20.0,   20.0, 20.0, 1.0]  # positional light !
     light1pos = [-20.0, -20.0, 20.0, 0.0]  # infinitely away light !
 
     glClearColor(1, 1, 1, 1)
-    #glColor3f(1, 0, 0)
 
     glEnable(GL_DEPTH_TEST)
-    # glEnable(GL_CULL_FACE)
     glEnable(GL_LIGHTING)
     glEnable(GL_LIGHT0)
     glEnable(GL_LIGHT1)
@@ -206,51 +190,19 @@ def setup():
     glLightfv(GL_LIGHT1, GL_DIFFUSE, _gl_vector(.5, .5, .5, 1))
     glLightfv(GL_LIGHT1, GL_SPECULAR, _gl_vector(1, 1, 1, 1))
 
-    # glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE)
     glEnable(GL_COLOR_MATERIAL)
-    # glShadeModel(GL_SMOOTH)
-
-    # glMaterialfv(GL_FRONT, GL_AMBIENT,
-    #              _gl_vector(0.192250, 0.192250, 0.192250))
-    # glMaterialfv(GL_FRONT, GL_DIFFUSE,
-    #              _gl_vector(0.507540, 0.507540, 0.507540))
-    # glMaterialfv(GL_FRONT, GL_SPECULAR,
-    #              _gl_vector(.5082730, .5082730, .5082730))
-
-    # glMaterialf(GL_FRONT, GL_SHININESS,
-    #             .4 * 128.0)
-
     glEnable(GL_BLEND)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-window = pyglet.window.Window(
-    width=400, height=400, caption='Heightmap', resizable=True)
 
-# background color
-glClearColor(*WHITE)
-
-# clears the background with the background color
-glClear(GL_COLOR_BUFFER_BIT)
-
-# setup()
-
-
-# image = potential_surface(50)
-image = image_surface(50)
-image -= image.min()
-image /= image.max()
-
-# heightmap
-height_map = Heightmap()
-height_map.load(image, 1, 1, 10.)
-
-
-@window.event
-def on_resize(width, height):
-
+def resize_gl(width, height):
     # sets the viewport
     glViewport(0, 0, 2 * width, 2 * height)
-    glClear(GL_COLOR_BUFFER_BIT)
+
+    # background color
+    glClearColor(*WHITE)
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
     # sets the projection
     glMatrixMode(GL_PROJECTION)
@@ -261,55 +213,14 @@ def on_resize(width, height):
     glMatrixMode(GL_MODELVIEW)
     glLoadIdentity()
 
-    setup()
-    height_map.draw()
-
-    return pyglet.event.EVENT_HANDLED
-
-# Define a simple function to create ctypes arrays of floats:
+    _gl_setup()
 
 
-@window.event
-def on_draw():
+def draw_gl():
+     # background color
+    glClearColor(*WHITE)
 
     # clears the background with the background color
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-    setup()
-
+    _gl_setup()
     glPolygonMode(GL_FRONT, GL_FILL)  # fill mode
-    height_map.draw()
-
-    # glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)  # wire-frame mode
-    # height_map.draw(black=True)
-
-    # glEnable(GL_DEPTH_TEST)
-    # glEnable(GL_LIGHTING)
-    # glDisable(GL_TEXTURE_2D)
-
-
-@window.event
-def on_mouse_scroll(x, y, scroll_x, scroll_y):
-    # scroll the MOUSE WHEEL to zoom
-    height_map.z -= scroll_y / 1.0
-
-
-@window.event
-def on_mouse_drag(x, y, dx, dy, button, modifiers):
-    # press the LEFT MOUSE BUTTON to rotate
-    if button == pyglet.window.mouse.LEFT:
-        height_map.ry += dx / 5.0
-        height_map.rx -= dy / 5.0
-    # press the LEFT and RIGHT MOUSE BUTTON simultaneously to pan
-    if button == pyglet.window.mouse.MIDDLE:
-        height_map.x += dx / 10.0
-        height_map.y += dy / 10.0
-
-
-def update(dt):
-    # height_map.ry += 10 * dt
-    # height_map.rx -= 10. * dt
-    height_map.rz -= 10. * dt
-pyglet.clock.schedule(update)
-
-
-pyglet.app.run()

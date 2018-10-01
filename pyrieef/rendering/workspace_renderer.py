@@ -18,7 +18,7 @@
 #                                        Jim Mainprice on Sunday June 13 2018
 
 from common_imports import *
-from opengl import *
+from plannar_gl import *
 from learning import random_environment
 from geometry.workspace import *
 from utils import timer
