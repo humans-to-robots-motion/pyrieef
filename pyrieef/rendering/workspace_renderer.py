@@ -31,7 +31,7 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 cmap = plt.get_cmap('inferno')
 from abc import abstractmethod
-
+import heightmap as hm
 
 # Red, Green, Blue
 COLORS = [(139, 0, 0),  (0, 100, 0), (0, 0, 139)]
@@ -78,15 +78,14 @@ class WorkspaceDrawer(WorkspaceRender):
 
     """ Workspace display based on matplotlib backend """
 
-    def __init__(self, workspace, wait_for_keyboard=False, 
-            rows=1, cols=1, scale=1.):
+    def __init__(self, workspace, wait_for_keyboard=False,
+                 rows=1, cols=1, scale=1.):
         WorkspaceRender.__init__(self, workspace)
         plt.rcParams.update({'font.size': int(scale * 5)})
         self._plot3d = False
         self._wait_for_keyboard = wait_for_keyboard
         self.size = scale * np.array([7, 6.5])
         self.init(rows, cols)
-
 
     def init(self, rows, cols):
         assert rows > 0 and cols > 0
@@ -190,8 +189,6 @@ class WorkspaceOpenGl(WorkspaceRender):
         # Draw WS obstacles
         # self.draw_ws_obstacles()
 
-        
-
     def draw_ws_circle(self, radius, origin, color=(0, 1, 0)):
         t = Transform(translation=self._scale * (
             origin - np.array([self._extends.x_min, self._extends.y_min])))
@@ -231,3 +228,91 @@ class WorkspaceOpenGl(WorkspaceRender):
 
     def show(self):
         self.gl.render()
+
+
+class WorkspaceHeightmap(WorkspaceRender):
+
+    """ Workspace display based on pyglet heighmap """
+
+    def __init__(self, workspace):
+        WorkspaceRender.__init__(self, workspace)
+        print self._workspace.box
+        self._scale = 1.
+        self.width = 50
+        self.height = 50
+        self.load_background = True
+        self._window = window = pyglet.window.Window(
+            width=int(self._scale * 400),
+            height=int(self._scale * 400),
+            caption='Heightmap', resizable=True)
+        self._height_map = hm.Heightmap()
+        pyglet.clock.schedule(self.update)
+        self._window.push_handlers(self)
+
+    def update(self, dt):
+        self._height_map.rz -= 10. * dt
+
+    def draw_ws_circle(self, radius, origin, color=(0, 1, 0)):
+        # t = Transform(translation=self._scale * (
+        #     origin - np.array([self._extends.x_min, self._extends.y_min])))
+        # circ = make_circle(self._scale * radius, 30)
+        # circ.add_attr(t)
+        # circ.set_color(*color)
+        # self.gl.add_onetime(circ)
+        return None
+
+    def draw_ws_line(self, p1, p2, color=(1, 0, 0)):
+        # corner = np.array([self._extends.x_min, self._extends.y_min])
+        # p1_ws = self._scale * (p1 - corner)
+        # p2_ws = self._scale * (p2 - corner)
+        # self.gl.draw_line(p1_ws, p2_ws, linewidth=7, color=(1, 0, 0))
+        return None
+
+    def draw_ws_background(self, function):
+        Z = function(self._workspace.box.stacked_meshgrid(self.width))
+        print Z.shape
+        Z = (Z - np.ones(Z.shape) * Z.min()) / Z.max()
+        # Z = np.flip(Z, 1)
+        self._height_map.load(Z, 2, 2, 50.)
+
+    def draw_ws_obstacles(self):
+        # for i, o in enumerate(self._workspace.obstacles):
+        #     if isinstance(o, Circle):
+        #         circ = make_circle(self._scale * o.radius, 30)
+        #         origin = o.origin - np.array(
+        #             [self._extends.x_min, self._extends.y_min])
+        #         t = Transform(translation=self._scale * origin)
+        #         print "o.origin {}, o.radius {}".format(o.origin, o.radius)
+        #         circ.add_attr(t)
+        #         circ.set_color(*COLORS[i])
+        #         self.gl.add_geom(circ)
+        return None
+
+    def on_resize(self, width, height):
+        hm.resize_gl(width, height)
+        self._height_map.draw()
+        return pyglet.event.EVENT_HANDLED
+
+    def on_draw(self):
+        hm.draw_gl()
+        self._height_map.draw()
+
+        # glPolygonMode(GL_FRONT, GL_LINE)  # wire-frame mode
+        # height_map.draw(black=True)
+
+    def on_mouse_scroll(self, x, y, scroll_x, scroll_y):
+        # scroll the MOUSE WHEEL to zoom
+        self._height_map.z -= scroll_y / 1.0
+
+    def on_mouse_drag(self, x, y, dx, dy, button, modifiers):
+        # press the LEFT MOUSE BUTTON to rotate
+        if button == pyglet.window.mouse.LEFT:
+            self._height_map.ry += dx / 5.0
+            self._height_map.rx -= dy / 5.0
+        # press the LEFT and RIGHT MOUSE BUTTON simultaneously to pan
+        if button == pyglet.window.mouse.MIDDLE:
+            self._height_map.x += dx / 10.0
+            self._height_map.y += dy / 10.0
+
+    def show(self):
+        pyglet.app.run()

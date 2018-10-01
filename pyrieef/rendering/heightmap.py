@@ -173,8 +173,8 @@ def _gl_setup():
     # clears the background with the background color
     # glClear(GL_COLOR_BUFFER_BIT)
 
-    light0pos = [20.0,   20.0, 20.0, 1.0]  # positional light !
-    light1pos = [-20.0, -20.0, 20.0, 0.0]  # infinitely away light !
+    light0pos = [20.0,   20.0, 60.0, 1.0]  # positional light !
+    light1pos = [-20.0, -20.0, 60.0, 0.0]  # infinitely away light !
 
     glClearColor(1, 1, 1, 1)
 
@@ -217,7 +217,7 @@ def resize_gl(width, height):
 
 
 def draw_gl():
-     # background color
+    # background color
     glClearColor(*WHITE)
 
     # clears the background with the background color
