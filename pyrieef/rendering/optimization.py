@@ -27,12 +27,13 @@ class TrajectoryOptimizationViewer:
     """ Wrapper around a Trajectory objective function
         tha can draw the inner optimization quantities """
 
-    def __init__(self, objective, draw=True, draw_gradient=True):
+    def __init__(self, objective, draw=True, draw_gradient=True,
+                 use_3d_viewer=False):
         self.objective = objective
         self.viewer = None
         self.draw_gradient_ = False
         self.draw_hessian_ = False
-        self._use_3d_viewer = False
+        self._use_3d_viewer = use_3d_viewer
         if draw:
             self.draw_gradient_ = draw_gradient
             self.draw_hessian_ = draw_gradient
@@ -50,8 +51,7 @@ class TrajectoryOptimizationViewer:
 
     def reset_objective(self, objective):
         self.viewer.set_workspace(self.objective.workspace)
-        self.osbatcle_potential = self.objective.obstacle_potential_from_sdf()
-        self.viewer.draw_ws_background(self.osbatcle_potential)
+        self.viewer.draw_ws_background(self.objective.obstacle_potential)
         self.viewer.reset_objects()
 
     def draw_gradient(self, x):
@@ -82,7 +82,7 @@ class TrajectoryOptimizationViewer:
         if self.viewer is None:
             self.init_viewer()
         if self._use_3d_viewer:
-            self.viewer.reset_objects()
+            self.viewer.reset_spheres()
 
         q_init = self.objective.q_init
         for k in range(self.objective.T + 2):
@@ -92,7 +92,7 @@ class TrajectoryOptimizationViewer:
             if not self._use_3d_viewer:
                 self.viewer.draw_ws_circle(.01, q, color)
             else:
-                cost = self.osbatcle_potential(q)
+                cost = self.objective.obstacle_potential(q)
                 self.viewer.draw_ws_sphere(
                     q, height=self.viewer.normalize_height(cost))
             if g_traj is not None:

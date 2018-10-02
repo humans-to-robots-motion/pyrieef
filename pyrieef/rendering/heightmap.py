@@ -103,6 +103,18 @@ def sphere_verticies(origin, radius=1, step=10):
     return vlists
 
 
+def circle_verticies(origin, radius=1, nb_verticies=20, z=0.):
+    """ This way of proceeding is so stupid... """
+    verts = []
+    texc = []
+    for theta in np.linspace(0, 2 * np.pi, nb_verticies):
+        vertex = np.array([np.cos(theta), np.sin(theta), z])
+        verts += (radius * vertex + origin).tolist()
+        texc += [(theta + np.pi) / 2 * np.pi, 0]
+    return pyglet.graphics.vertex_list(
+        len(verts) / 3, ('v3f', verts), ('t2f', texc))
+
+
 class Primitive:
 
     def __init__(self, object_type, origin, radius, color, alpha):
@@ -114,6 +126,8 @@ class Primitive:
         self.vertices = None
         if object_type == "sphere":
             self.vertices = sphere_verticies(self.origin, self.radius)
+        if object_type == "circle":
+            self.vertices = circle_verticies(self.origin, self.radius)
 
 
 class Heightmap:
@@ -142,6 +156,9 @@ class Heightmap:
         # cash sphere object
         self._sphere_primitive = Primitive(
             "sphere", np.zeros(3), 1., (1, 0, 0), 1.)
+
+        self._circle_primitive = Primitive(
+            "circle", np.zeros(3), 1., (0, 0, 0), 1.)
 
     def transform(self, x_min, x_max, y_min, y_max):
         """ From certain box coordinates to heightmap coordinates """
@@ -212,17 +229,31 @@ class Heightmap:
     def add_sphere_to_draw(self, origin, radius=1., color=(1, 0, 0), alpha=1.):
         origin_normalzied = origin.copy()
         origin_normalzied[2] *= self._dz
-        self.objects.append(origin_normalzied)
+        self.objects.append(("sphere", origin_normalzied))
+
+    def add_circle_to_draw(self, origin, radius=1., color=(1, 0, 0), alpha=1.):
+        origin_normalzied = origin.copy()
+        origin_normalzied[2] *= self._dz
+        verticies = circle_verticies(np.zeros(3), radius)
+        self.objects.append(("circle", origin_normalzied, verticies))
 
     def draw_objects(self):
         _gl_setup()
         for o in self.objects:
-            glPushMatrix()
-            glColor3f(1, 0, 0)
-            glTranslatef(o[0], o[1], o[2])
-            for vlist in self._sphere_primitive.vertices:
-                vlist.draw(GL_TRIANGLE_STRIP)
-            glPopMatrix()
+            if o[0] == "circle":
+                glPushMatrix()
+                glLineWidth(3)
+                glColor3f(0, 0, 0)
+                glTranslatef(o[1][0], o[1][1], o[1][2])
+                o[2].draw(GL_LINE_LOOP)
+                glPopMatrix()
+            elif o[0] == "sphere":
+                glPushMatrix()
+                glColor3f(1, 0, 0)
+                glTranslatef(o[1][0], o[1][1], o[1][2])
+                for vlist in self._sphere_primitive.vertices:
+                    vlist.draw(GL_TRIANGLE_STRIP)
+                glPopMatrix()
 
     def draw(self, black=False):
         glLoadIdentity()

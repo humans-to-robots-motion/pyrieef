@@ -37,7 +37,7 @@ MAX_ITERATIONS = 100
 ALPHA = 20.
 MARGIN = .03
 OFFSET = 1.
-TRAJ_LENGTH = 50
+TRAJ_LENGTH = 40
 
 
 def set_max_gradient_descent_iterations(n):
@@ -45,21 +45,25 @@ def set_max_gradient_descent_iterations(n):
     MAX_ITERATIONS = n
 
 
+def obsatcle_potential(workspace):
+    sdf = SignedDistanceWorkspaceMap(workspace)
+    return CostGridPotential2D(sdf, ALPHA, MARGIN, OFFSET)
+
+
 def optimize(path, workspace, costmap, verbose=False):
     T = len(path) - 1
     trajectory = Trajectory(T, 2)
     for i, p in enumerate(path):
         trajectory.configuration(i)[:] = path[i]
-    sdf = SignedDistanceWorkspaceMap(workspace)
+
     optimizer = MotionOptimization2DCostMap(
         T=T,
         n=2,
         q_init=trajectory.initial_configuration(),
         q_goal=trajectory.final_configuration(),
         box=workspace.box,
-        signed_distance_field=sdf)
-    optimizer.obstacle_potential = CostGridPotential2D(
-        sdf, ALPHA, MARGIN, OFFSET)
+        signed_distance_field=SignedDistanceWorkspaceMap(workspace))
+    optimizer.obstacle_potential = obsatcle_potential(workspace)
     optimizer.verbose = verbose
     optimizer.set_scalars(
         obstacle_scalar=1.,
@@ -82,26 +86,33 @@ def optimize(path, workspace, costmap, verbose=False):
     return trajectory
 
 
-def compute_demonstration(
-        workspace, converter, nb_points, show_result, average_cost, verbose):
-    phi = CostGridPotential2D(
-        SignedDistanceWorkspaceMap(workspace), ALPHA, MARGIN, OFFSET)
-    costmap = phi(workspace.box.stacked_meshgrid(nb_points)).transpose()
+def sample_path(workspace, graph, nb_points):
+    meshgrid = workspace.box.stacked_meshgrid(nb_points)
+    costgrid = obsatcle_potential(workspace)(meshgrid).transpose()
+    pixel_map = workspace.pixel_map(nb_points)
     resample = True
+    half_diag = workspace.box.diag() / 2.
     while resample:
         s_w = sample_collision_free(workspace)
         t_w = sample_collision_free(workspace)
+        if np.linalg.norm(s_w - t_w) < half_diag:
+            continue
         if not collision_check_linear_interpolation(workspace, s_w, t_w):
             continue
         resample = False
-        pixel_map = workspace.pixel_map(nb_points)
         s = pixel_map.world_to_grid(s_w)
         t = pixel_map.world_to_grid(t_w)
         try:
-            path = converter.dijkstra_on_map(costmap, s[0], s[1], t[0], t[1])
+            path = graph.dijkstra_on_map(costgrid, s[0], s[1], t[0], t[1])
         except:
             resample = True
+    return path
 
+
+def compute_demonstration(
+        workspace, graph, nb_points, show_result, average_cost, verbose):
+    pixel_map = workspace.pixel_map(nb_points)
+    path = sample_path(workspace, graph, nb_points)
     traj = [None] * len(path)
     trajectory = ContinuousTrajectory(len(path) - 1, 2)
     for i, p in enumerate(path):
@@ -136,6 +147,29 @@ def compute_demonstration(
 
     return optimized_trajectory
 
+
+def generate_demonstrations(nb_points):
+    grid = np.ones((nb_points, nb_points))
+    graph = CostmapToSparseGraph(grid, options.average_cost)
+    graph.convert()
+    workspaces = load_workspaces_from_file(filename='workspaces_1k_small.hdf5')
+    trajectories = [None] * len(workspaces)
+    for k, workspace in enumerate(tqdm(workspaces)):
+        if verbose:
+            print("Compute demo ", k)
+        trajectories[k] = compute_demonstration(
+            workspace,
+            graph,
+            nb_points=nb_points,
+            # show_result=show_result,
+            show_result=(show_demo_id == k or options.show_result),
+            average_cost=options.average_cost,
+            verbose=verbose)
+        if show_demo_id == k and not options.show_result:
+            break
+    return trajectories
+
+
 if __name__ == '__main__':
 
     parser = optparse.OptionParser("usage: %prog [options] arg1 arg2")
@@ -146,25 +180,6 @@ if __name__ == '__main__':
     show_demo_id = -1
     nb_points = options.nb_points
     print(" -- options : ", options)
-
-    converter = CostmapToSparseGraph(
-        np.ones((nb_points, nb_points)), options.average_cost)
-    converter.convert()
-
     np.random.seed(1)
-    workspaces = load_workspaces_from_file(filename='workspaces_1k_small.hdf5')
-    trajectories = [None] * len(workspaces)
-    for k, workspace in enumerate(tqdm(workspaces)):
-        if verbose:
-            print("Compute demo ", k)
-        trajectories[k] = compute_demonstration(
-            workspace,
-            converter,
-            nb_points=nb_points,
-            # show_result=show_result,
-            show_result=(show_demo_id == k or options.show_result),
-            average_cost=options.average_cost,
-            verbose=verbose)
-        if show_demo_id == k and not options.show_result:
-            break
+    trajectories = generate_demonstrations(nb_points)
     save_trajectories_to_file(trajectories)

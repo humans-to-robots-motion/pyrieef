@@ -22,7 +22,7 @@ import numpy as np
 import time
 
 
-def newton_optimize_trajectory(objective, trajectory):
+def newton_optimize_trajectory(objective, trajectory, verbose=False):
     t_start = time.time()
     res = optimize.minimize(
         x0=trajectory.active_segment(),
@@ -30,9 +30,10 @@ def newton_optimize_trajectory(objective, trajectory):
         fun=objective.forward,
         jac=objective.gradient,
         hess=objective.hessian,
-        options={'maxiter': 100, 'gtol': 1e-05, 'disp': True}
+        options={'maxiter': 100, 'disp': verbose}
     )
-    print "optimization done in {} sec.".format(time.time() - t_start)
-    print "gradient norm : ", np.linalg.norm(res.jac)
+    if verbose:
+        print "optimization done in {} sec.".format(time.time() - t_start)
+        print "gradient norm : ", np.linalg.norm(res.jac)
     trajectory.active_segment()[:] = res.x
     return res

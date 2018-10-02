@@ -114,7 +114,7 @@ def draw_grids(data):
     plt.close(fig)
 
 
-def draw_all_workspaces(basename, scale, multicol=False):
+def draw_all_workspaces(basename, scale, multicol=True):
     dataset = load_workspace_dataset(basename)
     rows = 1
     cols = 1
@@ -151,8 +151,8 @@ def draw_all_workspaces(basename, scale, multicol=False):
                         q_t_1 = v_t * dt + a_t * (dt**2)
                         q_t_0 = v_t * dt
                         scale_direction = 4.
-                        viewer.draw_ws_line_fill(
-                            [q_t, q_t + scale_direction * q_t_0], color="k")
+                        # viewer.draw_ws_line_fill(
+                        #     [q_t, q_t + scale_direction * q_t_0], color="k")
                         viewer.draw_ws_point(q_t + q_t_1, color="k", shape='o')
 
         viewer.show_once()

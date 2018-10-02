@@ -55,7 +55,7 @@ class WorkspaceRender:
 
     def set_workspace(self, workspace):
         self._workspace = workspace
-        self._extends = workspace.box.extent()
+        self._extent = self._workspace.box.extent()
 
     def reset_objects(self):
         return True
@@ -242,8 +242,6 @@ class WorkspaceHeightmap(WorkspaceRender):
 
     def __init__(self, workspace):
         WorkspaceRender.__init__(self, workspace)
-        print self._workspace.box
-        self._extent = self._workspace.box.extent()
         self._scale = 1.
         self.width = 30
         self.height = self.width
@@ -262,7 +260,21 @@ class WorkspaceHeightmap(WorkspaceRender):
         self._t_render_latest = time.time()
 
     def update(self, dt):
-        self._height_map.rz -= 10. * dt
+        self._height_map.rz -= 5. * dt
+
+    def normalize_height(self, c):
+        return (c - self._min_z) / (self._max_z - self._min_z)
+
+    def heightmap_coordinates(self, p, height):
+        T = self._height_map.transform(*self._workspace.box.box_extent())
+        corner = np.array([self._extent.x_min, self._extent.y_min])
+        p_ws = p - corner
+        p = T * np.matrix([p_ws[0], p_ws[1], 1]).transpose()
+        p_swap = p.copy()
+        p_swap[0] = p[1]
+        p_swap[1] = p[0]
+        p_swap[2] = height
+        return p_swap
 
     def draw_ws_line(self, p1, p2, color=(1, 0, 0)):
         corner = np.array([self._extent.x_min, self._extent.y_min])
@@ -272,16 +284,14 @@ class WorkspaceHeightmap(WorkspaceRender):
         self._height_map.add_sphere_to_draw(np.array(T * p1_ws))
         self._height_map.add_sphere_to_draw(np.array(T * p2_ws))
 
+    def draw_ws_circle(self, radius, origin, color=(0, 1, 0), height=20.):
+        alpha = self._height_map.x_length / self._workspace.box.dim[0]
+        p_h = self.heightmap_coordinates(origin, height)
+        self._height_map.add_circle_to_draw(p_h, alpha * radius)
+
     def draw_ws_sphere(self, p, height=20., color=(1, 0, 0)):
-        T = self._height_map.transform(*self._workspace.box.box_extent())
-        corner = np.array([self._extent.x_min, self._extent.y_min])
-        p_ws = p - corner
-        p = T * np.matrix([p_ws[0], p_ws[1], 1]).transpose()
-        p_swap = p.copy()
-        p_swap[0] = p[1]
-        p_swap[1] = p[0]
-        p_swap[2] = height
-        self._height_map.add_sphere_to_draw(p_swap, radius=0.5)
+        p_h = self.heightmap_coordinates(p, height)
+        self._height_map.add_sphere_to_draw(p_h, radius=0.5)
 
     def draw_ws_background(self, function):
         Z = function(self._workspace.box.stacked_meshgrid(self.width))
@@ -290,11 +300,15 @@ class WorkspaceHeightmap(WorkspaceRender):
         Z = (Z - self._min_z * np.ones(Z.shape)) / (self._max_z - self._min_z)
         self._height_map.load(Z, 2, 2, 20.)
 
-    def normalize_height(self, c):
-        return (c - self._min_z) / (self._max_z - self._min_z)
-
     def reset_objects(self):
         self._height_map.objects = []
+
+    def reset_spheres(self):
+        objects = self._height_map.objects
+        self._height_map.objects = []
+        for o in objects:
+            if o[0] != "sphere":
+                self._height_map.objects.append(o)
 
     def on_resize(self, width, height):
         hm.resize_gl(width, height)
