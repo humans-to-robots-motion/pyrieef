@@ -44,9 +44,9 @@ def optimize_path(objective, workspace, path):
     objective.objective.set_problem(workspace, path, obstacle_cost)
     if DRAW:
         objective.reset_objective(objective.objective)
-        objective.viewer.save_images = False
+        objective.viewer.save_images = True
         objective.viewer.workspace_id += 1
-        objective.viewer.image_frame_count = 0
+        objective.viewer.image_id = 0
         objective.viewer.draw_ws_obstacles()
 
     algorithms.newton_optimize_trajectory(objective, path, verbose=True)
@@ -92,8 +92,8 @@ grid = np.ones((nb_points, nb_points))
 graph = CostmapToSparseGraph(grid, average_cost=False)
 graph.convert()
 
-# workspaces = load_workspaces_from_file(filename='workspaces_1k_small.hdf5')
-workspaces = [sample_workspace(5) for i in range(100)]
+np.random.seed(0)
+workspaces = [sample_workspace(nb_circles=5) for i in range(12)]
 for k, workspace in enumerate(tqdm(workspaces)):
     path = graph_search_path(graph, workspace, nb_points)
     optimize_path(objective, workspace, path)

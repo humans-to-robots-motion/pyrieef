@@ -85,7 +85,7 @@ class TrajectoryOptimizationViewer:
             self.viewer.reset_spheres()
 
         q_init = self.objective.q_init
-        for k in range(self.objective.T + 2):
+        for k in range(self.objective.T + 1):
             q = trajectory.configuration(k)
             color = (0, 0, 1) if k == 0 else (0, 1, 0)
             color = (1, 0, 0) if k == trajectory.T() else color
