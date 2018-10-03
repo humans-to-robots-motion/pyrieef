@@ -19,6 +19,7 @@
 
 from collections import namedtuple
 import sys
+import os
 from time import sleep
 
 
@@ -37,3 +38,8 @@ def show_progress(idx, idx_max):
         sys.stdout.flush()
         sys.stdout.write("DONE" + " " * len(msg) + "\n")
     sleep(0.0001)
+
+
+def make_directory(directory):
+    if not os.path.exists(directory):
+        os.makedirs(directory)

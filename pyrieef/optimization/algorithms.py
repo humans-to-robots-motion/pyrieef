@@ -30,7 +30,7 @@ def newton_optimize_trajectory(objective, trajectory, verbose=False):
         fun=objective.forward,
         jac=objective.gradient,
         hess=objective.hessian,
-        options={'maxiter': 100, 'disp': verbose}
+        options={'maxiter': 15, 'disp': verbose}
     )
     if verbose:
         print "optimization done in {} sec.".format(time.time() - t_start)

@@ -36,6 +36,7 @@ import numpy as np
 # colors
 BLACK = (0, 0, 0, 1)
 WHITE = (1, 1, 1, 1)
+RED = (1, 0, 0, 1)
 GRAY = (0.5, 0.5, 0.5)
 
 
@@ -197,34 +198,29 @@ class Heightmap:
         self.half_y_length = self.y_length / 2.
 
         # loads the vertices
-        for y in xrange(height - 1):
+        for j in xrange(height - 1):
             # a row of triangles
             row = []
-            for x in xrange(width):
+            for i in xrange(width):
 
                 # centers the heightmap and inverts the y axis
-                r = image[x, y] * dz
-                row.extend((self.get_x(x, dx), self.get_y(y, dy), r))
+                r = image[i, j] * dz
+                row.extend((self.get_x(i, dx), self.get_y(j, dy), r))
 
-                r = image[x, y + 1] * dz
-                row.extend((self.get_x(x, dx), self.get_y(y + 1, dy), r))
+                r = image[i, j + 1] * dz
+                row.extend((self.get_x(i, dx), self.get_y(j + 1, dy), r))
 
             self.vertices.append(row)
 
         max_z = 0
         self.colors = [None] * len(self.vertices)
-        for i, row in enumerate(self.vertices):
-            self.colors[i] = []
-            for v_x, v_y, v_z in izip(*[iter(row)] * 3):
-                max_z = max(max_z, v_z)
-                color = cmap(v_z / dz)
-                color = (
-                    int(255 * color[0]),
-                    int(255 * color[1]),
-                    int(255 * color[2]))
-                self.colors[i].extend(color)
+        for k, row in enumerate(self.vertices):
+            self.colors[k] = []
+            for x, y, z in izip(*[iter(row)] * 3):
+                max_z = max(max_z, z)
+                color = (255 * np.array(cmap(z / dz)[:3])).astype(int)
+                self.colors[k].extend(color)
         self.z_length = max_z
-        print "Done."
 
     def add_sphere_to_draw(self, origin, radius=1., color=(1, 0, 0), alpha=1.):
         origin_normalzied = origin.copy()
@@ -243,13 +239,13 @@ class Heightmap:
             if o[0] == "circle":
                 glPushMatrix()
                 glLineWidth(3)
-                glColor3f(0, 0, 0)
+                glColor4f(*BLACK)
                 glTranslatef(o[1][0], o[1][1], o[1][2])
                 o[2].draw(GL_LINE_LOOP)
                 glPopMatrix()
             elif o[0] == "sphere":
                 glPushMatrix()
-                glColor3f(1, 0, 0)
+                glColor4f(*RED)
                 glTranslatef(o[1][0], o[1][1], o[1][2])
                 for vlist in self._sphere_primitive.vertices:
                     vlist.draw(GL_TRIANGLE_STRIP)
@@ -257,7 +253,7 @@ class Heightmap:
 
     def draw(self, black=False):
         glLoadIdentity()
-        glTranslatef(self.x, self.y, self.z - self.z_length * 3)
+        glTranslatef(self.x, self.y, self.z - self.z_length * 2)
         glRotatef(self.rx - 40, 1, 0, 0)
         glRotatef(self.ry, 0, 1, 0)
         glRotatef(self.rz - 40, 0, 0, 1)

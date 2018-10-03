@@ -22,6 +22,7 @@ from plannar_gl import *
 from learning import random_environment
 from geometry.workspace import *
 from utils import timer
+from utils.misc import *
 import random
 import time
 from skimage import img_as_ubyte
@@ -258,9 +259,12 @@ class WorkspaceHeightmap(WorkspaceRender):
         self._window.on_close = self.window_closed_by_user
         # pyglet.clock.schedule(self.update)
         self._t_render_latest = time.time()
+        self.save_images = False
+        self.workspace_id = 0
+        self.image_id = 0
 
     def update(self, dt):
-        self._height_map.rz -= 5. * dt
+        self._height_map.rz -= 2. * dt
 
     def normalize_height(self, c):
         return (c - self._min_z) / (self._max_z - self._min_z)
@@ -352,13 +356,20 @@ class WorkspaceHeightmap(WorkspaceRender):
         self.update(t_render - self._t_render_latest)
         arr = None
         if return_rgb_array:
-            buffer = pyglet.image.get_buffer_manager().get_color_buffer()
-            image_data = buffer.get_image_data()
+            buffer_p = pyglet.image.get_buffer_manager().get_color_buffer()
+            image_data = buffer_p.get_image_data()
             arr = np.fromstring(image_data.data, dtype=np.uint8, sep='')
-            arr = arr.reshape(buffer.height, buffer.width, 4)
+            arr = arr.reshape(buffer_p.height, buffer_p.width, 4)
             arr = arr[::-1, :, 0:3]
+        if self.save_images:
+            driectory = "videos/workspace_{0:03d}/".format(self.workspace_id)
+            image = 'screenshot_{0:03d}.png'.format(self.image_id)
+            make_directory(driectory)
+            pyglet.image.get_buffer_manager().get_color_buffer().save(
+                driectory + image)
         self._window.flip()
         self._t_render_latest = t_render
+        self.image_id += 1
         return arr if return_rgb_array else self.isopen
 
     def show(self):

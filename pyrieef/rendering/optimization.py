@@ -31,12 +31,12 @@ class TrajectoryOptimizationViewer:
                  use_3d_viewer=False):
         self.objective = objective
         self.viewer = None
-        self.draw_gradient_ = False
-        self.draw_hessian_ = False
+        self._draw_gradient = False
+        self._draw_hessian = False
         self._use_3d_viewer = use_3d_viewer
         if draw:
-            self.draw_gradient_ = draw_gradient
-            self.draw_hessian_ = draw_gradient
+            self._draw_gradient = draw_gradient
+            self._draw_hessian = draw_gradient
             self.init_viewer()
 
     def init_viewer(self):
@@ -45,8 +45,8 @@ class TrajectoryOptimizationViewer:
             self.viewer = renderer.WorkspaceOpenGl(self.objective.workspace)
         else:
             self.viewer = renderer.WorkspaceHeightmap(self.objective.workspace)
-            self.draw_gradient_ = False
-            self.draw_hessian_ = False
+            self._draw_gradient = False
+            self._draw_hessian = False
         self.reset_objective(self.objective)
 
     def reset_objective(self, objective):
@@ -65,16 +65,16 @@ class TrajectoryOptimizationViewer:
         return self.objective.objective(x)
 
     def gradient(self, x):
-        if self.viewer is not None:
-            if self.draw_gradient_:
-                self.draw_gradient(x)
-            else:
-                self.draw(Trajectory(q_init=self.objective.q_init, x=x))
+        if self.viewer is not None and self._draw_gradient:
+            self.draw_gradient(x)
         return self.objective.objective.gradient(x)
 
     def hessian(self, x):
-        if self.draw_hessian_ and self.viewer is not None:
-            self.draw_gradient(x)
+        if self.viewer is not None:
+            if self._draw_hessian:
+                self.draw_gradient(x)
+            else:
+                self.draw(Trajectory(q_init=self.objective.q_init, x=x))
         return self.objective.objective.hessian(x)
 
     def draw(self, trajectory, g_traj=None):

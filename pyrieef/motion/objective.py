@@ -75,6 +75,19 @@ class MotionOptimization2DCostMap:
             self.add_all_terms()
             self.create_objective()
 
+    def set_problem(self, workspace, trajectory, obstacle_potential):
+        self.workspace = workspace
+        self.box = workspace.box
+        self.extent = workspace.box.extent()
+        self.signed_distance_field = SignedDistanceWorkspaceMap(workspace)
+        self.obstacle_potential = obstacle_potential
+        self.q_init = trajectory.initial_configuration()
+        self.q_goal = trajectory.final_configuration()
+        self.create_clique_network()
+        self.add_all_terms()
+        self.add_attractor(trajectory)
+        self.create_objective()
+
     def set_scalars(self,
                     obstacle_scalar=1.,
                     init_potential_scalar=0.,

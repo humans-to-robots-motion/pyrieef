@@ -34,43 +34,48 @@ from pyrieef.graph.shortest_path import *
 from pyrieef.motion.trajectory import *
 from pyrieef.utils.collision_checking import *
 
+DRAW = True
+demonstrations.TRAJ_LENGTH = 20
+
 
 def optimize_path(objective, workspace, path):
-    trajectory = path
-    sdf = SignedDistanceWorkspaceMap(workspace)
-    phi = demonstrations.obsatcle_potential(workspace)
-    objective.objective.workspace = workspace
-    objective.objective.box = workspace.box
-    objective.objective.extent = workspace.box.extent()
-    objective.objective.signed_distance_field = sdf
-    objective.objective.obstacle_potential = phi
-    objective.objective.q_init = trajectory.initial_configuration()
-    objective.objective.q_goal = trajectory.final_configuration()
-    objective.reset_objective(objective.objective)
-    objective.objective.create_clique_network()
-    objective.objective.add_all_terms()
-    objective.objective.add_attractor(trajectory)
-    objective.objective.create_objective()
-    for o in workspace.obstacles:
-        r = o.radius * np.array([0, 1])
-        cost = phi(o.origin + r) + 20
-        objective.viewer.draw_ws_circle(
-            o.radius,
-            o.origin,
-            height=objective.viewer.normalize_height(cost)
-        )
-    algorithms.newton_optimize_trajectory(objective, trajectory)
-    return trajectory
+    """ Optimize path using Netwon's method """
+    obstacle_cost = demonstrations.obsatcle_potential(workspace)
+    objective.objective.set_problem(workspace, path, obstacle_cost)
+    if DRAW:
+        objective.reset_objective(objective.objective)
+        objective.viewer.save_images = False
+        objective.viewer.workspace_id += 1
+        objective.viewer.image_frame_count = 0
+
+        for o in workspace.obstacles:
+            p = o.origin + o.radius * np.array([0, 1])
+            c = obstacle_cost(p) + 20
+            objective.viewer.draw_ws_circle(
+                o.radius,
+                o.origin,
+                height=objective.viewer.normalize_height(c)
+            )
+
+    algorithms.newton_optimize_trajectory(objective, path, verbose=True)
+    return path
 
 
 def graph_search_path(workspace, graph, nb_points):
+    """ Graph search using Dijkstra
+            1) samples a path that has collision with the enviroment
+                and perform graph search on a grid (nb_points x nb_points)
+            2) convert path to world coordinates
+            3) interpolate path continuously """
     path = demonstrations.sample_path(workspace, graph, nb_points)
+
     trajectory = ContinuousTrajectory(len(path) - 1, 2)
     pixel_map = workspace.pixel_map(nb_points)
     for i, p in enumerate(path):
         trajectory.configuration(i)[:] = pixel_map.grid_to_world(np.array(p))
     T = demonstrations.TRAJ_LENGTH
-    interpolated_path = ContinuousTrajectory(T, 2)
+
+    interpolated_path = Trajectory(T, 2)
     for i, s in enumerate(np.linspace(0, 1, T)):
         q = trajectory.configuration_at_parameter(s)
         interpolated_path.configuration(i)[:] = q
@@ -87,7 +92,7 @@ objective = TrajectoryOptimizationViewer(
         T=demonstrations.TRAJ_LENGTH,
         q_init=np.zeros(2),
         q_goal=np.zeros(2)),
-    draw=True,
+    draw=DRAW,
     draw_gradient=True,
     use_3d_viewer=True)
 
