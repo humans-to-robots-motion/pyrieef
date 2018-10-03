@@ -252,6 +252,7 @@ class WorkspaceHeightmap(WorkspaceRender):
             height=int(self._scale * 600),
             caption='Heightmap', resizable=True)
         self._height_map = hm.Heightmap()
+        self._height_function = None
         self._max_z = None
         self._min_z = None
         self.isopen = True
@@ -280,6 +281,9 @@ class WorkspaceHeightmap(WorkspaceRender):
         p_swap[2] = height
         return p_swap
 
+    def draw_ws_point(self, point, color='b', shape='x'):
+        self.draw_ws_sphere(p)
+
     def draw_ws_line(self, p1, p2, color=(1, 0, 0)):
         corner = np.array([self._extent.x_min, self._extent.y_min])
         p1_ws = p1 - corner
@@ -299,6 +303,7 @@ class WorkspaceHeightmap(WorkspaceRender):
 
     def draw_ws_background(self, function):
         Z = function(self._workspace.box.stacked_meshgrid(self.width))
+        self._height_function = function
         self._max_z = Z.max()
         self._min_z = Z.min()
         Z = (Z - self._min_z * np.ones(Z.shape)) / (self._max_z - self._min_z)
@@ -313,6 +318,16 @@ class WorkspaceHeightmap(WorkspaceRender):
         for o in objects:
             if o[0] != "sphere":
                 self._height_map.objects.append(o)
+
+    def draw_ws_obstacles(self):
+        for o in self._workspace.obstacles:
+            p = o.origin + o.radius * np.array([0, 1])
+            c = self._height_function(p) + 20
+            self.draw_ws_circle(
+                o.radius,
+                o.origin,
+                height=self.normalize_height(c)
+            )
 
     def on_resize(self, width, height):
         hm.resize_gl(width, height)

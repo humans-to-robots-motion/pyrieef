@@ -47,15 +47,7 @@ def optimize_path(objective, workspace, path):
         objective.viewer.save_images = False
         objective.viewer.workspace_id += 1
         objective.viewer.image_frame_count = 0
-
-        for o in workspace.obstacles:
-            p = o.origin + o.radius * np.array([0, 1])
-            c = obstacle_cost(p) + 20
-            objective.viewer.draw_ws_circle(
-                o.radius,
-                o.origin,
-                height=objective.viewer.normalize_height(c)
-            )
+        objective.viewer.draw_ws_obstacles()
 
     algorithms.newton_optimize_trajectory(objective, path, verbose=True)
     return path

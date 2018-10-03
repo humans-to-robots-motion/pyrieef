@@ -40,11 +40,6 @@ OFFSET = 1.
 TRAJ_LENGTH = 40
 
 
-def set_max_gradient_descent_iterations(n):
-    global MAX_ITERATIONS
-    MAX_ITERATIONS = n
-
-
 def obsatcle_potential(workspace):
     sdf = SignedDistanceWorkspaceMap(workspace)
     return CostGridPotential2D(sdf, ALPHA, MARGIN, OFFSET)
@@ -93,8 +88,8 @@ def sample_path(workspace, graph, nb_points):
     resample = True
     half_diag = workspace.box.diag() / 2.
     while resample:
-        s_w = sample_collision_free(workspace)
-        t_w = sample_collision_free(workspace)
+        s_w = sample_collision_free(workspace, MARGIN)
+        t_w = sample_collision_free(workspace, MARGIN)
         if np.linalg.norm(s_w - t_w) < half_diag:
             continue
         if not collision_check_linear_interpolation(workspace, s_w, t_w):

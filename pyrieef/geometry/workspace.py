@@ -444,11 +444,9 @@ def sample_workspace(nb_circles, radius_parameter=.20):
     return workspace
 
 
-def sample_collision_free(workspace):
+def sample_collision_free(workspace, margin=0.):
     """ Samples a collision free point """
-    min_dist = workspace.box.diag() / 20.
     while True:
         p = workspace.box.sample_uniform()
-        dist = workspace.min_dist(p)[0]
-        if dist > min_dist:
+        if margin < workspace.min_dist(p)[0]:
             return p

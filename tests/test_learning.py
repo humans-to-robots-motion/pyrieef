@@ -19,7 +19,8 @@
 
 import __init__
 from learning.random_environment import *
-from learning.demonstrations import *
+import learning.demonstrations as demos
+from graph.shortest_path import *
 from geometry.workspace import sample_workspace
 import time
 
@@ -42,13 +43,13 @@ def test_demonstrations():
     converter.convert()
     trajectories = [None] * nb_demonstrations
     t_start = time.time()
-    set_max_gradient_descent_iterations(2)
+    demos.MAX_ITERATIONS = 2
     for k in range(nb_demonstrations):
-        trajectories[k] = compute_demonstration(
+        trajectories[k] = demos.compute_demonstration(
             sample_workspace(nb_circles=3), converter, nb_points=nb_points,
             show_result=False, average_cost=average_cost, verbose=True)
         assert trajectories[k].n() == 2
-        assert trajectories[k].T() == TRAJ_LENGTH - 1
+        assert trajectories[k].T() == demos.TRAJ_LENGTH - 1
     print "time : {} sec.".format(time.time() - t_start)
 
 if __name__ == "__main__":

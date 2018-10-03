@@ -112,7 +112,7 @@ class RegressedPixelGridSpline(DifferentiableMap):
         return self._extends
 
     def forward(self, p):
-        assert p.size == 2
+        # assert p.size == 2
         return self._interp_spline(p[0], p[1])
 
     def jacobian(self, p):
