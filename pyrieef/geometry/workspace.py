@@ -428,18 +428,18 @@ def sample_circles(nb_circles):
     return zip(centers, radii)
 
 
-def sample_workspace(nb_circles, radius_parameter=.20):
+def sample_workspace(nb_circles, radius_parameter=.15):
     """ Samples a workspace randomly composed of nb_circles 
         the radius parameter specifies the 
         max fraction of workspace diagonal used for a circle radius. """
     workspace = Workspace()
     extent = workspace.box.extent()
     max_radius = radius_parameter * workspace.box.diag()
+    min_radius = .5 * radius_parameter * workspace.box.diag()
     workspace.obstacles = [None] * nb_circles
     for i in range(nb_circles):
         center = workspace.box.sample_uniform()
-        print "center : ", center
-        radius = max_radius * np.random.rand()
+        radius = (max_radius - min_radius) * np.random.rand() + min_radius
         workspace.obstacles[i] = Circle(center, radius)
     return workspace
 

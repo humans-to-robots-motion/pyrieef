@@ -52,6 +52,7 @@ class WorkspaceRender:
     """ Abstract class to draw a 2D workspace """
 
     def __init__(self, workspace):
+        self._wait_for_keyboard = False
         self.set_workspace(workspace)
 
     def set_workspace(self, workspace):
@@ -66,7 +67,7 @@ class WorkspaceRender:
         raise NotImplementedError()
 
     @abstractmethod
-    def draw_ws_line(self, p1, p2, color=(1, 0, 0)):
+    def draw_ws_line(self, line, color=(1, 0, 0)):
         raise NotImplementedError()
 
     @abstractmethod
@@ -165,10 +166,10 @@ class WorkspaceDrawer(WorkspaceRender):
     def show(self):
         plt.show()
 
-    def show_once(self):
+    def show_once(self, t_sleep=0.0001):
         plt.show(block=False)
         plt.draw()
-        plt.pause(0.0001)
+        plt.pause(t_sleep)
         if self._wait_for_keyboard:
             raw_input("Press Enter to continue...")
         plt.close(self._fig)
@@ -201,7 +202,9 @@ class WorkspaceOpenGl(WorkspaceRender):
         circ.set_color(*color)
         self.gl.add_onetime(circ)
 
-    def draw_ws_line(self, p1, p2, color=(1, 0, 0)):
+    def draw_ws_line(self, line, color=(1, 0, 0)):
+        p1 = line[0]
+        p2 = line[1]
         corner = np.array([self._extends.x_min, self._extends.y_min])
         p1_ws = self._scale * (p1 - corner)
         p2_ws = self._scale * (p2 - corner)
@@ -282,15 +285,13 @@ class WorkspaceHeightmap(WorkspaceRender):
         return p_swap
 
     def draw_ws_point(self, point, color='b', shape='x'):
-        self.draw_ws_sphere(p)
+        self.draw_ws_sphere(point)
 
-    def draw_ws_line(self, p1, p2, color=(1, 0, 0)):
-        corner = np.array([self._extent.x_min, self._extent.y_min])
-        p1_ws = p1 - corner
-        p2_ws = p2 - corner
-        T = self._height_map.transform()
-        self._height_map.add_sphere_to_draw(np.array(T * p1_ws))
-        self._height_map.add_sphere_to_draw(np.array(T * p2_ws))
+    def draw_ws_line(self, line, color=(1, 0, 0)):
+        for p in line:
+            z = self.normalize_height(self._height_function(p))
+            p_ws = self.heightmap_coordinates(p, z)
+            self._height_map.add_sphere_to_draw(p_ws)
 
     def draw_ws_circle(self, radius, origin, color=(0, 1, 0), height=20.):
         alpha = self._height_map.x_length / self._workspace.box.dim[0]
@@ -302,12 +303,18 @@ class WorkspaceHeightmap(WorkspaceRender):
         self._height_map.add_sphere_to_draw(p_h, radius=0.5)
 
     def draw_ws_background(self, function):
-        Z = function(self._workspace.box.stacked_meshgrid(self.width))
         self._height_function = function
+        Z = function(self._workspace.box.stacked_meshgrid(self.width))
         self._max_z = Z.max()
         self._min_z = Z.min()
         Z = (Z - self._min_z * np.ones(Z.shape)) / (self._max_z - self._min_z)
         self._height_map.load(Z, 2, 2, 20.)
+
+    def draw_ws_obstacles(self):
+        for o in self._workspace.obstacles:
+            p = o.origin + o.radius * np.array([0, 1])
+            z = self.normalize_height(self._height_function(p) + 20)
+            self.draw_ws_circle(o.radius, o.origin, height=z)
 
     def reset_objects(self):
         self._height_map.objects = []
@@ -318,16 +325,6 @@ class WorkspaceHeightmap(WorkspaceRender):
         for o in objects:
             if o[0] != "sphere":
                 self._height_map.objects.append(o)
-
-    def draw_ws_obstacles(self):
-        for o in self._workspace.obstacles:
-            p = o.origin + o.radius * np.array([0, 1])
-            c = self._height_function(p) + 20
-            self.draw_ws_circle(
-                o.radius,
-                o.origin,
-                height=self.normalize_height(c)
-            )
 
     def on_resize(self, width, height):
         hm.resize_gl(width, height)
@@ -342,7 +339,7 @@ class WorkspaceHeightmap(WorkspaceRender):
         # height_map.draw(black=True)
 
     def close(self):
-        self.window.close()
+        self._window.close()
 
     def window_closed_by_user(self):
         self.isopen = False
@@ -386,6 +383,11 @@ class WorkspaceHeightmap(WorkspaceRender):
         self._t_render_latest = t_render
         self.image_id += 1
         return arr if return_rgb_array else self.isopen
+
+    def show_once(self, t_sleep=0.2):
+        self.render()
+        time.sleep(t_sleep)
+        self.close()
 
     def show(self):
         # pyglet.app.run()

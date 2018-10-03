@@ -30,28 +30,17 @@ import pyrieef.learning.demonstrations as demos
 from pyrieef.learning.dataset import *
 
 dataset = load_workspace_dataset('1k_small.hdf5')
-rows = 1  # 3
-cols = 1  # 4
-t_sleep = 0.4
-for workspaces in izip(*[iter(dataset)] * (rows * cols)):
-    viewer = render.WorkspaceHeightmap(
-        workspaces[0].workspace)
-    for k, ws in enumerate(workspaces):
-        # viewer.set_drawing_axis(k)
-        viewer.set_workspace(ws.workspace)
-        print ws.costmap.shape
-        # viewer.draw_ws_background(
-        #     RegressedPixelGridSpline(
-        #         ws.costmap,
-        #         ws.workspace.box.dim[0] / ws.costmap.shape[0],
-        #         ws.workspace.box.extent()))
-        viewer.draw_ws_background(demos.obsatcle_potential(ws.workspace))
-        viewer.draw_ws_obstacles()
-        if ws.demonstrations:
-            for trajectory in ws.demonstrations:
-                configurations = trajectory.list_configurations()
-                viewer.draw_ws_line(configurations, color="r")
-                viewer.draw_ws_point(configurations[0], color="k")
-
-    viewer.show_once()
-    time.sleep(t_sleep)
+Viewer = render.WorkspaceHeightmap
+# Viewer = render.WorkspaceDrawer
+for ws in dataset:
+    viewer = Viewer(ws.workspace)
+    # viewer.set_drawing_axis(k)
+    viewer.set_workspace(ws.workspace)
+    viewer.draw_ws_background(demos.obsatcle_potential(ws.workspace))
+    viewer.draw_ws_obstacles()
+    if ws.demonstrations:
+        for trajectory in ws.demonstrations:
+            configurations = trajectory.list_configurations()
+            viewer.draw_ws_line(configurations, color="r")
+            viewer.draw_ws_point(configurations[0], color="k")
+    viewer.show_once(t_sleep=1.)

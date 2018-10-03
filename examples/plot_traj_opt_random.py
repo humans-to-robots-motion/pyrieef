@@ -53,58 +53,47 @@ def optimize_path(objective, workspace, path):
     return path
 
 
-def graph_search_path(workspace, graph, nb_points):
-    """ Graph search using Dijkstra
+def graph_search_path(graph, workspace, nb_points):
+    """ Find feasible path using Dijkstra's algorithm
             1) samples a path that has collision with the enviroment
                 and perform graph search on a grid (nb_points x nb_points)
             2) convert path to world coordinates
             3) interpolate path continuously """
     path = demonstrations.sample_path(workspace, graph, nb_points)
 
-    trajectory = ContinuousTrajectory(len(path) - 1, 2)
+    # convert to world coordinates
+    path_world = ContinuousTrajectory(len(path) - 1, 2)
     pixel_map = workspace.pixel_map(nb_points)
     for i, p in enumerate(path):
-        trajectory.configuration(i)[:] = pixel_map.grid_to_world(np.array(p))
+        path_world.configuration(i)[:] = pixel_map.grid_to_world(np.array(p))
     T = demonstrations.TRAJ_LENGTH
 
+    # interpolate the path
     interpolated_path = Trajectory(T, 2)
     for i, s in enumerate(np.linspace(0, 1, T)):
-        q = trajectory.configuration_at_parameter(s)
+        q = path_world.configuration_at_parameter(s)
         interpolated_path.configuration(i)[:] = q
-    q_goal = trajectory.final_configuration()
+    q_goal = path_world.final_configuration()
     interpolated_path.configuration(T)[:] = q_goal
     interpolated_path.configuration(T + 1)[:] = q_goal
     return interpolated_path
 
+
+motion_objective = MotionOptimization2DCostMap(
+    box=EnvBox(origin=np.array([0, 0]), dim=np.array([1., 1.])),
+    T=demonstrations.TRAJ_LENGTH,
+    q_init=np.zeros(2),
+    q_goal=np.zeros(2))
 objective = TrajectoryOptimizationViewer(
-    MotionOptimization2DCostMap(
-        box=EnvBox(
-            origin=np.array([0, 0]),
-            dim=np.array([1., 1.])),
-        T=demonstrations.TRAJ_LENGTH,
-        q_init=np.zeros(2),
-        q_goal=np.zeros(2)),
-    draw=DRAW,
-    draw_gradient=True,
-    use_3d_viewer=True)
+    motion_objective, draw=DRAW, draw_gradient=True, use_3d_viewer=True)
 
-nb_points = 40
-show_demo_id = -1
-
+nb_points = 40  # points for the grid on which to perform graph search.
 grid = np.ones((nb_points, nb_points))
 graph = CostmapToSparseGraph(grid, average_cost=False)
 graph.convert()
-workspaces = load_workspaces_from_file(filename='workspaces_1k_small.hdf5')
-trajectories = [None] * len(workspaces)
-for k, workspace in enumerate(tqdm(workspaces)):
-    interpolated_path = graph_search_path(workspace, graph, nb_points)
-    optimized_trajectory = optimize_path(
-        objective, workspace, interpolated_path)
-    if collision_check_trajectory(workspace, optimized_trajectory):
-        print("Warning: has collision !!!")
 
-    result = [None] * demonstrations.TRAJ_LENGTH
-    for i in range(len(result)):
-        result[i] = optimized_trajectory.configuration(i)
-    if show_demo_id == k and not options.show_result:
-        break
+# workspaces = load_workspaces_from_file(filename='workspaces_1k_small.hdf5')
+workspaces = [sample_workspace(5) for i in range(100)]
+for k, workspace in enumerate(tqdm(workspaces)):
+    path = graph_search_path(graph, workspace, nb_points)
+    optimize_path(objective, workspace, path)

@@ -96,6 +96,6 @@ class TrajectoryOptimizationViewer:
                 self.viewer.draw_ws_sphere(
                     q, height=self.viewer.normalize_height(cost))
             if g_traj is not None:
-                self.viewer.draw_ws_line(q, g_traj.configuration(k))
+                self.viewer.draw_ws_line([q, g_traj.configuration(k)])
 
         self.viewer.show()

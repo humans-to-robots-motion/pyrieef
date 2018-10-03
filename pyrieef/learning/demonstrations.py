@@ -82,6 +82,8 @@ def optimize(path, workspace, costmap, verbose=False):
 
 
 def sample_path(workspace, graph, nb_points):
+    """ finds a path that does not collide with enviroment
+    but that is significantly difficult to perform """
     meshgrid = workspace.box.stacked_meshgrid(nb_points)
     costgrid = obsatcle_potential(workspace)(meshgrid).transpose()
     pixel_map = workspace.pixel_map(nb_points)
