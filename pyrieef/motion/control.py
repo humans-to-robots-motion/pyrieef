@@ -19,36 +19,60 @@
 #                                        Jim Mainprice on Sunday June 13 2018
 
 import scipy
+import np
+from np.linalg import inv
+from np.linalg import eigvals
+from np import dot
 import trajectory
 
 
-def lqr(A, B, Q, R):
+def controller_lqr_discrete_time(A, B, Q, R):
     """
-    Solve the discrete time lqr controller.
+    Solve the constdiscrete time LQR controller for a 
+    discrete time constant system.
 
-        x_{t+1} = A x_t + B u_t
+        A and B are system matrices, describing the systems dynamics:
 
-        cost = sum x_t^T Q x_t + u_t^T R u_t
+            x_{t+1} = A x_t + B u_t
+
+        The controller minimizes the 
+        infinite horizon quadratic cost function:
+
+            cost = sum x_r^T Q x_t + u_t^T R u_t
+
+        where Q is a positive semidefinite matrix, 
+        and R is positive definite matrix.
+
+        Returns K, X, eigVals:
+            Returns gain the optimal gain K, the solution matrix X, and the closed loop system eigenvalues.
+            The optimal input is then computed as:
+             input: u = -K*x
     """
-    # ref Bertsekas, p.151
+    assert type(A) == np.matrix
+    assert type(B) == np.matrix
+    assert type(Q) == np.matrix
+    assert type(R) == np.matrix
 
-    # first, try to solve the Ricatti equation
-    try:
-        X = np.matrix(scipy.linalg.solve_discrete_are(A, B, Q, R))
-    except LinAlgError:
-        print "Error in LQR"
+    # first, try to solve the ricatti equation
+    P = scipy.linalg.solve_discrete_are(A, B, Q, R)
 
     # compute the LQR gain
-    K = np.matrix(scipy.linalg.inv(B.T * X * B + R) * (B.T * X * A))
+    K = np.matrix(inv(B.T * P * B + R) * (B.T * P * A))
 
-    eigVals, eigVecs = scipy.linalg.eig(A - B * K)
+    # Compute eigen values
+    eigVals = eigvals(A - B * K)
 
     return K, X, eigVals
 
 
-def trajectory_following_lqr(trajectory, dt):
-    """
-    State and action are pulerly kinematic and defined as :
+class KinematicTrajectoryFollowingLQR:
+
+    def __init__(self):
+        return None
+
+    def solve_ricatti(self, n, dt, Q_p, Q_v, R_a):
+        """
+        State and action are pulerly kinematic and defined as :
 
         q_t : configuration
         v_t = \dot q_t : velocity
@@ -59,16 +83,45 @@ def trajectory_following_lqr(trajectory, dt):
 
         the dynamical system is described as:
 
-            q_t+1 = q_t + v_t * dt + a_t * dt^2
-            v_t+1 = v_t + a_t * dt
+            q_{t+1} = q_t + v_t * dt + a_t * dt^2
+            v_{t+1} = v_t + a_t * dt
 
-    """
-    n = trajectory.n()
+        the policy should be:
 
-    # Dynamics matrix
-    A = np.matrix(np.vstack([
-        np.hstack([np.eye(n), dt * np.eye(n)]),
-        np.hstack([np.zeros((n, n)), np.eye(n)])]))
+            a_{t+1} = K (x_t - x_td) + a_td
 
-    # Control matrix
-    B = np.matrix(np.vstack([(dt ** 2) * np.eye(n), dt * np.eye(n)]))
+        where x_td and a_td are the state and acceleration 
+        along the trajectory.
+        """
+        # dynamics matrix
+        A = np.matrix(np.vstack([
+            np.hstack([np.eye(n), dt * np.eye(n)]),
+            np.hstack([np.zeros((n, n)), np.eye(n)])]))
+
+        # control matrix
+        B = np.matrix(np.vstack([(dt ** 2) * np.eye(n), dt * np.eye(n)]))
+
+        # state gain
+        Q = np.matrix(np.vstack([Q_p * np.eye(n), Q_v * np.eye(n)]))
+
+        # control gain
+        R = np.matrix(R_a * np.eye(n))
+
+        # solve Ricatti equation
+        K, X, eigVals = controller_lqr_discrete_time(A, B, Q, R)
+
+        return K
+
+    def policy(self, t, x_t, K, trajectory, dt):
+        """
+        Computes the desired acceleration given an LQR error term gain.
+
+            u = K (x - x_d) + u_d
+
+            where x_d and u_d are the state and control along the trajectory
+        """
+        s_t = trajectory.state(t, dt)
+        a_t = trajectory.acceleration(t, dt)
+        e_t = x_t - np.vstack([s_t(0), s_t(1)])
+        u_t = K * e_t + a_t
+        return u_t
