@@ -26,7 +26,7 @@ def newton_optimize_trajectory(
         objective,
         trajectory,
         verbose=False,
-        max_iter=15):
+        maxiter=15):
     t_start = time.time()
     res = optimize.minimize(
         x0=trajectory.active_segment(),
