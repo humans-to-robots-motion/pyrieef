@@ -50,7 +50,8 @@ objective.add_waypoint_terms(q_grasp, t_grasp, 100000.)
 objective.create_objective()
 
 # optimize trajectorty
-algorithms.newton_optimize_trajectory(objective.objective, trajectory)
+algorithms.newton_optimize_trajectory(
+    objective.objective, trajectory, verbose=True)
 
 # solve LQR
 lqr = KinematicTrajectoryFollowingLQR(dt=0.1, trajectory=trajectory)

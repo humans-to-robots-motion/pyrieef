@@ -22,7 +22,11 @@ import numpy as np
 import time
 
 
-def newton_optimize_trajectory(objective, trajectory, verbose=False):
+def newton_optimize_trajectory(
+        objective,
+        trajectory,
+        verbose=False,
+        max_iter=15):
     t_start = time.time()
     res = optimize.minimize(
         x0=trajectory.active_segment(),
@@ -30,7 +34,7 @@ def newton_optimize_trajectory(objective, trajectory, verbose=False):
         fun=objective.forward,
         jac=objective.gradient,
         hess=objective.hessian,
-        options={'maxiter': 15, 'disp': verbose}
+        options={'maxiter': max_iter, 'disp': verbose}
     )
     if verbose:
         print "optimization done in {} sec.".format(time.time() - t_start)
