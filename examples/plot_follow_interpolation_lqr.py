@@ -27,32 +27,33 @@ from pyrieef.optimization import algorithms
 from pyrieef.rendering.optimization import TrajectoryOptimizationViewer
 from pyrieef.rendering.workspace_renderer import WorkspaceDrawer
 
+""" 
+Integrate LQR forward in time by following a straight line constant 
+speed trajectory
+"""
 
-trajectory = linear_interpolation_trajectory(
+tracked_trajectory = linear_interpolation_trajectory(
     q_init=-.22 * np.ones(2),
     q_goal=.4 * np.ones(2),
     T=22
 )
 
-dt = 0.1
-lqr = KinematicTrajectoryFollowingLQR(dt, trajectory)
+lqr = KinematicTrajectoryFollowingLQR(dt=0.1, trajectory=tracked_trajectory)
 lqr.solve_ricatti(Q_p=13, Q_v=3, R_a=1)
 
-workspace = sample_workspace(nb_circles=0)
-extent = workspace.box.box_extent()
-viewer = WorkspaceDrawer(workspace, wait_for_keyboard=True)
-viewer.draw_ws_line(trajectory.list_configurations())
-nb_lines = 5
-x = np.linspace(-.4, 0.1, nb_lines)
-y = np.linspace(-.4, 0.1, nb_lines)
-X, Y = np.meshgrid(x, y)
-points = np.vstack([X.ravel(), Y.ravel()]).transpose()
-for point in points:
-    trajectory = lqr.integrate(point)
-    viewer.draw_ws_point(trajectory.initial_configuration())
+viewer = WorkspaceDrawer(Workspace(), wait_for_keyboard=True)
+viewer.draw_ws_line(tracked_trajectory.list_configurations())
+
+# create squared meshgrid
+d = np.linspace(-.4, 0.1, 5)
+X, Y = np.meshgrid(d, d)
+start_points = np.vstack([X.ravel(), Y.ravel()]).transpose()
+
+# integrate all points in grid forward in time
+for p_init in start_points:
+    viewer.draw_ws_point(p_init)
     viewer.draw_ws_line_fill(
-        trajectory.list_configurations(),
+        lqr.integrate(p_init).list_configurations(),
         color='k',
         linewidth=.1)
-
 viewer.show_once()

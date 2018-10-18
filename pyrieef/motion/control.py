@@ -105,17 +105,16 @@ class KinematicTrajectoryFollowingLQR:
 
         the policy should be:
 
-            a_{t+1} = K (x_t - x_td) + a_td
+            a_{t+1} = -K (x_t - x_td) + a_td
 
         where x_td and a_td are the state and acceleration
         along the trajectory.
 
         Parameters
         ----------
-
-        Q_p : float, position tracking gain
-        Q_v : float, velocity tracking gain
-        R_a : float, control cost
+            Q_p : float, position tracking gain
+            Q_v : float, velocity tracking gain
+            R_a : float, control cost
 
         """
         # dynamics matrix
@@ -142,7 +141,7 @@ class KinematicTrajectoryFollowingLQR:
         """
         Computes the desired acceleration given an LQR error term gain.
 
-            u = K (x - x_d) + u_d
+            u = -K (x_t - x_dt) + u_d
 
             where x_d and u_d are the state and control along the trajectory
 
@@ -175,16 +174,17 @@ class KinematicTrajectoryFollowingLQR:
         T = self._trajectory.T()
         trajectory = Trajectory(T=T, n=q_init.size)
         x_t = np.hstack([q_init, np.zeros(q_init.size)])
-        for i in range(T):
+        for i in range(T + 1):
+
             # 1) compute acceleration
             u_t = self.policy(i * dt, x_t.reshape(q_init.size * 2, 1))
             a_t = np.array(u_t).reshape((q_init.size, ))
             v_t = x_t[q_init.size:]
             q_t = x_t[:q_init.size]
+            trajectory.configuration(i)[:] = q_t
 
             # 2) integrate forward and update state
             q_t1 = q_t + v_t * dt + a_t * (dt ** 2)
             v_t1 = v_t + a_t * dt
-            trajectory.configuration(i)[:] = q_t1
             x_t = np.hstack([q_t1, v_t1])
         return trajectory
