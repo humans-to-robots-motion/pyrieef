@@ -21,6 +21,7 @@ from __init__ import *
 from motion.trajectory import *
 from motion.cost_terms import *
 from motion.objective import *
+from motion.control import *
 import time
 from numpy.linalg import norm
 
@@ -491,9 +492,25 @@ def test_optimize():
     objective.optimize(q_init, nb_steps=5, optimizer="natural_gradient")
     objective.optimize(q_init, nb_steps=5, optimizer="newton")
 
+
+def test_trajectory_following():
+    dt = 0.1
+    dim = 2
+    trajectory = Trajectory(T=20, n=dim)
+    trajectory.x()[:] = np.random.random(trajectory.x().size)
+    lqr = KinematicTrajectoryFollowingLQR(dt, trajectory)
+    lqr.solve_ricatti(1., 1., 1.)
+    for i in range(trajectory.T()):
+        x_t = trajectory.state(i, dt).reshape(dim * 2, 1)
+        x_t += .1 * np.random.random(x_t.shape)
+        u_t = lqr.policy(i * dt, x_t)
+        q_t = trajectory.configuration(i)
+        assert u_t.size == q_t.size
+
+
 if __name__ == "__main__":
     # test_finite_differences()
-    test_integration()
+    # test_integration()
     # test_cliques()
     # test_trajectory()
     # test_continuous_trajectory()
@@ -509,3 +526,4 @@ if __name__ == "__main__":
     # test_smoothness_metric()
     # test_trajectory_objective()
     # test_optimize()
+    test_trajectory_following()

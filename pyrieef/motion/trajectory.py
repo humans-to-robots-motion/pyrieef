@@ -334,7 +334,7 @@ class Trajectory:
         """ return a tuple of configuration and velocity at index i """
         q_t = self.configuration(i)
         v_t = self.velocity(i, dt)
-        return (q_t, v_t)
+        return np.hstack([q_t, v_t])
 
     def clique(self, i):
         """ returns a clique of 3 configurations """
