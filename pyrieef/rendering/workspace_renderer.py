@@ -155,10 +155,10 @@ class WorkspaceDrawer(WorkspaceRender):
     def draw_ws_line(self, line, color='r'):
         [self._ax.plot(point[0], point[1], color + 'o') for point in line]
 
-    def draw_ws_line_fill(self, line, color='r'):
+    def draw_ws_line_fill(self, line, color='r', linewidth=2.0):
         line_x = [point[0] for point in line]
         line_y = [point[1] for point in line]
-        self._ax.plot(line_x, line_y, color)
+        self._ax.plot(line_x, line_y, color, linewidth)
 
     def draw_ws_point(self, point, color='b', shape='x'):
         self._ax.plot(point[0], point[1], color + shape)

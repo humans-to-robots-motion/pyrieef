@@ -23,7 +23,7 @@ import numpy as np
 from numpy.linalg import inv
 from numpy.linalg import eigvals
 from numpy import dot
-import trajectory
+from trajectory import Trajectory
 
 
 def controller_lqr_discrete_time(A, B, Q, R):
@@ -65,7 +65,7 @@ def controller_lqr_discrete_time(A, B, Q, R):
     P = scipy.linalg.solve_discrete_are(A, B, Q, R)
 
     # compute the LQR gain
-    K = np.matrix(inv(B.T * P * B + R) * (B.T * P * A))
+    K = np.matrix(inv(R + B.T * P * B) * (B.T * P * A))
 
     # Compute eigen values
     eigVals = eigvals(A - B * K)
@@ -162,3 +162,29 @@ class KinematicTrajectoryFollowingLQR:
         e_t = x_t - x_d
         u_t = -self._K_matrix * e_t + a_t.reshape(self._n, 1)
         return u_t
+
+    def integrate(self, q_init):
+        """ 
+        Integrate the policy forward in time
+
+        Parameters
+        ----------
+            q_init : ndarray
+         """
+        dt = self._dt
+        T = self._trajectory.T()
+        trajectory = Trajectory(T=T, n=q_init.size)
+        x_t = np.hstack([q_init, np.zeros(q_init.size)])
+        for i in range(T):
+            # 1) compute acceleration
+            u_t = self.policy(i * dt, x_t.reshape(q_init.size * 2, 1))
+            a_t = np.array(u_t).reshape((q_init.size, ))
+            v_t = x_t[q_init.size:]
+            q_t = x_t[:q_init.size]
+
+            # 2) integrate forward and update state
+            q_t1 = q_t + v_t * dt + a_t * (dt ** 2)
+            v_t1 = v_t + a_t * dt
+            trajectory.configuration(i)[:] = q_t1
+            x_t = np.hstack([q_t1, v_t1])
+        return trajectory
