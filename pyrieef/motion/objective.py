@@ -192,6 +192,14 @@ class MotionOptimization2DCostMap:
         self.function_network.register_function_last_clique(
             Scale(terminal_potential, self._term_potential_scalar))
 
+    def add_waypoint_terms(self, q_waypoint, i, scalar):
+
+        initial_potential = Pullback(
+            SquaredNorm(q_waypoint),
+            self.function_network.left_most_of_clique_map())
+        self.function_network.register_function_for_clique(
+            i, Scale(initial_potential, scalar))
+
     def add_smoothness_terms(self, deriv_order=2):
 
         if deriv_order == 1:
