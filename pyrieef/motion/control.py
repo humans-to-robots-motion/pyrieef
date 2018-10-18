@@ -16,7 +16,7 @@
 # OTHER TORTIOUS ACTION,   ARISING OUT OF OR IN    CONNECTION WITH THE USE   OR
 # PERFORMANCE OF THIS SOFTWARE.
 #
-#                                        Jim Mainprice on Sunday June 13 2018
+#                                    Jim Mainprice on Thursday October 18 2018
 
 import scipy
 import numpy as np
@@ -91,9 +91,9 @@ class KinematicTrajectoryFollowingLQR:
         """
         State and action are pulerly kinematic and defined as :
 
-        q_t : configuration
-        v_t = \dot q_t : velocity
-        a_t = \ddot q_t : acceleration
+        q_t                 : configuration
+        v_t = \dot q_t      : velocity
+        a_t = \ddot q_t     : acceleration
 
         x_t = [q_t, v_t]
         u_t = a_t
@@ -113,8 +113,8 @@ class KinematicTrajectoryFollowingLQR:
         Parameters
         ----------
 
-        Q_p : float, position gain
-        Q_v : float, velocity gain
+        Q_p : float, position tracking gain
+        Q_v : float, velocity tracking gain
         R_a : float, control cost
 
         """
