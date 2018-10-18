@@ -34,6 +34,8 @@ Optimize a grasping trajectory and compute LQR to track it
 q_init = np.array([-.3, .3])
 q_goal = np.array([.3, .3])
 q_grasp = np.array([.0, -.3])
+q_grasp_approach = np.array([.0, -.2])
+
 T_length = 20
 t_grasp = int(T_length / 2)
 trajectory = linear_interpolation_trajectory(q_init, q_goal, T_length)
@@ -46,6 +48,7 @@ objective.create_clique_network()
 objective.add_smoothness_terms(2)
 objective.add_box_limits()
 objective.add_init_and_terminal_terms()
+objective.add_waypoint_terms(q_grasp_approach, t_grasp - 2, 100000.)
 objective.add_waypoint_terms(q_grasp, t_grasp, 100000.)
 objective.create_objective()
 
