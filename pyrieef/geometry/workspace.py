@@ -23,9 +23,9 @@ import numpy as np
 # from matplotlib.pyplot import cm
 import sys
 import math
-from pixel_map import *
+from .pixel_map import *
 from abc import abstractmethod
-from differentiable_geometry import *
+from .differentiable_geometry import *
 
 
 class Shape:
@@ -425,7 +425,7 @@ def sample_circles(nb_circles):
     """ Samples circles in [0, 1]^2 with radii in [0, 1]"""
     centers = np.random.rand(nb_circles, 2)
     radii = np.random.rand(nb_circles)
-    return zip(centers, radii)
+    return list(zip(centers, radii))
 
 
 def sample_workspace(nb_circles, radius_parameter=.15):

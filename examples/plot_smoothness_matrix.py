@@ -40,7 +40,7 @@ objective.create_objective()
 H1 = objective.objective.hessian(trajectory.active_segment())
 np.set_printoptions(suppress=True, linewidth=200, precision=0,
                     formatter={'float_kind': '{:8.0f}'.format})
-print H1[dim * 10:, dim * 10:]
+print(H1[dim * 10:, dim * 10:])
 
 H2 = objective.create_smoothness_metric()
 np.set_printoptions(suppress=True, linewidth=200, precision=0,
@@ -48,7 +48,7 @@ np.set_printoptions(suppress=True, linewidth=200, precision=0,
 
 
 A_inv = np.linalg.inv(H2)
-print np.max(A_inv)
+print(np.max(A_inv))
 A_inv /= np.max(A_inv)
 plt.plot(A_inv)
 plt.show()

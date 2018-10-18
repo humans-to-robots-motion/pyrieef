@@ -38,7 +38,7 @@ def plot_results(workspace, x_init, x_goal, trajectory, optimizer):
         X = np.array(points)[:, 0]
         Y = np.array(points)[:, 1]
         plt.plot(X, Y, color=colorst[i], linewidth=2.0)
-        print "colorst[" + str(i) + "] : ", colorst[i]
+        print("colorst[" + str(i) + "] : ", colorst[i])
     plt.plot(x_init[0], x_init[1], 'ro')
     plt.plot(x_goal[0], x_goal[1], 'bo')
 
@@ -101,7 +101,7 @@ def trajectory_optimization():
         t_start = time .time()
         [dist, trajectory, gradient, deltas] = optimizer.optimize(
             q_init=q_init, nb_steps=100, trajectory=trajectory)
-        print "optimization took : {} sec.".format(time.time() - t_start)
+        print("optimization took : {} sec.".format(time.time() - t_start))
         # Plot trajectory
         plot_results(workspace, x_init, x_goal, trajectory, optimizer)
     else:
@@ -123,7 +123,7 @@ def trajectory_optimization():
                     viewer.draw_ws_line(q, g_traj.configuration(k))
                 viewer.show()
                 time.sleep(0.02)
-        raw_input("Press Enter to continue...")
+        input("Press Enter to continue...")
 
 if __name__ == "__main__":
     trajectory_optimization()

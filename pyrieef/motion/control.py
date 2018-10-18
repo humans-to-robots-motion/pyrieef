@@ -23,7 +23,7 @@ import numpy as np
 from numpy.linalg import inv
 from numpy.linalg import eigvals
 from numpy import dot
-from trajectory import Trajectory
+from .trajectory import Trajectory
 
 
 def controller_lqr_discrete_time(A, B, Q, R):

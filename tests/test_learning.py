@@ -23,9 +23,12 @@ import learning.demonstrations as demos
 from graph.shortest_path import *
 from geometry.workspace import sample_workspace
 import time
+import sys
 
 
 def test_random_enviroments():
+    sys.argn = 0
+    sys.argv = []
     parser = random_environment_parser()
     (options, args) = parser.parse_args()
     options.numdatasets = 5
@@ -50,7 +53,7 @@ def test_demonstrations():
             show_result=False, average_cost=average_cost, verbose=True)
         assert trajectories[k].n() == 2
         assert trajectories[k].T() == demos.TRAJ_LENGTH - 1
-    print "time : {} sec.".format(time.time() - t_start)
+    print("time : {} sec.".format(time.time() - t_start))
 
 if __name__ == "__main__":
     test_random_enviroments()

@@ -43,7 +43,7 @@ x = np.arange(-xmax, xmax, dx)
 y = np.arange(-ymax, ymax, dy)
 X, Y = np.meshgrid(x, y)
 Z = np.exp(-(2 * X)**2 - (Y / 2)**2)
-print Z.shape
+print(Z.shape)
 
 interp_spline = RectBivariateSpline(x, y, Z.transpose())
 
@@ -59,7 +59,7 @@ f = ExpF()
 g1_x = np.zeros((x2.size, y2.size))
 g1_y = np.zeros((x2.size, y2.size))
 z1 = np.zeros((x2.size, y2.size))
-print "g1 : ", g1_x.shape
+print("g1 : ", g1_x.shape)
 for i, x in enumerate(x2):
     for j, y in enumerate(y2):
         p = np.array([x, y])
@@ -69,8 +69,8 @@ for i, x in enumerate(x2):
         g1_y[i, j] = grad[1]  # Gradient y
 
 
-print "g1_x : \n", g1_x
-print "g2_x : \n", g2_x
+print("g1_x : \n", g1_x)
+print("g2_x : \n", g2_x)
 
 plot3d = False
 if plot3d:

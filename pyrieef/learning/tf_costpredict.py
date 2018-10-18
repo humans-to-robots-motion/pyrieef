@@ -19,7 +19,7 @@
 
 # An undercomplete occtomap to cost code
 # ....
-from __future__ import division, print_function, absolute_import
+
 import tensorflow.contrib.layers as lays
 
 import tensorflow as tf
@@ -27,8 +27,8 @@ import numpy as np
 import matplotlib
 matplotlib.use('PDF')   # generate postscript output by default
 import matplotlib.pyplot as plt
-from visualize_data import *
-from dataset import *
+from .visualize_data import *
+from .dataset import *
 
 num_epochs = 100   # Number of epochs to train the network
 batch_size = 100   # Number of samples in each batch
@@ -122,7 +122,7 @@ with tf.Session() as sess:
         sess.run(test_init_op)
         test_loss_v, occ, cost_true, cost_pred = sess.run([
             loss, x, y, prediction])
-        print('Epoch: {}, Training Loss= {}, Test Loss= {}'.format(
-            (ep + 1), train_loss_v, test_loss_v))
+        print(('Epoch: {}, Training Loss= {}, Test Loss= {}'.format(
+            (ep + 1), train_loss_v, test_loss_v)))
         if ep % 10 == 0:
             _plot(ep, occ, cost_true, cost_pred)

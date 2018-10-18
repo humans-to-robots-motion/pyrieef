@@ -22,8 +22,8 @@
 imported from openai 15/08/08
 https://github.com/openai/gym/blob/master/gym/envs/classic_control/rendering.py
 """
-from __future__ import division
-from __future__ import print_function
+
+
 import os
 import six
 import sys
@@ -63,8 +63,8 @@ def get_display(spec):
     elif isinstance(spec, six.string_types):
         return pyglet.canvas.Display(spec)
     else:
-        print(
-            'Invalid display specification: {}. (Must be a string like :0 or None.)'.format(spec))
+        print((
+            'Invalid display specification: {}. (Must be a string like :0 or None.)'.format(spec)))
         raise
 
 

@@ -18,8 +18,8 @@
 #                                        Jim Mainprice on Sunday June 13 2018
 
 import numpy as np
-from charge_simulation import *
-from utils import *
+from .charge_simulation import *
+from .utils import *
 
 
 def ComputeTensor(simulation, p, delta=0.001):
@@ -78,7 +78,7 @@ def ComputeInterpolationGeodescis(simulation, x_1, x_2):
             [x_init.item(0), x_init.item(1), rho_init]) +
             alpha * np.array(
             [x_goal.item(0), x_goal.item(1), rho_goal]))
-        print p_new
+        print(p_new)
         x_new = np.matrix([p_new.item(0), p_new.item(1)]).transpose()
         line.append(np.array([x_new.item(0), x_new.item(1)]))
         if np.linalg.norm(x_new - x_goal) <= eta:

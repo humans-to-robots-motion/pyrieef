@@ -35,13 +35,13 @@ def eval_attractor(phi):
 def test_attractor_identity():
     phi = IdentityMap(2)
     v = eval_attractor(phi)
-    print "v (identity) : ", v
+    print("v (identity) : ", v)
 
 
 def test_attractor_polar():
     phi = PolarCoordinateSystem()
     v = eval_attractor(phi)
-    print "v (polar) : ", v
+    print("v (polar) : ", v)
 
 
 if __name__ == "__main__":

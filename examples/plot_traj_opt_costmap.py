@@ -55,7 +55,7 @@ def initialize_objective(trajectory, workspace, costmap):
 
 
 def motion_optimimization(workspace, costmap=None):
-    print "Checkint Motion Optimization"
+    print("Checkint Motion Optimization")
     trajectory = linear_interpolation_trajectory(
         q_init=-.22 * np.ones(2),
         q_goal=.3 * np.ones(2),

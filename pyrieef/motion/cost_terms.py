@@ -18,7 +18,7 @@
 #                                        Jim Mainprice on Sunday June 13 2018
 
 # from __future__ import print_function
-from __init__ import *
+from .__init__ import *
 from geometry.differentiable_geometry import *
 from abc import ABCMeta, abstractproperty
 
@@ -65,10 +65,6 @@ class SquaredNormDerivative(DifferentiableMap):
     def __init__(self, dim):
         self._sq_norm = SquaredNorm(np.zeros(dim))
         return
-
-    @abstractproperty
-    def _derivative(self):
-        pass
 
     def output_dimension(self):
         return 1

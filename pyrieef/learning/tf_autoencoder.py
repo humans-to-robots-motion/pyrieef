@@ -18,7 +18,7 @@
 #                                        Jim Mainprice on Sunday June 13 2018
 
 # An undercomplete autoencoder on MNIST dataset
-from __future__ import division, print_function, absolute_import
+
 import tensorflow.contrib.layers as lays
 
 import tensorflow as tf
@@ -86,7 +86,7 @@ with tf.Session() as sess:
             batch_img = batch_img.reshape((-1, 28, 28, 1))               # reshape each sample to an (28, 28) image
             batch_img = resize_batch(batch_img)                          # reshape the images to (32, 32)
             _, c = sess.run([train_op, loss], feed_dict={ae_inputs: batch_img})
-            print('Epoch: {} - cost= {:.5f}'.format((ep + 1), c))
+            print(('Epoch: {} - cost= {:.5f}'.format((ep + 1), c)))
 
     # test the trained network
     batch_img, batch_label = mnist.test.next_batch(50)

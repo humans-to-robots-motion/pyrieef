@@ -56,7 +56,7 @@ x_goal = np.array([0.4, 0.2])
 nx, ny = (10, 5)
 x = np.linspace(.5, -.5, nx)
 y = np.linspace(-.5, -.2, ny)
-for i, j in itertools.product(range(nx), range(ny)):
+for i, j in itertools.product(list(range(nx)), list(range(ny))):
     x_init = np.array([x[i], y[j]])
     line = ComputeGeodesic(simulation, x_init, x_goal)
     X = np.array(line)[:, 0]

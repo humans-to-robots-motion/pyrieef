@@ -32,7 +32,7 @@ def load_criterion(criType, averageLoss):
     elif criType == 'abs':
         criterion = nn.AbsCriterion(averageLoss)
     else:
-        print('Unknown criterion type input: ' + criType)
+        print(('Unknown criterion type input: ' + criType))
     return criterion
 
 

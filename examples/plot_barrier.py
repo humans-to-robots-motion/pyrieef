@@ -46,7 +46,7 @@ points = workspace.all_points()
 X = np.array(points)[:, 0]
 Y = np.array(points)[:, 1]
 
-print "Charge simulation..."
+print("Charge simulation...")
 simulation = ChargeSimulation()
 simulation.charged_points_ = points
 simulation.Run()
@@ -66,12 +66,12 @@ plt.ylabel('some points')
 plt.axis('equal')
 plt.axis(workspace.box.box_extent())
 
-print "Compute geodesics..."
+print("Compute geodesics...")
 x_goal = np.array([0.4, -0.4])
 nx, ny = (5, 5)
 x = np.linspace(-.4, -.3, nx)
 y = np.linspace(-.4, -.2, ny)
-for i, j in itertools.product(range(nx), range(ny)):
+for i, j in itertools.product(list(range(nx)), list(range(ny))):
     x_init = np.array([x[i], y[j]])
     # line = ComputeInterpolationGeodescis(simulation, x_init, x_goal)
     # line = ComputeGeodesic(simulation, x_init, x_goal)
@@ -81,5 +81,5 @@ for i, j in itertools.product(range(nx), range(ny)):
     plt.plot(X, Y, color="r", linewidth=2.0)
     plt.plot(x_init[0], x_init[1], 'ro')
 plt.plot(x_goal[0], x_goal[1], 'ko')
-print "Done."
+print("Done.")
 plt.show()

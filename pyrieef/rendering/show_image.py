@@ -34,7 +34,7 @@ with warnings.catch_warnings():
     image_scaled = img_as_ubyte(rescale(image, 1.0 / 4.0))
 
 if not use_matplotlib:
-    print image_scaled.shape
+    print((image_scaled.shape))
     viewer = gl.SimpleImageViewer()
     while True:
         viewer.imshow(image_scaled)

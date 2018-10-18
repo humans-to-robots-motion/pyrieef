@@ -17,7 +17,7 @@
 #
 #                                        Jim Mainprice on Sunday June 13 2018
 
-from __init__ import *
+from .__init__ import *
 from motion.trajectory import *
 from motion.cost_terms import *
 from optimization.optimization import *

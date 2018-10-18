@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+        #!/usr/bin/env python
 
 # Copyright (c) 2018, University of Stuttgart
 # All rights reserved.
@@ -21,7 +21,7 @@ import __init__
 from test_differentiable_geometry import *
 from geometry.diffeomorphisms import *
 
-
+    
 def check_beta(alpha, beta, beta_inv):
     success = False
     for i in range(1000):
@@ -33,11 +33,11 @@ def check_beta(alpha, beta, beta_inv):
         dy = beta(eta, r, gamma, dx)
         dx_new = beta_inv(eta, r, gamma, dy)
         if np.fabs(dx - dx_new) > 1.e-12:
-            print "test beta (", i, ")"
-            print " -- value : ", dx
-            print " -- forward : ", dy
-            print " -- inverse : ", dx_new
-            print "Error."
+            print(("test beta (", i, ")"))
+            print((" -- value : ", dx))
+            print((" -- forward : ", dy))
+            print((" -- inverse : ", dx_new))
+            print("Error.")
             success = False
             break
 
@@ -50,8 +50,8 @@ def check_beta(alpha, beta, beta_inv):
 def check_inverse(obstacle):
     success = True
     o = obstacle.object()
-    print "center : ", o.origin
-    print "radius : ", o.radius
+    print(("center : ", o.origin))
+    print(("radius : ", o.radius))
     # np.random.seed(0)
     if success:
         success = False
@@ -63,12 +63,12 @@ def check_inverse(obstacle):
             x_new = obstacle.inverse(p)
             dist = np.linalg.norm(x - x_new)
             if dist > 1.e-12:
-                print "test (", i, ")"
-                print " -- norm : ", np.linalg.norm(x)
-                print " -- point : ", x
-                print " -- forward : ", p
-                print " -- inverse : ", x_new
-                print "Error."
+                print(("test (", i, ")"))
+                print((" -- norm : ", np.linalg.norm(x)))
+                print((" -- point : ", x))
+                print((" -- forward : ", p))
+                print((" -- inverse : ", x_new))
+                print("Error.")
                 success = False
                 break
             success = True
@@ -83,17 +83,17 @@ def test_inverse_functions():
     # TODO look why this one fails...
     # assert check_beta(alpha3_f, beta3_f, beta3_inv_f)
 
-    print "Test PolarCoordinateSystem"
+    print("Test PolarCoordinateSystem")
     obstacle = PolarCoordinateSystem()
     assert check_jacobian_against_finite_difference(obstacle)
     assert check_inverse(obstacle)
 
-    print "Test ElectricCircle"
+    print("Test ElectricCircle")
     obstacle = ElectricCircle()
     assert check_jacobian_against_finite_difference(obstacle)
     assert check_inverse(obstacle)
 
-    print "Test AnalyticCircle"
+    print("Test AnalyticCircle")
     obstacle = AnalyticCircle()
     obstacle.set_alpha(alpha_f, beta_inv_f)
     assert check_jacobian_against_finite_difference(obstacle)
@@ -106,7 +106,7 @@ def test_inverse_functions():
     # else:
     #     print "Analytic Ellipse Error !!!"
 
-    print "Done."
+    print("Done.")
 
 
 if __name__ == "__main__":

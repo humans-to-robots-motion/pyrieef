@@ -17,8 +17,8 @@
 #
 #                                        Jim Mainprice on Sunday June 13 2018
 
-from __future__ import print_function
-import common_imports
+
+from . import common_imports
 from graph.shortest_path import *
 from learning.dataset import *
 from learning.random_environment import *
@@ -77,7 +77,7 @@ def optimize(path, workspace, costmap, verbose=False):
         trajectory.configuration(0), MAX_ITERATIONS, trajectory,
         optimizer="newton")
     if verbose:
-        print("time : {}".format(time.time() - t_start))
+        print(("time : {}".format(time.time() - t_start)))
     return trajectory
 
 
@@ -153,7 +153,7 @@ def generate_demonstrations(nb_points):
     trajectories = [None] * len(workspaces)
     for k, workspace in enumerate(tqdm(workspaces)):
         if verbose:
-            print("Compute demo ", k)
+            print(("Compute demo ", k))
         trajectories[k] = compute_demonstration(
             workspace,
             graph,
@@ -176,7 +176,7 @@ if __name__ == '__main__':
     verbose = options.verbose
     show_demo_id = -1
     nb_points = options.nb_points
-    print(" -- options : ", options)
+    print((" -- options : ", options))
     np.random.seed(1)
     trajectories = generate_demonstrations(nb_points)
     save_trajectories_to_file(trajectories)

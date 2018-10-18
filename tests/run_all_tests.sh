@@ -1,2 +1,2 @@
 clear
-bash -c pytest
+bash -c "pytest --disable-pytest-warnings"

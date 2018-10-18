@@ -17,7 +17,7 @@
 #
 #                                        Jim Mainprice on Sunday June 13 2018
 
-from __init__ import *
+from .__init__ import *
 from geometry.differentiable_geometry import *
 
 
@@ -60,7 +60,7 @@ class CliquesFunctionNetwork(FunctionNetwork):
         self._nb_clique_elements = 3
         self._clique_element_dim = clique_element_dim
         self._clique_dim = self._nb_clique_elements * clique_element_dim
-        self._nb_cliques = self._input_size / clique_element_dim - 2
+        self._nb_cliques = int(self._input_size / clique_element_dim - 2)
         self._functions = self._nb_cliques * [None]
         for i in range(self._nb_cliques):
             self._functions[i] = []
@@ -132,7 +132,7 @@ class CliquesFunctionNetwork(FunctionNetwork):
         """ returns a list of all cliques """
         n = self._clique_element_dim
         dim = self._clique_dim
-        clique_begin_ids = range(0, n * self._nb_cliques, n)
+        clique_begin_ids = list(range(0, n * self._nb_cliques, n))
         cliques = [x[c_id:c_id + dim] for c_id in clique_begin_ids]
         assert len(cliques) == self._nb_cliques
         return cliques
@@ -159,36 +159,36 @@ class CliquesFunctionNetwork(FunctionNetwork):
         dim = self._clique_element_dim
         return RangeSubspaceMap(
             dim * self._nb_clique_elements,
-            range(dim, (self._nb_clique_elements - 1) * dim))
+            list(range(dim, (self._nb_clique_elements - 1) * dim)))
 
     def right_most_of_clique_map(self):
         """ x_{t+1} """
         dim = self._clique_element_dim
         return RangeSubspaceMap(
             dim * self._nb_clique_elements,
-            range((self._nb_clique_elements - 1) * dim,
-                  self._nb_clique_elements * dim))
+            list(range((self._nb_clique_elements - 1) * dim,
+                  self._nb_clique_elements * dim)))
 
     def right_of_clique_map(self):
         """ x_{t} ; x_{t+1} """
         dim = self._clique_element_dim
         return RangeSubspaceMap(
             dim * self._nb_clique_elements,
-            range(dim, self._nb_clique_elements * dim))
+            list(range(dim, self._nb_clique_elements * dim)))
 
     def left_most_of_clique_map(self):
         """ x_{t-1} """
         dim = self._clique_element_dim
         return RangeSubspaceMap(
             dim * self._nb_clique_elements,
-            range(0, dim))
+            list(range(0, dim)))
 
     def left_of_clique_map(self):
         """ x_{t-1} ; x_{t} """
         dim = self._clique_element_dim
         return RangeSubspaceMap(
             dim * self._nb_clique_elements,
-            range(0, (self._nb_clique_elements - 1) * dim))
+            list(range(0, (self._nb_clique_elements - 1) * dim)))
 
 
 class TrajectoryObjectiveFunction(DifferentiableMap):
@@ -251,7 +251,7 @@ class Trajectory:
         if q_init is not None and x is not None:
             assert x.size % q_init.size == 0
             self._n = q_init.size
-            self._T = (x.size / q_init.size) - 1
+            self._T = int((x.size / q_init.size) - 1)
             self._x = np.zeros(self._n * (self._T + 2))
             self._x[:self._n] = q_init
             self._x[self._n:] = x

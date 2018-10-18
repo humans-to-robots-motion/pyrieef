@@ -17,10 +17,10 @@
 #
 #                                        Jim Mainprice on Sunday June 13 2018
 
-import common_imports
+from . import common_imports
 import matplotlib.pyplot as plt
-from itertools import izip
-from dataset import *
+
+from .dataset import *
 from utils.options import *
 from utils.misc import *
 import rendering.workspace_renderer as render
@@ -66,15 +66,15 @@ def draw_all_costmaps(basename='1k_small.hdf5'):
 
     data = dict_to_object(
         load_dictionary_from_file(filename='costdata2d_' + str(basename)))
-    print "Data is now loaded !!!"
-    print " -- size : ", data.size
-    print " -- lims : ", data.lims
-    print " -- datasets.shape : ", data.datasets.shape
+    print("Data is now loaded !!!")
+    print((" -- size : ", data.size))
+    print((" -- lims : ", data.lims))
+    print((" -- datasets.shape : ", data.datasets.shape))
     workspaces = load_workspaces_from_file(filename='workspaces_' + basename)
 
-    print " -- displaying with matplotlib..."
+    print(" -- displaying with matplotlib...")
     dataset_id = 0
-    for data1, data2, data3, data4 in izip(*[iter(data.datasets)] * 4):
+    for data1, data2, data3, data4 in zip(*[iter(data.datasets)] * 4):
         fig = plt.figure(figsize=(5, 6))
         # fig = plt.figure(figsize=(8, 9))
 
@@ -123,7 +123,7 @@ def draw_all_workspaces(basename, scale, multicol=True):
         rows = 3
         cols = 4
         t_sleep = 3.
-    for workspaces in izip(*[iter(dataset)] * (rows * cols)):
+    for workspaces in zip(*[iter(dataset)] * (rows * cols)):
         viewer = render.WorkspaceDrawer(
             workspaces[0].workspace,
             wait_for_keyboard=True, rows=rows, cols=cols, scale=scale)
@@ -176,4 +176,4 @@ if __name__ == '__main__':
     elif options.trajectories:
         draw_all_workspaces(options.basename, options.scale)
     else:
-        print parser.print_help()
+        print((parser.print_help()))

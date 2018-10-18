@@ -37,7 +37,7 @@ def newton_optimize_trajectory(
         options={'maxiter': maxiter, 'disp': verbose}
     )
     if verbose:
-        print "optimization done in {} sec.".format(time.time() - t_start)
-        print "gradient norm : ", np.linalg.norm(res.jac)
+        print(("optimization done in {} sec.".format(time.time() - t_start)))
+        print(("gradient norm : ", np.linalg.norm(res.jac)))
     trajectory.active_segment()[:] = res.x
     return res

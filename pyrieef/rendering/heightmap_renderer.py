@@ -19,7 +19,7 @@
 
 
 import pyglet
-import heightmap as hm
+from . import heightmap as hm
 
 window = pyglet.window.Window(
     width=400, height=400, caption='Heightmap', resizable=True)

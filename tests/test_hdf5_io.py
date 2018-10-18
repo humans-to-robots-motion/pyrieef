@@ -49,7 +49,7 @@ def test_hdf5_dictionary_io():
     dic_A["forth"] = np.random.random((10, 10, 200))
     write_dictionary_to_file(dic_A, filename)
     dic_B = load_dictionary_from_file(filename)
-    for key, value in dic_A.items():
+    for key, value in list(dic_A.items()):
         assert check_is_close(dic_A[key], dic_B[key])
     # print dic_B["first"][0]
     # print dic_B["second"].shape

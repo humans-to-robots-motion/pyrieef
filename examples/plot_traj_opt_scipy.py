@@ -29,7 +29,7 @@ from pyrieef.optimization import algorithms
 from pyrieef.rendering.optimization import TrajectoryOptimizationViewer
 
 # ----------------------------------------------------------------------------
-print "Run Motion Optimization"
+print("Run Motion Optimization")
 trajectory = linear_interpolation_trajectory(
     q_init=-.22 * np.ones(2),
     q_goal=.3 * np.ones(2),

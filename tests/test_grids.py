@@ -18,45 +18,47 @@
 #                                        Jim Mainprice on Sunday June 13 2018
 
 from __init__ import *
+from numpy.testing import assert_allclose
 from geometry.pixel_map import *
+from itertools import product
 
 
 def test_pixelmap_random():
     resolution = .2
     pixel_map = PixelMap(resolution)
-    print "pm -- resolution : {}".format(pixel_map.resolution)
-    print "pm -- origin : {}".format(pixel_map.origin)
-    print "pm -- nb_cells_x : {}".format(pixel_map.nb_cells_x)
-    print "pm -- nb_cells_y : {}".format(pixel_map.nb_cells_y)
+    print("pm -- resolution : {}".format(pixel_map.resolution))
+    print("pm -- origin : {}".format(pixel_map.origin))
+    print("pm -- nb_cells_x : {}".format(pixel_map.nb_cells_x))
+    print("pm -- nb_cells_y : {}".format(pixel_map.nb_cells_y))
     for i in range(100):
         p_g1 = pixel_map.world_to_grid(sample_uniform(pixel_map.extent))
         p_w1 = pixel_map.grid_to_world(p_g1)
         p_g2 = pixel_map.world_to_grid(p_w1)
         p_w2 = pixel_map.grid_to_world(p_g2)
         assert_allclose(p_w1, p_w2)
-    print "Random pixel map OK !"
+    print("Random pixel map OK !")
 
 
 def test_pixelmap_meshgrid():
     resolution = .2
     pixel_map = PixelMap(resolution)
-    print "pm -- resolution : {}".format(pixel_map.resolution)
-    print "pm -- origin : {}".format(pixel_map.origin)
-    print "pm -- nb_cells_x : {}".format(pixel_map.nb_cells_x)
-    print "pm -- nb_cells_y : {}".format(pixel_map.nb_cells_y)
+    print("pm -- resolution : {}".format(pixel_map.resolution))
+    print("pm -- origin : {}".format(pixel_map.origin))
+    print("pm -- nb_cells_x : {}".format(pixel_map.nb_cells_x))
+    print("pm -- nb_cells_y : {}".format(pixel_map.nb_cells_y))
     extent = pixel_map.extent
     nb_points = int(extent.x_max - extent.x_min) / resolution
-    print "nb_points : ", nb_points
+    print("nb_points : ", nb_points)
     x_min = extent.x_min + 0.5 * resolution
     x_max = extent.x_max - 0.5 * resolution
     y_min = extent.y_min + 0.5 * resolution
     y_max = extent.y_max - 0.5 * resolution
     x = np.linspace(x_min, x_max, nb_points)
     y = np.linspace(y_min, y_max, nb_points)
-    print x
-    print y
+    print(x)
+    print(y)
     X, Y = np.meshgrid(x, y)
-    for i, j in product(range(x.size), range(y.size)):
+    for i, j in product(list(range(x.size)), list(range(y.size))):
         p_w1 = np.array([X[i, j], Y[i, j]])
         p_g1 = pixel_map.world_to_grid(p_w1)
         p_w2 = pixel_map.grid_to_world(p_g1)
@@ -93,7 +95,7 @@ def test_regressed_grid():
     g1_x = np.zeros((x2.size, y2.size))
     g1_y = np.zeros((x2.size, y2.size))
     z1 = np.zeros((x2.size, y2.size))
-    print "g1 : ", g1_x.shape
+    print("g1 : ", g1_x.shape)
     for i, x in enumerate(x2):
         for j, y in enumerate(y2):
             p = np.array([x, y])
@@ -102,12 +104,13 @@ def test_regressed_grid():
             g1_x[i, j] = grad[0]  # Gradient x
             g1_y[i, j] = grad[1]  # Gradient y
 
-    print g1_x.shape
+    print(g1_x.shape)
 
     assert check_is_close(Z2, z1, 1e-10)
     assert check_is_close(g2_x, g1_x, 1e-10)
     assert check_is_close(g2_y, g1_y, 1e-10)
 
-test_pixelmap_random()
-test_pixelmap_meshgrid()
-test_regressed_grid()
+if __name__ == "__main__":
+    test_pixelmap_random()
+    test_pixelmap_meshgrid()
+    test_regressed_grid()

@@ -495,10 +495,10 @@ def check_jacobian_against_finite_difference(phi, verbose=True):
     J = phi.jacobian(q)
     J_diff = finite_difference_jacobian(phi, q)
     if verbose:
-        print "J : "
-        print J
-        print "J_diff : "
-        print J_diff
+        print("J : ")
+        print(J)
+        print("J_diff : ")
+        print(J_diff)
     return check_is_close(J, J_diff, 1e-4)
 
 
@@ -509,8 +509,8 @@ def check_hessian_against_finite_difference(phi, verbose=True,
     H = phi.hessian(q)
     H_diff = finite_difference_hessian(phi, q)
     if verbose:
-        print "H : "
-        print H
-        print "H_diff : "
-        print H_diff
+        print("H : ")
+        print(H)
+        print("H_diff : ")
+        print(H_diff)
     return check_is_close(H, H_diff, tolerance)

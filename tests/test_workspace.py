@@ -17,9 +17,13 @@
 #
 #                                        Jim Mainprice on Sunday June 13 2018
 
-from __init__ import *
-from geometry.workspace import *
 
+from __init__ import *
+# from __future__ import absolute_import
+# from .__init__ import *
+from geometry.workspace import *
+from itertools import product
+from numpy.testing import assert_allclose
 
 def test_ellipse():
 
@@ -28,11 +32,11 @@ def test_ellipse():
     ellipse.b = 0.2
 
     dist = ellipse.dist_from_border(np.array([0.3, 0.0]))
-    print "dist = ", dist
+    print("dist = ", dist)
     assert np.fabs(dist - 0.2) < 1.e-06
 
     dist = ellipse.dist_from_border(np.array([0.0, 0.3]))
-    print "dist = ", dist
+    print("dist = ", dist)
     assert np.fabs(dist - 0.1) < 1.e-06
 
 
@@ -61,9 +65,9 @@ def test_meshgrid():
     workspace = Workspace()
     pixel_map = workspace.pixel_map(nb_points)
     X, Y = workspace.box.meshgrid(nb_points)
-    print "pm -- resolution : {}".format(pixel_map.resolution)
-    print "pm -- origin : {}".format(pixel_map.origin)
-    for i, j in product(range(nb_points), range(nb_points)):
+    print("pm -- resolution : {}".format(pixel_map.resolution))
+    print("pm -- origin : {}".format(pixel_map.origin))
+    for i, j in product(list(range(nb_points)), list(range(nb_points))):
         p_meshgrid = np.array([X[i, j], Y[i, j]])
         p_grid = pixel_map.world_to_grid(p_meshgrid)
         p_world = pixel_map.grid_to_world(p_grid)
@@ -80,7 +84,7 @@ def test_sdf_grid():
     # otherwise the grid representation do not match
     grid = workspace.box.stacked_meshgrid(nb_points)
     sdfmap = sdf(grid).transpose()
-    for i, j in product(range(nb_points), range(nb_points)):
+    for i, j in product(list(range(nb_points)), list(range(nb_points))):
         p = pixel_map.grid_to_world(np.array([i, j]))
         assert_allclose(sdf(p), sdfmap[i, j])
 
@@ -92,7 +96,7 @@ def test_workspace_to_occupancy_map():
     workspace = sample_workspace(nb_circles=5)
     occ = occupancy_map(nb_points, workspace)
     pixel_map = pixelmap_from_box(nb_points, workspace.box)
-    for i, j in product(range(nb_points), range(nb_points)):
+    for i, j in product(list(range(nb_points)), list(range(nb_points))):
         p = pixel_map.grid_to_world(np.array([i, j]))
         v = float(workspace.min_dist(p)[0] < 0)
         assert_allclose(occ[i, j], v)
@@ -110,11 +114,11 @@ def test_inside_box():
             assert not box.is_inside(p + box.upper_corner())
             assert not box.is_inside(-1. * p + box.lower_corner())
 
-
-test_ellipse()
-test_sdf_derivatives()
-test_sdf_workspace()
-test_meshgrid()
-test_sdf_grid()
-test_workspace_to_occupancy_map()
-test_inside_box()
+if __name__ == "__main__":
+    test_ellipse()
+    test_sdf_derivatives()
+    test_sdf_workspace()
+    test_meshgrid()
+    test_sdf_grid()
+    test_workspace_to_occupancy_map()
+    test_inside_box()

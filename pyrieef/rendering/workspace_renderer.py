@@ -17,8 +17,8 @@
 #
 #                                        Jim Mainprice on Sunday June 13 2018
 
-from common_imports import *
-from plannar_gl import *
+from .common_imports import *
+from .plannar_gl import *
 from learning import random_environment
 from geometry.workspace import *
 from utils import timer
@@ -32,7 +32,7 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 cmap = plt.get_cmap('inferno')
 from abc import abstractmethod
-import heightmap as hm
+from . import heightmap as hm
 
 # Red, Green, Blue
 COLORS = [(139, 0, 0),  (0, 100, 0), (0, 0, 139)]
@@ -171,7 +171,7 @@ class WorkspaceDrawer(WorkspaceRender):
         plt.draw()
         plt.pause(t_sleep)
         if self._wait_for_keyboard:
-            raw_input("Press Enter to continue...")
+            eval(input("Press Enter to continue..."))
         plt.close(self._fig)
 
 
@@ -181,10 +181,10 @@ class WorkspaceOpenGl(WorkspaceRender):
 
     def __init__(self, workspace, display=None):
         WorkspaceRender.__init__(self, workspace)
-        print self._workspace.box
+        print((self._workspace.box))
         self._scale = 700.
-        self.width = self._scale * (self._extends.x_max - self._extends.x_min)
-        self.height = self._scale * (self._extends.y_max - self._extends.y_min)
+        self.width = self._scale * (self._extent.x_max - self._extent.x_min)
+        self.height = self._scale * (self._extent.y_max - self._extent.y_min)
         self.gl = Viewer(self.width, self.height, display)
 
         # Get SDF as image
@@ -196,7 +196,7 @@ class WorkspaceOpenGl(WorkspaceRender):
 
     def draw_ws_circle(self, radius, origin, color=(0, 1, 0)):
         t = Transform(translation=self._scale * (
-            origin - np.array([self._extends.x_min, self._extends.y_min])))
+            origin - np.array([self._extent.x_min, self._extent.y_min])))
         circ = make_circle(self._scale * radius, 30)
         circ.add_attr(t)
         circ.set_color(*color)
@@ -205,7 +205,7 @@ class WorkspaceOpenGl(WorkspaceRender):
     def draw_ws_line(self, line, color=(1, 0, 0)):
         p1 = line[0]
         p2 = line[1]
-        corner = np.array([self._extends.x_min, self._extends.y_min])
+        corner = np.array([self._extent.x_min, self._extent.y_min])
         p1_ws = self._scale * (p1 - corner)
         p2_ws = self._scale * (p2 - corner)
         self.gl.draw_line(p1_ws, p2_ws, linewidth=7, color=(1, 0, 0))
@@ -228,9 +228,9 @@ class WorkspaceOpenGl(WorkspaceRender):
             if isinstance(o, Circle):
                 circ = make_circle(self._scale * o.radius, 30)
                 origin = o.origin - np.array(
-                    [self._extends.x_min, self._extends.y_min])
+                    [self._extent.x_min, self._extent.y_min])
                 t = Transform(translation=self._scale * origin)
-                print "o.origin {}, o.radius {}".format(o.origin, o.radius)
+                print(("o.origin {}, o.radius {}".format(o.origin, o.radius)))
                 circ.add_attr(t)
                 circ.set_color(*COLORS[i])
                 self.gl.add_geom(circ)

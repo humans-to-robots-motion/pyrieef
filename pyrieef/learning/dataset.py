@@ -53,7 +53,7 @@ def write_dictionary_to_file(data_out, filename='costdata2d_10k.hdf5'):
     if not os.path.exists(directory):
         os.makedirs(directory)
     f = h5py.File(directory + os.sep + filename, 'w')
-    for key, value in data_out.items():
+    for key, value in list(data_out.items()):
         f.create_dataset(key, data=value)
     f.close()
 
@@ -63,7 +63,7 @@ def load_dictionary_from_file(filename='costdata2d_10k.hdf5'):
     with h5py.File(learning_data_dir() + os.sep + filename, 'r') as f:
         for d in f:
             # print("d : " + d)
-            print("f[d] : " + str(d))
+            print(("f[d] : " + str(d)))
             datasets[str(d)] = f[d][:]
     return datasets
 
@@ -71,7 +71,7 @@ def load_dictionary_from_file(filename='costdata2d_10k.hdf5'):
 def load_data_from_hdf5(filename, train_per):
     """ Setup training / test data  """
     # Depracted
-    print('==> Loading dataset from: ' + filename)
+    print(('==> Loading dataset from: ' + filename))
     data = dict_to_object(load_dictionary_from_file(filename))
     print('==> Finished loading data')
     image_height = data.size[0]
@@ -81,7 +81,7 @@ def load_data_from_hdf5(filename, train_per):
     train_data_ids = []
     test_data_ids = []
     if train_data_ids and test_data_ids:
-        print "We have some data ids"
+        print("We have some data ids")
         numTrain = len(train_data_ids)
         numTest = len(test_data_ids)
         numData = num_train + num_test
@@ -104,8 +104,8 @@ def load_data_from_hdf5(filename, train_per):
 
         assert len(train_data) == num_train and len(test_data) == num_test
 
-    print('Num. total: {}, Num. train: {}; Num. test: {}'.format(
-        num_data, num_train, num_test))
+    print(('Num. total: {}, Num. train: {}; Num. test: {}'.format(
+        num_data, num_train, num_test)))
     return train_data, test_data
 
 
@@ -118,8 +118,8 @@ def import_tf_data(filename='costdata2d_10k.hdf5'):
     dataset_train = tf.data.Dataset.from_tensor_slices((
         rawdata.train_inputs,
         rawdata.train_targets))
-    print(dataset_train.output_types)
-    print(dataset_train.output_shapes)
+    print((dataset_train.output_types))
+    print((dataset_train.output_shapes))
     dataset_test = None
     if rawdata.train_per < 1.:
         assert rawdata.test_inputs.shape[0] == rawdata.test_targets.shape[0]
@@ -143,10 +143,10 @@ def create_circles_workspace(box, ws):
 def load_workspaces_from_file(filename='workspaces_1k_small.hdf5'):
     """ Load data from an hdf5 file """
     data_ws = dict_to_object(load_dictionary_from_file(filename))
-    print(" -- size : ", data_ws.size)
-    print(" -- lims : ", data_ws.lims.flatten())
-    print(" -- datasets.shape : ", data_ws.datasets.shape)
-    print(" -- data_ws.shape : ", data_ws.datasets.shape)
+    print((" -- size : ", data_ws.size))
+    print((" -- lims : ", data_ws.lims.flatten()))
+    print((" -- datasets.shape : ", data_ws.datasets.shape))
+    print((" -- data_ws.shape : ", data_ws.datasets.shape))
     box = box_from_limits(
         data_ws.lims[0, 0], data_ws.lims[0, 1],
         data_ws.lims[1, 0], data_ws.lims[1, 1])
@@ -173,8 +173,8 @@ def save_trajectories_to_file(
 def load_trajectories_from_file(filename='trajectories_1k_small.hdf5'):
     """ Load data from an hdf5 file """
     data = dict_to_object(load_dictionary_from_file(filename))
-    print(" -- trajectories * n : {}".format(data.n[0]))
-    print(" -- trajectories * l : {}".format(len(data.datasets)))
+    print((" -- trajectories * n : {}".format(data.n[0])))
+    print((" -- trajectories * l : {}".format(len(data.datasets))))
     n = data.n[0]
     trajectories = [None] * len(data.datasets)
     for k, trj in enumerate(data.datasets):
@@ -185,7 +185,7 @@ def load_trajectories_from_file(filename='trajectories_1k_small.hdf5'):
 class CostmapDataset:
 
     def __init__(self, filename):
-        print('==> Loading dataset from: ' + filename)
+        print(('==> Loading dataset from: ' + filename))
         data = dict_to_object(load_dictionary_from_file(filename))
         self._max_index = 1000
         self._size_limit = True
@@ -194,12 +194,12 @@ class CostmapDataset:
         self.train_per = 0.80
         print('Sorting out inputs and targets...')
         self.split_data(data)
-        print(' - num. inputs : {}, shape : {}'.format(
+        print((' - num. inputs : {}, shape : {}'.format(
             len(self.train_inputs),
-            self.train_inputs.shape))
-        print(' - num. targets : {}, shape : {}'.format(
+            self.train_inputs.shape)))
+        print((' - num. targets : {}, shape : {}'.format(
             len(self.train_targets),
-            self.train_targets.shape))
+            self.train_targets.shape)))
 
     def split_data(self, data):
         """ Load datasets afresh, train_per should be between 0 and 1 """
@@ -207,7 +207,7 @@ class CostmapDataset:
         num_data = min(self._max_index, len(data.datasets))
         num_train = int(round(self.train_per * num_data))
         num_test = num_data - num_train
-        print(" num_train : {}, num_test : {}".format(num_train, num_test))
+        print((" num_train : {}, num_test : {}".format(num_train, num_test)))
         self.train_inputs = []
         self.train_targets = []
         self.test_inputs = []

@@ -22,7 +22,7 @@
 # conda install -c jf pykdl
 
 from PyKDL import *
-print "Creating Robotic Chain"
+print("Creating Robotic Chain")
 chain=Chain()
 joint0=Joint(Joint.RotZ) 
 frame0=Frame(Vector(0.2,0.3,0))

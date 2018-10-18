@@ -18,14 +18,14 @@
 #                                        Jim Mainprice on Sunday June 13 2018
 
 
-import common_imports
+from . import common_imports
 from geometry.workspace import *
 from utils.misc import *
 from math import *
 from random import *
 import optparse
 import os
-from dataset import *
+from .dataset import *
 from tqdm import tqdm
 
 
@@ -121,11 +121,11 @@ def random_environments(opt):
     resolution_y = 1. / opt.ysize
     save_workspace = True
     if opt.seed >= 0:
-        print "set random seed ({})".format(opt.seed)
+        print(("set random seed ({})".format(opt.seed)))
         np.random.seed(opt.seed)
 
     if resolution_x != resolution_y:
-        print "Warning : resolution_x != resolution_y"
+        print("Warning : resolution_x != resolution_y")
     else:
         resolution = resolution_x
 
@@ -150,8 +150,8 @@ def random_environments(opt):
 
     # Try for this many time to do any one single thing before restarting
     maxnumtries = 100
-    print("Num datasets : " + str(numdatasets))
-    for k in tqdm(range(numdatasets)):
+    print(("Num datasets : " + str(numdatasets)))
+    for k in tqdm(list(range(numdatasets))):
 
         # Create empty workspace.
         workspace = Workspace(box)
@@ -195,8 +195,8 @@ def random_environments(opt):
     data["size"] = size
     data["datasets"] = np.stack(datasets)
 
-    print np.stack(datasets).shape
-    print np.stack(dataws).shape
+    print((np.stack(datasets).shape))
+    print((np.stack(dataws).shape))
     workspaces = {}
     workspaces["lims"] = lims
     workspaces["size"] = size

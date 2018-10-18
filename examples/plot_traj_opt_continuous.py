@@ -50,7 +50,7 @@ def resample(trajectory):
 
 
 def motion_optimimization():
-    print "Checkint Motion Optimization"
+    print("Checkint Motion Optimization")
     T = 20
     trajectory = linear_interpolation_trajectory(
         q_init=-.22 * np.ones(2),
@@ -72,4 +72,4 @@ def motion_optimimization():
 
 if __name__ == "__main__":
     motion_optimimization()
-    raw_input("Press Enter to continue...")
+    input("Press Enter to continue...")

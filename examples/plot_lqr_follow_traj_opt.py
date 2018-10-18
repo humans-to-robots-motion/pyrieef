@@ -17,7 +17,7 @@
 #
 #                                        Jim Mainprice on Sunday June 13 2018
 
-from __future__ import print_function
+
 import demos_common_imports
 import numpy as np
 import time

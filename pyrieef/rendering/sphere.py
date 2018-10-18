@@ -64,7 +64,7 @@ import pyglet
 from pyglet.gl import *
 from pyglet.window import key
 
-from shader import Shader
+from .shader import Shader
 
 try:
     # Try and create a window with multisampling (antialiasing)
@@ -175,84 +175,84 @@ def on_key_press(symbol, modifiers):
     global shaderon
 
     if symbol == key.R:
-        print 'Reset'
+        print('Reset')
         rot = Vector3(0, 0, 90)
     elif symbol == key.ESCAPE or symbol == key.Q:
-        print 'Good Bye !'   # ESC would do it anyway, but not "Q"
+        print('Good Bye !')   # ESC would do it anyway, but not "Q"
         pyglet.app.exit()
         return pyglet.event.EVENT_HANDLED
     elif symbol == key.H:
         showdialog = not showdialog
     elif symbol == key.ENTER:
-        print 'Shader toggle'
+        print('Shader toggle')
         shaderon = not shaderon
     elif symbol == key.SPACE:
-        print 'Toggle autorotate'
+        print('Toggle autorotate')
         autorotate = not autorotate
     elif symbol == key.F:
         togglefigure = not togglefigure
-        print 'Toggle Figure ', togglefigure
+        print(('Toggle Figure ', togglefigure))
     elif symbol == key.T:
         togglewire = not togglewire
-        print 'Toggle Wireframe ', togglewire
+        print(('Toggle Wireframe ', togglewire))
     elif symbol == key.A:
-        print 'Stop left'
+        print('Stop left')
         if autorotate:
             autorotate = False
         else:
             rot.y += -rotstep
             rot.y %= 360
     elif symbol == key.S:
-        print 'Stop down'
+        print('Stop down')
         if autorotate:
             autorotate = False
         else:
             rot.z += rotstep
             rot.z %= 360
     elif symbol == key.W:
-        print 'Stop up'
+        print('Stop up')
         if autorotate:
             autorotate = False
         else:
             rot.z += -rotstep
             rot.z %= 360
     elif symbol == key.D:
-        print 'Stop right'
+        print('Stop right')
         if autorotate:
             autorotate = False
         else:
             rot.y += rotstep
             rot.y %= 360
     elif symbol == key.LEFT:
-        print 'Light0 rotate left'
+        print('Light0 rotate left')
         tmp = light0pos[0]
         light0pos[0] = tmp * cos( lightstep ) - light0pos[2] * sin( lightstep )
         light0pos[2] = light0pos[2] * cos( lightstep ) + tmp * sin( lightstep )
         glLoadIdentity()
         glLightfv(GL_LIGHT0, GL_POSITION, vec(*light0pos))
     elif symbol == key.RIGHT:
-        print 'Light0 rotate right'
+        print('Light0 rotate right')
         tmp = light0pos[0]
         light0pos[0] = tmp * cos( -lightstep ) - light0pos[2] * sin( -lightstep )
         light0pos[2] = light0pos[2] * cos( -lightstep ) + tmp * sin( -lightstep )
         glLoadIdentity()
         glLightfv(GL_LIGHT0, GL_POSITION, vec(*light0pos))
     elif symbol == key.UP:
-        print 'Light0 up'
+        print('Light0 up')
         tmp = light0pos[1]
         light0pos[1] = tmp * cos( -lightstep ) - light0pos[2] * sin( -lightstep )
         light0pos[2] = light0pos[2] * cos( -lightstep ) + tmp * sin( -lightstep )
         glLoadIdentity()
         glLightfv(GL_LIGHT0, GL_POSITION, vec(*light0pos))
     elif symbol == key.DOWN:
-        print 'Light0 down'
+        print('Light0 down')
         tmp = light0pos[1]
         light0pos[1] = tmp * cos( lightstep ) - light0pos[2] * sin( lightstep )
         light0pos[2] = light0pos[2] * cos( lightstep ) + tmp * sin( lightstep )
         glLoadIdentity()
         glLightfv(GL_LIGHT0, GL_POSITION, vec(*light0pos))
     else:
-        print 'OTHER KEY'
+        print('OTHER KEY')
 
 def setup():
     # One-time GL setup
@@ -444,7 +444,7 @@ class Sphere(object):
                 ii0 = self.vcount
                 self.vcount += 1
         except ValueError:
-            print "This should not happen 1"
+            print("This should not happen 1")
         p23.normalize()
         try:
             if new[1] == "X":
@@ -454,7 +454,7 @@ class Sphere(object):
                 ii1 = self.vcount
                 self.vcount += 1
         except ValueError:
-            print "This should not happen 2"
+            print("This should not happen 2")
         p31.normalize()
         try:
             if new[2] == "X":
@@ -464,7 +464,7 @@ class Sphere(object):
                 ii2 = self.vcount
                 self.vcount += 1
         except ValueError:
-            print "This should not happen 3"
+            print("This should not happen 3")
         rslt = []
         rslt.append([i1,  ii0, ii2])
         rslt.append([ii0, i2,  ii1])
@@ -487,14 +487,14 @@ class Sphere(object):
 
         for el in x:
             #if isinstance(el, (list, tuple)):
-            if hasattr(el, "__iter__") and not isinstance(el, basestring):
+            if hasattr(el, "__iter__") and not isinstance(el, str):
                 result.extend(self.flatten(el))
             else:
                 result.append(el)
         return result
 
     def __init__(self, radius, slices, batch, group=None):
-        print "Creating Sphere... please wait"
+        print("Creating Sphere... please wait")
         # Create the vertex array.
         self.vv.append( Vector3( 1.0, 0.0, 0.0) ) # North
         self.vv.append( Vector3(-1.0, 0.0, 0.0) ) # South
@@ -513,7 +513,7 @@ class Sphere(object):
         self.recurseTriangle( 1, 5, 4, slices, "NXX" )
         self.recurseTriangle( 1, 2, 5, slices, "XXX" )
 
-        print "Sphere Level ", slices, " with ", self.vcount, " Vertices"
+        print(("Sphere Level ", slices, " with ", self.vcount, " Vertices"))
 
         for v in range(self.vcount):
             self.normals.extend(self.vv[v][:])

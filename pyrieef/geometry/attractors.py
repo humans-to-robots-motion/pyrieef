@@ -17,7 +17,7 @@
 #
 #                                        Jim Mainprice on Sunday June 13 2018
 
-from differentiable_geometry import *
+from .differentiable_geometry import *
 
 
 def MakeAttractor(phi, x_goal):

@@ -20,9 +20,9 @@
 
 import optparse
 from utils import *
-from dataset import *
+from .dataset import *
 from collections import namedtuple
-from networks import *
+from .networks import *
 import time
 
 
@@ -100,7 +100,7 @@ def parse_options():
                       help='Enable batch normalization across mini-batches')
 
     (opt, args) = parser.parse_args()
-    print opt
+    print(opt)
     # if len(args) != 2:
     #     parser.error("incorrect number of arguments")
     return (opt, args)
@@ -112,10 +112,10 @@ def load_saved_network(savedFile, loadOnlyModel):
 
     # Load all the data in the file
     if loadOnlyModel:
-        print('Loading only the saved network from: ', opt.preTrained)
+        print(('Loading only the saved network from: ', opt.preTrained))
         model = data.model  # Use cleaned up model
     else:
-        print('Loading all saved data from: ', opt.preTrained)
+        print(('Loading all saved data from: ', opt.preTrained))
         model = data.model  # Use cleaned up model
         rngstate = data.rngstate  # Random number generator state
         opt = data.opt or {}  # Save the options
@@ -149,8 +149,8 @@ def create_loss_function(opt):
             opt.usecudnn,
             opt.numskipadd)
     else:
-        print('Unknown model type input: ' + opt.model)
-    print('model : ' + str(model))
+        print(('Unknown model type input: ' + opt.model))
+    print(('model : ' + str(model)))
     return model
 
 
@@ -172,12 +172,12 @@ def iterate(opt, dataset, num_iter, mode, total_iter):
         iter_counter = opt.testIter
         totalIter = opt.numEpochs * opt.testBPE
     else:
-        print('Unknown mode: ' + mode)
+        print(('Unknown mode: ' + mode))
 
 if __name__ == '__main__':
 
     (opt, args) = parse_options()
-    print opt.preTrained
-    print opt.dataset
+    print((opt.preTrained))
+    print((opt.dataset))
     data = CostmapDataset(opt.dataset)
     model = create_loss_function(opt)

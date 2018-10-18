@@ -86,8 +86,8 @@ print(net)
 # The learnable parameters of a model are returned by ``net.parameters()``
 
 params = list(net.parameters())
-print(len(params))
-print(params[0].size())  # conv1's .weight
+print((len(params)))
+print((params[0].size()))  # conv1's .weight
 
 ########################################################################
 # Let try a random 32x32 input
@@ -181,9 +181,9 @@ print(loss)
 #
 # For illustration, let us follow a few steps backward:
 
-print(loss.grad_fn)  # MSELoss
-print(loss.grad_fn.next_functions[0][0])  # Linear
-print(loss.grad_fn.next_functions[0][0].next_functions[0][0])  # ReLU
+print((loss.grad_fn))  # MSELoss
+print((loss.grad_fn.next_functions[0][0]))  # Linear
+print((loss.grad_fn.next_functions[0][0].next_functions[0][0]))  # ReLU
 
 ########################################################################
 # Backprop
@@ -200,12 +200,12 @@ print(loss.grad_fn.next_functions[0][0].next_functions[0][0])  # ReLU
 net.zero_grad()     # zeroes the gradient buffers of all parameters
 
 print('conv1.bias.grad before backward')
-print(net.conv1.bias.grad)
+print((net.conv1.bias.grad))
 
 loss.backward()
 
 print('conv1.bias.grad after backward')
-print(net.conv1.bias.grad)
+print((net.conv1.bias.grad))
 
 ########################################################################
 # Now, we have seen how to use loss functions.

@@ -37,7 +37,7 @@ workspace.obstacles.append(Circle(np.array([0.1, 0.1]), radius))
 workspace.obstacles.append(Circle(np.array([-.1, 0.1]), radius))
 phi = CostGridPotential2D(SignedDistanceWorkspaceMap(workspace), 10., .1, 10.)
 costmap = phi(workspace.box.stacked_meshgrid(nb_points))
-print costmap
+print(costmap)
 
 converter = CostmapToSparseGraph(costmap, average_cost)
 graph = converter.convert()
@@ -69,5 +69,5 @@ for i in range(100):
         viewer.draw_ws_point(s_w)
         viewer.draw_ws_point(t_w)
         viewer.show_once()
-print "took t : {} sec.".format(time.time() - time_0)
-print path
+print("took t : {} sec.".format(time.time() - time_0))
+print(path)

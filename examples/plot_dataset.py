@@ -21,7 +21,7 @@ import demos_common_imports
 import time
 import numpy as np
 from numpy.testing import assert_allclose
-from itertools import izip
+
 
 from pyrieef.geometry.workspace import EnvBox
 from pyrieef.geometry.pixel_map import *

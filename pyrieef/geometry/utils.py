@@ -25,7 +25,7 @@ def normalize(v):
     # norm=np.linalg.norm(v, ord=1)
     norm = np.linalg.norm(v)
     if norm == 0:
-        print "norm is 0"
+        print("norm is 0")
         norm = np.finfo(v.dtype).eps
     return v / norm
 

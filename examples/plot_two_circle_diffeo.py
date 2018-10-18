@@ -92,9 +92,9 @@ y = np.linspace(-.5, -.1, ny)
 
 circles = AnalyticMultiCircle(analytical_circles)
 
-for i, j in itertools.product(range(nx), range(ny)):
+for i, j in itertools.product(list(range(nx)), list(range(ny))):
     x_init = np.array([x[i], y[j]])
-    print "x_init : ", x_init
+    print("x_init : ", x_init)
 
     # Does not have an inverse.
     # [line, line_inter] = InterpolationMultiGeodescis(

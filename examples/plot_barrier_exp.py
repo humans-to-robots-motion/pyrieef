@@ -46,7 +46,7 @@ points = workspace.all_points()
 X = np.array(points)[:, 0]
 Y = np.array(points)[:, 1]
 
-print "Charge simulation..."
+print("Charge simulation...")
 simulation = ChargeSimulation()
 simulation.charged_points_ = points
 simulation.Run()
@@ -66,13 +66,13 @@ plt.ylabel('some points')
 plt.axis('equal')
 plt.axis(workspace.box.box_extent())
 
-print "Compute geodesics..."
+print("Compute geodesics...")
 x_goal = np.array([0.4, -0.4])
 x_init = np.array([-.4, -.4])
 nb_init_points = 20
 for i in range(nb_init_points):
     theta = float(i) * np.pi / float(nb_init_points)
-    print "theta : ", theta
+    print("theta : ", theta)
     x_init_dot = np.array([np.cos(theta), np.sin(theta)])
     line = ComputeInitialVelocityGeodescis(simulation, x_init, x_init_dot)
     X = np.array(line)[:, 0]
@@ -80,5 +80,5 @@ for i in range(nb_init_points):
     plt.plot(X, Y, color="r", linewidth=2.0)
     plt.plot(x_init[0], x_init[1], 'ro')
 plt.plot(x_goal[0], x_goal[1], 'ko')
-print "Done."
+print("Done.")
 plt.show()

@@ -18,7 +18,7 @@
 #                                        Jim Mainprice on Sunday June 13 2018
 
 import numpy as np
-from differentiable_geometry import *
+from .differentiable_geometry import *
 from scipy.interpolate import RectBivariateSpline
 from scipy import ndimage
 

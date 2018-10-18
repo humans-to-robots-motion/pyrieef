@@ -115,10 +115,11 @@ class Rate(object):
         """
         curr_time = self._current_time()
         if print_rate:
-            print "rate : ", self._hz(curr_time)
+            print(("rate : ", self._hz(curr_time)))
         try:
             time.sleep(self._remaining(curr_time))
-        except IOError as (errno, strerror):
+        except IOError as xxx_todo_changeme:
+            (errno, strerror) = xxx_todo_changeme.args
             self.last_time = self._current_time()
             return
         except:

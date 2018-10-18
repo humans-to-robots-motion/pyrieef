@@ -20,9 +20,9 @@
 import numpy as np
 import sys
 import math
-from workspace import *
-from utils import *
-from differentiable_geometry import *
+from .workspace import *
+from .utils import *
+from .differentiable_geometry import *
 from scipy.special import lambertw
 from abc import abstractmethod
 
@@ -370,7 +370,7 @@ def NaturalGradientGeodescis(obj, x_1, x_2):
         line.append(np.array([x_new.item(0), x_new.item(1)]))
         if np.linalg.norm(x_new - x_goal) <= eta:
             line.append([x_goal.item(0), x_goal.item(1)])
-            print "End at : ", i
+            print(("End at : ", i))
             break
         x_tmp = x_new
     return np.array(line)

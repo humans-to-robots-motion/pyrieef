@@ -17,7 +17,7 @@
 #
 # Jim Mainprice on Sunday June 17 2018
 
-import common_imports
+from . import common_imports
 from geometry.differentiable_geometry import *
 import numpy as np
 

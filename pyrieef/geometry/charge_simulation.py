@@ -18,7 +18,7 @@
 #                                        Jim Mainprice on Sunday June 13 2018
 
 import numpy as np
-from workspace import *
+from .workspace import *
 
 
 class ChargeSimulation:
@@ -36,7 +36,7 @@ class ChargeSimulation:
     def PotentialCausedByObject(self, p):
         potential = 0.
         if self.q_ is None:
-            print "charges not initialized"
+            print("charges not initialized")
             return potential
         for i in range(len(self.charged_points_)):
             potential += self.PotentialDueToAPoint(
@@ -46,8 +46,8 @@ class ChargeSimulation:
     def ChargeMatrix(self, charged_points):
         nb_charges = len(charged_points)
         A = np.matrix(np.zeros((nb_charges, nb_charges)))
-        print "nb_charges : ", nb_charges
-        print "start filling charge matrix (" + str(A.shape) + ")"
+        print(("nb_charges : ", nb_charges))
+        print(("start filling charge matrix (" + str(A.shape) + ")"))
         for i in range(nb_charges):
             for j in range(nb_charges):
                 if i != j:
@@ -63,7 +63,7 @@ class ChargeSimulation:
         A = self.ChargeMatrix(self.charged_points_)
         B = np.array(np.ones(A.shape[0]))
         # print "A : ", A
-        print "Solve linear system..."
+        print("Solve linear system...")
         self.q_ = np.linalg.solve(A, B)
         # print "q : ", self.q_
 

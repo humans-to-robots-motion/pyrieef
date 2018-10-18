@@ -62,9 +62,9 @@ x_goal = np.array([0.4, 0.4])
 nx, ny = (3, 3)
 x = np.linspace(-.2, -.1, nx)
 y = np.linspace(-.5, -.1, ny)
-for i, j in itertools.product(range(nx), range(ny)):
+for i, j in itertools.product(list(range(nx)), list(range(ny))):
     x_init = np.array([x[i], y[j]])
-    print "x_init : ", x_init
+    print("x_init : ", x_init)
 
     [line, line_inter] = InterpolationGeodescis(phi, x_init, x_goal)
     plot_line(line, 'b', .01)

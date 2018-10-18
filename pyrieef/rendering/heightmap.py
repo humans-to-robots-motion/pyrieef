@@ -19,7 +19,7 @@
 
 import os
 
-from itertools import izip
+
 
 import pyglet
 from pyglet import *
@@ -64,8 +64,8 @@ def image_surface(nb_points):
     from skimage.color import rgb2gray
     shape = (nb_points, nb_points)
     image = img_as_float(resize(rgb2gray(data.astronaut()), shape))
-    print image.shape
-    print type(image)
+    print((image.shape))
+    print((type(image)))
     return image
 
 
@@ -99,7 +99,7 @@ def sphere_verticies(origin, radius=1, step=10):
             texc += coord
 
         vlist = pyglet.graphics.vertex_list(
-            len(verts) / 3, ('v3f', verts), ('t2f', texc))
+            int(len(verts) / 3), ('v3f', verts), ('t2f', texc))
         vlists.append(vlist)
     return vlists
 
@@ -113,7 +113,7 @@ def circle_verticies(origin, radius=1, nb_verticies=20, z=0.):
         verts += (radius * vertex + origin).tolist()
         texc += [(theta + np.pi) / 2 * np.pi, 0]
     return pyglet.graphics.vertex_list(
-        len(verts) / 3, ('v3f', verts), ('t2f', texc))
+        int(len(verts) / 3), ('v3f', verts), ('t2f', texc))
 
 
 class Primitive:
@@ -198,10 +198,10 @@ class Heightmap:
         self.half_y_length = self.y_length / 2.
 
         # loads the vertices
-        for j in xrange(height - 1):
+        for j in range(height - 1):
             # a row of triangles
             row = []
-            for i in xrange(width):
+            for i in range(width):
 
                 # centers the heightmap and inverts the y axis
                 r = image[i, j] * dz
@@ -216,7 +216,7 @@ class Heightmap:
         self.colors = [None] * len(self.vertices)
         for k, row in enumerate(self.vertices):
             self.colors[k] = []
-            for x, y, z in izip(*[iter(row)] * 3):
+            for x, y, z in zip(*[iter(row)] * 3):
                 max_z = max(max_z, z)
                 color = (255 * np.array(cmap(z / dz)[:3])).astype(int)
                 self.colors[k].extend(color)
@@ -260,8 +260,8 @@ class Heightmap:
 
         # draws the primitives (GL_TRIANGLE_STRIP)
         for i, row in enumerate(self.vertices):
-            normals = [0, 0, 1] * (len(row) / 3)  # Wrong
-            colors = (0, 0, 0) * (len(row) / 3) if black else self.colors[i]
+            normals = [0, 0, 1] * int(len(row) / 3)  # Wrong
+            colors = (0, 0, 0) * int(len(row) / 3) if black else self.colors[i]
             vlist = pyglet.graphics.vertex_list(
                 self.image_width * 2,
                 ('v3f/static', row),

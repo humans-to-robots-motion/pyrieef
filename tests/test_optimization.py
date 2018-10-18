@@ -20,21 +20,22 @@
 from __init__ import *
 from scipy import optimize
 import scipy
-print(scipy.__version__)
+print((scipy.__version__))
 import numpy as np
 from geometry.differentiable_geometry import *
 from motion.objective import *
+from numpy.testing import assert_allclose
 
 
 def test_optimization_module():
-    print "**********************************************"
-    print "TEST BFGS"
+    print("**********************************************")
+    print("TEST BFGS")
     x0 = [1.3, 0.7, 0.8, 1.9, 1.2]
     res = optimize.minimize(
         optimize.rosen, x0, method='BFGS',
         jac=optimize.rosen_der,
         options={'gtol': 1e-6, 'disp': True})
-    print res
+    print(res)
     assert_allclose(res.jac, np.array(
         [9.93918700e-07,   4.21980188e-07, 2.23775033e-07,
          -6.10304485e-07,   1.34057054e-07]))
@@ -42,18 +43,18 @@ def test_optimization_module():
 
 
 def test_optimization_trust():
-    print "**********************************************"
-    print "TEST Newton trust region "
+    print("**********************************************")
+    print("TEST Newton trust region ")
     x0 = [1.3, 0.7, 0.8, 1.9, 1.2]
     res = optimize.minimize(
         optimize.rosen, x0, method='trust-ncg',
         jac=optimize.rosen_der,
         hess=optimize.rosen_hess,
         options={'gtol': 1e-8, 'disp': True})
-    print res.x
-    print optimize.rosen(x0).shape
-    print optimize.rosen_der(x0).shape
-    print optimize.rosen_hess(x0).shape
+    print(res.x)
+    print(optimize.rosen(x0).shape)
+    print(optimize.rosen_der(x0).shape)
+    print(optimize.rosen_hess(x0).shape)
     return res.fun
 
 
@@ -75,13 +76,13 @@ def test_quadric():
         method='BFGS',
         jac=f.gradient,
         options={'gtol': gtol, 'disp': True})
-    print "- res.jac : {}".format(res.jac.shape)
-    print "-   zeros : {}".format(np.zeros(dim).shape)
+    print("- res.jac : {}".format(res.jac.shape))
+    print("-   zeros : {}".format(np.zeros(dim).shape))
     assert_allclose(res.jac, np.zeros(dim), atol=gtol)
 
 
 def test_motion_optimimization_2d():
-    print "Checkint Motion Optimization"
+    print("Checkint Motion Optimization")
     trajectory = linear_interpolation_trajectory(
         q_init=np.zeros(2), q_goal=np.ones(2), T=20)
     objective = MotionOptimization2DCostMap(
@@ -102,13 +103,13 @@ def test_motion_optimimization_2d():
         jac=objective.objective.gradient,
         options={'gtol': gtol, 'disp': True})
     # objective.optimize(q_init=np.zeros(2), trajectory=trajectory)
-    print trajectory.x().shape
-    print res.x.shape
-    print res
-    print trajectory.x()
+    print(trajectory.x().shape)
+    print(res.x.shape)
+    print(res)
+    print(trajectory.x())
     # print "- res.jac : {}".format(res.jac.shape)
-    print "max : ", max(res.jac)
-    print "jac : ", res.jac
+    print("max : ", max(res.jac))
+    print("jac : ", res.jac)
     assert_allclose(res.jac, np.zeros(res.jac.size), atol=1e-1)
 
 if __name__ == "__main__":

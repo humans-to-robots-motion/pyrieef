@@ -28,14 +28,14 @@ def test_finite_difference():
     [x, J] = identity.evaluate(q)
     J_eye = np.eye(dim)
 
-    print "Check identity (x) 1 : "
+    print("Check identity (x) 1 : ")
     assert check_is_close(q, x)
 
-    print "Check identity (J) 2 : "
+    print("Check identity (J) 2 : ")
     assert check_is_close(J, J_eye)
 
-    print "----------------------"
-    print "Check identity (J implementation) : "
+    print("----------------------")
+    print("Check identity (J implementation) : ")
     assert check_jacobian_against_finite_difference(identity)
 
 
@@ -45,8 +45,8 @@ def test_zero():
     q = np.random.rand(dim)
     [x, J] = zero.evaluate(q)
 
-    print "----------------------"
-    print "Check zero (J implementation) : "
+    print("----------------------")
+    print("Check zero (J implementation) : ")
     assert check_jacobian_against_finite_difference(zero)
 
 
@@ -58,29 +58,29 @@ def test_square_norm():
     g = norm.gradient(x_1)
     x_2 = np.zeros(x_1.shape) + g
 
-    print "----------------------"
-    print "Check square_norm (J implementation) : "
+    print("----------------------")
+    print("Check square_norm (J implementation) : ")
     assert check_jacobian_against_finite_difference(norm)
 
-    print "v : ", v
-    print "x_0 : ", x_0
-    print "x_1 : ", x_1
-    print "x_1.shape", x_1.shape
-    print "x_2.shape : ", x_2.shape
-    print "x_2 : ", x_2
-    print "J.shape", J.shape
-    print "g.shape", g.shape
-    print "zero : ", np.zeros(x_1.shape).shape
+    print("v : ", v)
+    print("x_0 : ", x_0)
+    print("x_1 : ", x_1)
+    print("x_1.shape", x_1.shape)
+    print("x_2.shape : ", x_2.shape)
+    print("x_2 : ", x_2)
+    print("J.shape", J.shape)
+    print("g.shape", g.shape)
+    print("zero : ", np.zeros(x_1.shape).shape)
     assert np.array_equal(x_2, g)
-    print "J : "
-    print J
-    print "Check square_norm (x) 1 : "
+    print("J : ")
+    print(J)
+    print("Check square_norm (x) 1 : ")
     assert check_is_close(v, 4.)
     # success = check_is_close(J, J_zero)
     # print "Check square_norm (J) 2 : ", success
 
-    print "----------------------"
-    print "Check zero (H implementation) : "
+    print("----------------------")
+    print("Check zero (H implementation) : ")
     assert check_hessian_against_finite_difference(norm)
 
 
@@ -90,17 +90,17 @@ def test_affine():
     b = np.random.rand(dim)
     f = AffineMap(a, b)
 
-    print "Check AffineMap (J implementation) : "
+    print("Check AffineMap (J implementation) : ")
     assert check_jacobian_against_finite_difference(f)
 
     a = np.random.rand(1, dim)
     b = np.random.rand(1)
     f = AffineMap(a, b)
 
-    print "Check AffineMap (function) (J implementation) : "
+    print("Check AffineMap (function) (J implementation) : ")
     assert check_jacobian_against_finite_difference(f)
 
-    print "Check AffineMap (function) (H implementation) : "
+    print("Check AffineMap (function) (H implementation) : ")
     assert check_hessian_against_finite_difference(f)
 
 
@@ -112,7 +112,7 @@ def test_scale():
 
     g = Scale(f, .3)
 
-    print "Check Scale (J implementation) : "
+    print("Check Scale (J implementation) : ")
     assert check_jacobian_against_finite_difference(g)
 
 
@@ -123,12 +123,12 @@ def test_sum_of_terms():
     f3 = AffineMap(np.random.rand(1, dim), np.random.rand(1))
     sum_of_terms = SumOfTerms([f1, f2, f3])
 
-    print "----------------------"
-    print "Check sum of terms (J implementation) : "
+    print("----------------------")
+    print("Check sum of terms (J implementation) : ")
     assert check_jacobian_against_finite_difference(sum_of_terms)
 
-    print "----------------------"
-    print "Check sum of terms (H implementation) : "
+    print("----------------------")
+    print("Check sum of terms (H implementation) : ")
     assert check_hessian_against_finite_difference(sum_of_terms)
 
 
@@ -139,10 +139,10 @@ def test_quadric():
         np.random.rand(dim, dim),       # A
         np.random.rand(dim),            # b
         .3)                             # c
-    print "Check quadric (J implementation) : "
+    print("Check quadric (J implementation) : ")
     assert check_jacobian_against_finite_difference(f)
 
-    print "Check quadric (H implementation) : "
+    print("Check quadric (H implementation) : ")
     assert check_hessian_against_finite_difference(f)
 
     # Symetric positive definite case
@@ -151,13 +151,13 @@ def test_quadric():
         k.transpose() * k,              # A
         np.random.rand(dim),            # b
         1.)                             # c
-    print "Check quadric (J implementation) : "
+    print("Check quadric (J implementation) : ")
     assert check_jacobian_against_finite_difference(f)
 
-    print "Check quadric (H implementation) : "
+    print("Check quadric (H implementation) : ")
     assert check_hessian_against_finite_difference(f)
 
-    print "Check scale quadric (H implementation) : "
+    print("Check scale quadric (H implementation) : ")
     assert check_hessian_against_finite_difference(Scale(f, .3))
 
 
@@ -173,12 +173,12 @@ def test_composition():
     f = AffineMap(                      # f = Ax + b
         np.random.rand(dim_o, dim_i),   # A
         np.random.rand(dim_o))          # b
-    print "Check Composition (J implementation) : "
+    print("Check Composition (J implementation) : ")
     assert check_jacobian_against_finite_difference(Compose(f, g))
 
     # Test function jacobian (gradient)
     f = SquaredNorm(np.random.rand(dim))
-    print "Check Composition (J implementation) : "
+    print("Check Composition (J implementation) : ")
     assert check_jacobian_against_finite_difference(Compose(f, g))
 
     # Symetric positive definite case
@@ -187,7 +187,7 @@ def test_composition():
         k.transpose() * k,              # A
         np.random.rand(dim),            # b
         1.)                             # c
-    print "Check quadric (J implementation) : "
+    print("Check quadric (J implementation) : ")
     assert check_jacobian_against_finite_difference(Compose(f, g))
 
     dim = 3
@@ -200,7 +200,7 @@ def test_composition():
         np.random.rand(dim_o, dim_i),   # A
         np.random.rand(dim_o))          # b
 
-    print "Check quadric (H implementation) : "
+    print("Check quadric (H implementation) : ")
     assert check_hessian_against_finite_difference(Compose(f, g))
 
 
@@ -221,13 +221,13 @@ def test_pullback():
     # Test function hessian (gradient)
     f = SquaredNorm(np.zeros(dim_o))
 
-    print "Check Composition (J implementation) : "
+    print("Check Composition (J implementation) : ")
     assert check_jacobian_against_finite_difference(Pullback(f, g))
 
     # Test function hessian (gradient)
-    print "Check Composition (H implementation) : *** "
-    print f.hessian(np.random.random(dim_o))
-    print Pullback(f, g).hessian(np.random.random(dim_i))
+    print("Check Composition (H implementation) : *** ")
+    print(f.hessian(np.random.random(dim_o)))
+    print(Pullback(f, g).hessian(np.random.random(dim_i)))
     assert check_jacobian_against_finite_difference(Pullback(f, g))
 
 
@@ -239,7 +239,7 @@ def test_rangesubspace():
     indices = [1, 3, 7]
     f_sub = Compose(RangeSubspaceMap(f.output_dimension(), indices), f)
 
-    print "Check SubRangeMap (J implementation) : "
+    print("Check SubRangeMap (J implementation) : ")
     assert check_jacobian_against_finite_difference(f_sub)
 
 
@@ -261,10 +261,10 @@ def test_product():
     assert check_hessian_against_finite_difference(h)
 
     f = ProductFunction(g, h)
-    print "Check ProductFunction (J implementation) : "
+    print("Check ProductFunction (J implementation) : ")
     assert check_jacobian_against_finite_difference(f)
 
-    print "Check ProductFunction (H implementation) : "
+    print("Check ProductFunction (H implementation) : ")
     assert check_hessian_against_finite_difference(f)
 
 

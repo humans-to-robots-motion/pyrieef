@@ -24,10 +24,10 @@ from time import sleep
 
 
 def dict_to_object(d):
-    for k, v in d.items():
+    for k, v in list(d.items()):
         if isinstance(v, dict):
             d[k] = dict_to_object(v)
-    return namedtuple('object', d.keys())(*d.values())
+    return namedtuple('object', list(d.keys()))(*list(d.values()))
 
 
 def show_progress(idx, idx_max):
