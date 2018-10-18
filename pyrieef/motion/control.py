@@ -81,6 +81,12 @@ class KinematicTrajectoryFollowingLQR:
         self._trajectory = trajectory
         self._K_matrix = None
 
+    def T(self):
+        return self._trajectory.T()
+
+    def dt(self):
+        return self._dt
+
     def solve_ricatti(self, Q_p, Q_v, R_a):
         """
         State and action are pulerly kinematic and defined as :
@@ -149,8 +155,10 @@ class KinematicTrajectoryFollowingLQR:
         assert x_t.shape[0] == self._n * 2
         assert x_t.shape[1] == 1
         i = int(t / self._dt)  # index on trajectory
+        assert i <= self._trajectory.T()
+
         x_d = self._trajectory.state(i, self._dt).reshape(self._n * 2, 1)
         a_t = self._trajectory.acceleration(i, self._dt)
         e_t = x_t - x_d
-        u_t = self._K_matrix * e_t + a_t.reshape(self._n, 1)
+        u_t = -self._K_matrix * e_t + a_t.reshape(self._n, 1)
         return u_t
