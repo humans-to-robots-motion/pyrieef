@@ -17,8 +17,10 @@
 #
 #                                        Jim Mainprice on Sunday June 13 2018
 
+from __future__ import print_function
 import demos_common_imports
 import numpy as np
+import time
 from pyrieef.geometry.workspace import *
 from pyrieef.motion.trajectory import *
 from pyrieef.motion.objective import MotionOptimization2DCostMap
@@ -53,8 +55,10 @@ objective.add_waypoint_terms(q_grasp, t_grasp, 100000.)
 objective.create_objective()
 
 # optimize trajectorty
+t_start = time.time()
 algorithms.newton_optimize_trajectory(
     objective.objective, trajectory, verbose=True)
+print("optim time : {}".format(time.time() - t_start))
 
 # solve LQR
 lqr = KinematicTrajectoryFollowingLQR(dt=0.1, trajectory=trajectory)
