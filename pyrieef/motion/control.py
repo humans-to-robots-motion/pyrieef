@@ -61,11 +61,6 @@ def controller_lqr_discrete_time(A, B, Q, R):
     assert type(Q) == np.matrix
     assert type(R) == np.matrix
 
-    print "A : ", A.shape
-    print "B : ", B.shape
-    print "Q : ", Q.shape
-    print "R : ", R.shape
-
     # first, try to solve the ricatti equation
     P = scipy.linalg.solve_discrete_are(A, B, Q, R)
 
