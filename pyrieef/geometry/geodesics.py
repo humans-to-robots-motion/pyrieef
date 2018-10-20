@@ -39,7 +39,7 @@ def ComputeTensor(simulation, p, delta=0.001):
     J[2, 1] = 1.
     # print "J : "
     # print J
-    return J.transpose() * J
+    return J.T * J
 
 
 def ComputeNaturalGradient(simulation, x_1, x_2):
@@ -47,8 +47,8 @@ def ComputeNaturalGradient(simulation, x_1, x_2):
     # print x_1
     # print "x_goal : "
     # print x_2
-    x_init = np.matrix(x_1).transpose()
-    x_goal = np.matrix(x_2).transpose()
+    x_init = np.matrix(x_1).T
+    x_goal = np.matrix(x_2).T
     x_tmp = x_init
     eta = 0.005
     line = []
@@ -66,8 +66,8 @@ def ComputeNaturalGradient(simulation, x_1, x_2):
 
 
 def ComputeInterpolationGeodescis(simulation, x_1, x_2):
-    x_init = np.matrix(x_1).transpose()
-    x_goal = np.matrix(x_2).transpose()
+    x_init = np.matrix(x_1).T
+    x_goal = np.matrix(x_2).T
     rho_init = simulation.PotentialCausedByObject(x_init)
     rho_goal = simulation.PotentialCausedByObject(x_goal)
     x_tmp = x_init
@@ -79,7 +79,7 @@ def ComputeInterpolationGeodescis(simulation, x_1, x_2):
             alpha * np.array(
             [x_goal.item(0), x_goal.item(1), rho_goal]))
         print(p_new)
-        x_new = np.matrix([p_new.item(0), p_new.item(1)]).transpose()
+        x_new = np.matrix([p_new.item(0), p_new.item(1)]).T
         line.append(np.array([x_new.item(0), x_new.item(1)]))
         if np.linalg.norm(x_new - x_goal) <= eta:
             line.append([x_goal.item(0), x_goal.item(1)])
@@ -89,8 +89,8 @@ def ComputeInterpolationGeodescis(simulation, x_1, x_2):
 
 
 def ComputeInitialVelocityGeodescis(simulation, x, x_dot):
-    x_init = np.matrix(x).transpose()
-    x_init_dot = np.matrix(x_dot).transpose()
+    x_init = np.matrix(x).T
+    x_init_dot = np.matrix(x_dot).T
     x_tmp = x_init
     d_x = x_init_dot
     line = []

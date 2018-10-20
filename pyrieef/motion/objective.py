@@ -139,7 +139,7 @@ class MotionOptimization2DCostMap:
                     K_dof[i, i] *= 1000  # No variance at end points
             elif i > 0:
                 K_dof[i, i - 1:i + 2] = a
-        A_dof = K_dof.transpose() * K_dof
+        A_dof = K_dof.T * K_dof
         # print K_dof
         # print A_dof
 
@@ -155,7 +155,7 @@ class MotionOptimization2DCostMap:
                     K_full[id_row, id_col] = K_ij
         # print K_full
         # print K_full.shape
-        A = K_full.transpose() * K_full
+        A = K_full.T * K_full
         self.metric = A
         return A
 

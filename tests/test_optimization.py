@@ -64,7 +64,7 @@ def test_quadric():
     # Symetric positive definite case
     k = np.matrix(np.random.rand(dim, dim))
     f = QuadricFunction(                # g = x'Ax + b'x + c
-        k.transpose() * k,              # A
+        k.T * k,              # A
         np.random.rand(dim),            # b
         1.)                             # c
 

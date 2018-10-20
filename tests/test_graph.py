@@ -84,7 +84,7 @@ def test_workspace_to_graph():
     # WARNING !!!
     # Here we need to transpose the costmap
     # otherwise the grid representation do not match
-    costmap = phi(workspace.box.stacked_meshgrid(nb_points)).transpose()
+    costmap = phi(workspace.box.stacked_meshgrid(nb_points)).T
     converter = CostmapToSparseGraph(costmap, average_cost=False)
     graph = converter.convert()
     for (n1_i, n1_j), c_ij in np.ndenumerate(costmap):

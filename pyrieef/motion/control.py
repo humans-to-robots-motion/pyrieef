@@ -62,7 +62,7 @@ def controller_lqr_discrete_time(A, B, Q, R):
     assert type(R) == np.matrix
 
     # first, try to solve the ricatti equation
-    P = scipy.linalg.solve_discrete_are(A, B, Q, R)
+    P = np.matrix(scipy.linalg.solve_discrete_are(A, B, Q, R))
 
     # compute the LQR gain
     K = np.matrix(inv(R + B.T * P * B) * (B.T * P * A))

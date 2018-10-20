@@ -80,7 +80,7 @@ class SquaredNormDerivative(DifferentiableMap):
         return self._derivative(clique) * self._derivative.a()
 
     def hessian(self, clique):
-        return self._derivative.a().transpose() * self._derivative.a()
+        return self._derivative.a().T * self._derivative.a()
 
 
 class SquaredNormVelocity(SquaredNormDerivative):
@@ -199,7 +199,7 @@ class SimplePotential2D(DifferentiableMap):
     def hessian(self, x):
         J_sdf, rho = self._sdf_jacobian(x)
         H_sdf = self._sdf.hessian(x)
-        J_sdf_sq = J_sdf.transpose() * J_sdf
+        J_sdf_sq = J_sdf.T * J_sdf
         return rho * (self._alpha**2 * J_sdf_sq - self._alpha * H_sdf)
 
 
@@ -252,5 +252,5 @@ class ObstaclePotential2D(DifferentiableMap):
         return J
 
     def hessian(self, x):
-        J_phi = self.jacobian().transpose()
-        return J_phi.transpose() * J_phi
+        J_phi = self.jacobian().T
+        return J_phi.T * J_phi

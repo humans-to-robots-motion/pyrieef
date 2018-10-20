@@ -83,7 +83,7 @@ def test_sdf_grid():
     # Here we need to transpose the costmap
     # otherwise the grid representation do not match
     grid = workspace.box.stacked_meshgrid(nb_points)
-    sdfmap = sdf(grid).transpose()
+    sdfmap = sdf(grid).T
     for i, j in product(list(range(nb_points)), list(range(nb_points))):
         p = pixel_map.grid_to_world(np.array([i, j]))
         assert_allclose(sdf(p), sdfmap[i, j])

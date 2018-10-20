@@ -125,7 +125,7 @@ class WorkspaceDrawer(WorkspaceRender):
 
     def draw_ws_background(self, phi, nb_points=100):
         X, Y = self._workspace.box.meshgrid(nb_points)
-        Z = phi(np.stack([X, Y])).transpose()
+        Z = phi(np.stack([X, Y])).T
         self.draw_ws_img(Z)
 
     def draw_ws_img(self, Z):
@@ -136,7 +136,7 @@ class WorkspaceDrawer(WorkspaceRender):
         """
         color_style = plt.cm.viridis
         im = self._ax.imshow(
-            Z.transpose(),
+            Z.T,
             extent=self._workspace.box.box_extent(),
             origin='lower',
             interpolation='nearest',
@@ -277,7 +277,7 @@ class WorkspaceHeightmap(WorkspaceRender):
         T = self._height_map.transform(*self._workspace.box.box_extent())
         corner = np.array([self._extent.x_min, self._extent.y_min])
         p_ws = p - corner
-        p = T * np.matrix([p_ws[0], p_ws[1], 1]).transpose()
+        p = T * np.matrix([p_ws[0], p_ws[1], 1]).T
         p_swap = p.copy()
         p_swap[0] = p[1]
         p_swap[1] = p[0]

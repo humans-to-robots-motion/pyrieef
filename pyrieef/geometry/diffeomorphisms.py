@@ -351,20 +351,20 @@ def InterpolationGeodescis(obj, x_1, x_2):
 
 
 def NaturalGradientGeodescis(obj, x_1, x_2):
-    x_init = np.matrix(x_1).transpose()
-    x_goal = np.matrix(x_2).transpose()
+    x_init = np.matrix(x_1).T
+    x_goal = np.matrix(x_2).T
     x_tmp = x_init
     eta = 0.01
     line = []
     for i in range(1000):
         # Compute tensor.
         J = obj.jacobian(np.array(x_tmp.T)[0])
-        g = J.transpose() * J
+        g = J.T * J
         # Implement the attractor derivative here directly
         # suposes that it's of the form |phi(q) - phi(q_goal)|^2
         # hence the addition of the J^T
         ridge = 0.
-        d_x = np.linalg.inv(g + ridge * np.eye(2)) * J.transpose() * (
+        d_x = np.linalg.inv(g + ridge * np.eye(2)) * J.T * (
             x_goal - x_tmp)
         x_new = x_tmp + eta * normalize(d_x)
         line.append(np.array([x_new.item(0), x_new.item(1)]))

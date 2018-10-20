@@ -77,10 +77,10 @@ def test_regressed_grid():
     Z = np.exp(-(2 * X)**2 - (Y / 2)**2)
 
     # spline with grid data
-    interp_spline = RectBivariateSpline(x, y, Z.transpose())
+    interp_spline = RectBivariateSpline(x, y, Z.T)
 
     # same but with DifferentiableMap structure
-    f = RegressedPixelGridSpline(Z.transpose(), ds1, Extent(l))
+    f = RegressedPixelGridSpline(Z.T, ds1, Extent(l))
 
     # Regularly-spaced, fine grid
 

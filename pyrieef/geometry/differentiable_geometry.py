@@ -135,7 +135,7 @@ class Compose(DifferentiableMap):
         H_g = self._g.hessian(q)
         J_f = self._f.jacobian(x)
         H_f = self._f.hessian(x)
-        a_x = J_g.transpose() * H_f * J_g
+        a_x = J_g.T * H_f * J_g
         b_x = J_f * np.ones(self.input_dimension()) * H_g
         return a_x + b_x
 
@@ -173,7 +173,7 @@ class Pullback(Compose):
         x = self._g(q)
         J_g = self._g.jacobian(q)
         H_f = self._f.hessian(x)
-        return J_g.transpose() * H_f * J_g
+        return J_g.T * H_f * J_g
 
 
 class Scale(DifferentiableMap):
@@ -351,22 +351,22 @@ class QuadricFunction(DifferentiableMap):
     def forward(self, x):
         x_tmp = np.matrix(x.reshape(self._b.size, 1))
         v = np.asscalar(0.5 *
-                        x_tmp.transpose() * self._a * x_tmp +
-                        self._b.transpose() * x_tmp +
+                        x_tmp.T * self._a * x_tmp +
+                        self._b.T * x_tmp +
                         self._c)
         return v
 
     def jacobian(self, x):
         x_tmp = np.matrix(x.reshape(self._b.size, 1))
-        return (self.hessian(x) * x_tmp + self._b).transpose()
+        return (self.hessian(x) * x_tmp + self._b).T
 
     def hessian(self, x):
         """ when the matrix is positive this can be simplified
             see matrix cookbook """
         if self._symmetric and self._posdef:
-            return self._a.transpose()
+            return self._a.T
         else:
-            return 0.5 * (self._a + self._a.transpose())
+            return 0.5 * (self._a + self._a.T)
 
 
 class SquaredNorm(DifferentiableMap):

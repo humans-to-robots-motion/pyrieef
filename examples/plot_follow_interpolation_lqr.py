@@ -47,7 +47,7 @@ viewer.draw_ws_line(tracked_trajectory.list_configurations())
 # create squared meshgrid
 d = np.linspace(-.4, 0.1, 5)
 X, Y = np.meshgrid(d, d)
-start_points = np.vstack([X.ravel(), Y.ravel()]).T
+start_points = np.vstack([X.ravel(), Y.ravel()]).T()
 
 # integrate all points in grid forward in time
 for p_init in start_points:

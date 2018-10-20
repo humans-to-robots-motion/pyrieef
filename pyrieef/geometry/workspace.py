@@ -285,7 +285,7 @@ def occupancy_map(nb_points, workspace):
     """ Returns an occupancy map in the form of a square matrix
         using the signed distance field associated to a workspace object """
     meshgrid = workspace.box.stacked_meshgrid(nb_points)
-    sdf = SignedDistanceWorkspaceMap(workspace)(meshgrid).transpose()
+    sdf = SignedDistanceWorkspaceMap(workspace)(meshgrid).T
     return (sdf < 0).astype(float)
 
 

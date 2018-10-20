@@ -45,7 +45,7 @@ X, Y = np.meshgrid(x, y)
 Z = np.exp(-(2 * X)**2 - (Y / 2)**2)
 print(Z.shape)
 
-interp_spline = RectBivariateSpline(x, y, Z.transpose())
+interp_spline = RectBivariateSpline(x, y, Z.T)
 
 # Regularly-spaced, fine grid
 dx2, dy2 = 0.16, 0.16
@@ -77,8 +77,8 @@ if plot3d:
     X2, Y2 = np.meshgrid(x2, y2)
     fig, ax = plt.subplots(nrows=1, ncols=3, subplot_kw={'projection': '3d'})
     ax[0].plot_wireframe(X, Y, Z, color='k')
-    ax[1].plot_wireframe(X2, Y2, Z2.transpose(), color='k')
-    ax[2].plot_wireframe(X2, Y2, z1.transpose(), color='k')
+    ax[1].plot_wireframe(X2, Y2, Z2.T, color='k')
+    ax[2].plot_wireframe(X2, Y2, z1.T, color='k')
     for axes in ax:
         axes.set_zlim(-0.2, 1)
         axes.set_axis_off()
@@ -94,14 +94,14 @@ else:
         plt.colorbar(im, fraction=0.046, pad=0.04)
 
     plot_matrix(1, Z, "Coarse Values")
-    plot_matrix(2, z1.transpose(), "Values ")
-    plot_matrix(3, Z2.transpose(), "Interpolated Values")
+    plot_matrix(2, z1.T, "Values ")
+    plot_matrix(3, Z2.T, "Interpolated Values")
 
-    plot_matrix(5, g1_x.transpose(), "X Gradient")
-    plot_matrix(6, g2_x.transpose(), "Interpolated X Gradient")
+    plot_matrix(5, g1_x.T, "X Gradient")
+    plot_matrix(6, g2_x.T, "Interpolated X Gradient")
 
-    plot_matrix(8, g1_y.transpose(), "Y Gradient")
-    plot_matrix(9, g2_y.transpose(), "Interpolated Y Gradient")
+    plot_matrix(8, g1_y.T, "Y Gradient")
+    plot_matrix(9, g2_y.T, "Interpolated Y Gradient")
 
 fig.tight_layout()
 plt.show()
