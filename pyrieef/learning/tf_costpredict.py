@@ -30,11 +30,11 @@ import matplotlib.pyplot as plt
 from visualize_data import *
 from dataset import *
 
-NUM_EPOCHS = 100   # Number of epochs to train the network
-BATCH_SIZE = 100   # Number of samples in each batch
+NUM_EPOCHS = 100            # Number of epochs to train the network
+BATCH_SIZE = 100            # Number of samples in each batch
 BATCH_PER_EP = 20
-LEARNING_RATE = 0.0001        # Learning rate
-PIXELS = 100       # Used to be 100.
+LEARNING_RATE = 0.0001      # Learning rate
+PIXELS = 100                # Used to be 100.
 DRAW_EPOCH = True
 
 
@@ -59,11 +59,10 @@ def _plot(ep, occ, cost_true, cost_pred):
     if not os.path.exists(directory):
         os.makedirs(directory)
     fig.savefig(directory + os.sep + 'images_{:03}.pdf'.format(ep))
+    plt.close(fig)
 
 
 def _preprocess(x, y):
-    print x.shape
-    print y.shape
     x = tf.reshape(x, [PIXELS, PIXELS, 1])
     y = tf.reshape(y, [PIXELS, PIXELS, 1])
     return x, y
@@ -90,7 +89,7 @@ def _autoencoder(inputs):
     net = lays.conv2d_transpose(net, 32,    [5, 5], stride=2)
     net = lays.conv2d_transpose(net, 16,    [5, 5], stride=5)
     net = lays.conv2d_transpose(net, 1,     [5, 5], stride=5,
-                                activation_fn=tf.nn.tanh)
+                                activation_fn=tf.nn.sigmoid)
     return net
 
 
@@ -102,8 +101,9 @@ train_ds = train_ds.map(_preprocess)
 train_ds = train_ds.shuffle(buffer_size=1000)
 train_ds = train_ds.batch(BATCH_SIZE)
 train_ds = train_ds.repeat(NUM_EPOCHS)
-iterator = tf.data.Iterator.from_structure(train_ds.output_types,
-                                           train_ds.output_shapes)
+iterator = tf.data.Iterator.from_structure(
+    train_ds.output_types,
+    train_ds.output_shapes)
 x, y = iterator.get_next()
 train_init_op = iterator.make_initializer(train_ds)
 test_init_op = iterator.make_initializer(test_ds)
@@ -125,10 +125,20 @@ with tf.Session() as sess:
         for i in range(BATCH_PER_EP):
             _, train_loss_v = sess.run([train_op, loss])
             # print('Epoch: {}, Training Loss= {}'.format((ep + 1), loss_value))
+
         sess.run(test_init_op)
         test_loss_v, occ, cost_true, cost_pred = sess.run([
             loss, x, y, prediction])
         print(('Epoch: {}, Training Loss= {}, Test Loss= {}'.format(
             (ep + 1), train_loss_v, test_loss_v)))
-        if DRAW_EPOCH and (ep % 10 == 0):
+
+        if ep == 0:
+            cost_pred_prev = cost_pred
+
+        if DRAW_EPOCH and (ep % 1 == 0):
             _plot(ep, occ, cost_true, cost_pred)
+
+            # print(" -- Diff : ", np.linalg.norm(
+            #     cost_pred - cost_pred_prev, axis=1).sum())
+            # print(" -- shape : ", cost_pred_prev.shape)
+            cost_pred_prev = cost_pred

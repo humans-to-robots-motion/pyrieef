@@ -187,10 +187,10 @@ class CostmapDataset:
     def __init__(self, filename):
         print(('==> Loading dataset from: ' + filename))
         data = dict_to_object(load_dictionary_from_file(filename))
-        self._max_index = 1000
-        self._size_limit = True
+        self._max_index = 10000
+        self._size_limit = False
         if not self._size_limit:
-            self._max_index = len(data)
+            self._max_index = len(data.datasets)
         self.train_per = 0.80
         print('Sorting out inputs and targets...')
         self.split_data(data)
@@ -204,17 +204,18 @@ class CostmapDataset:
     def split_data(self, data):
         """ Load datasets afresh, train_per should be between 0 and 1 """
         assert self.train_per >= 0. and self.train_per < 1.
+        print(" num_data : {}".format(len(data.datasets)))
         num_data = min(self._max_index, len(data.datasets))
         num_train = int(round(self.train_per * num_data))
         num_test = num_data - num_train
-        print((" num_train : {}, num_test : {}".format(num_train, num_test)))
-        self.train_inputs = []
-        self.train_targets = []
-        self.test_inputs = []
-        self.test_targets = []
+        print(" num_train : {}, num_test : {}".format(num_train, num_test))
+        self.train_inputs=[]
+        self.train_targets=[]
+        self.test_inputs=[]
+        self.test_targets=[]
         for i, d in enumerate(data.datasets):
-            occupancy = d[0]
-            costmap = d[2]
+            occupancy=d[0]
+            costmap=d[2]
             if i < num_train:
                 self.train_inputs.append(occupancy)
                 self.train_targets.append(costmap)
@@ -223,11 +224,11 @@ class CostmapDataset:
                 self.test_targets.append(costmap)
             if i == self._max_index - 1 and self._size_limit:
                 break
-        self.train_inputs = np.array(self.train_inputs)
-        self.train_targets = np.array(self.train_targets)
+        self.train_inputs=np.array(self.train_inputs)
+        self.train_targets=np.array(self.train_targets)
         if num_test > 0:
-            self.test_inputs = np.array(self.test_inputs)
-            self.test_targets = np.array(self.test_targets)
+            self.test_inputs=np.array(self.test_inputs)
+            self.test_targets=np.array(self.test_targets)
         assert len(self.train_inputs) == num_train
         assert len(self.test_inputs) == num_test
 
@@ -235,29 +236,29 @@ class CostmapDataset:
 class WorkspaceData:
 
     def __init__(self):
-        self.workspace = None
-        self.occupancy = None
-        self.costmap = None
-        self.signed_distance_field = None
-        self.demonstrations = None
+        self.workspace=None
+        self.occupancy=None
+        self.costmap=None
+        self.signed_distance_field=None
+        self.demonstrations=None
 
 
 def load_workspace_dataset(basename="1k_small.hdf5"):
-    file_ws = 'workspaces_' + basename
-    file_cost = 'costdata2d_' + basename
-    file_trj = 'trajectories_' + basename
-    dataset = WorkspaceData()
-    workspaces = load_workspaces_from_file(file_ws)
-    trajectories = load_trajectories_from_file(file_trj)
-    data = dict_to_object(load_dictionary_from_file(file_cost))
+    file_ws='workspaces_' + basename
+    file_cost='costdata2d_' + basename
+    file_trj='trajectories_' + basename
+    dataset=WorkspaceData()
+    workspaces=load_workspaces_from_file(file_ws)
+    trajectories=load_trajectories_from_file(file_trj)
+    data=dict_to_object(load_dictionary_from_file(file_cost))
     assert len(workspaces) == len(data.datasets)
-    workspaces_dataset = [None] * len(workspaces)
+    workspaces_dataset=[None] * len(workspaces)
     for k, data_file in enumerate(data.datasets):
-        ws = WorkspaceData()
-        ws.workspace = workspaces[k]
-        ws.demonstrations = [trajectories[k]]
-        ws.occupancy = data_file[0]
-        ws.signed_distance_field = data_file[1]
-        ws.costmap = data_file[2]
-        workspaces_dataset[k] = ws
+        ws=WorkspaceData()
+        ws.workspace=workspaces[k]
+        ws.demonstrations=[trajectories[k]]
+        ws.occupancy=data_file[0]
+        ws.signed_distance_field=data_file[1]
+        ws.costmap=data_file[2]
+        workspaces_dataset[k]=ws
     return workspaces_dataset
