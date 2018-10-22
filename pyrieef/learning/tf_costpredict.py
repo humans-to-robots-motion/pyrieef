@@ -30,18 +30,21 @@ import matplotlib.pyplot as plt
 from visualize_data import *
 from dataset import *
 
-num_epochs = 100   # Number of epochs to train the network
-batch_size = 100   # Number of samples in each batch
-batch_per_ep = 20
-lr = 0.0001        # Learning rate
-NB_PIXELS = 1000   # Used to be 100.
+NUM_EPOCHS = 100   # Number of epochs to train the network
+BATCH_SIZE = 100   # Number of samples in each batch
+BATCH_PER_EP = 20
+LEARNING_RATE = 0.0001        # Learning rate
+PIXELS = 100       # Used to be 100.
+DRAW_EPOCH = True
 
 
 def _draw_row(fig, img1, img2, img3, i):
+    limits = np.array([[0, 1], [0, 1]])  # x_min, x_max, y_min, y_max
     draw_one_data_point(fig,
-                        np.reshape(img1, (NB_PIXELS, NB_PIXELS)),
-                        np.reshape(img2, (NB_PIXELS, NB_PIXELS)),
-                        np.reshape(img3, (NB_PIXELS, NB_PIXELS)),
+                        limits,
+                        np.reshape(img1, (PIXELS, PIXELS)),
+                        np.reshape(img2, (PIXELS, PIXELS)),
+                        np.reshape(img3, (PIXELS, PIXELS)),
                         4, i)
 
 
@@ -61,8 +64,8 @@ def _plot(ep, occ, cost_true, cost_pred):
 def _preprocess(x, y):
     print x.shape
     print y.shape
-    x = tf.reshape(x, [NB_PIXELS, NB_PIXELS, 1])
-    y = tf.reshape(y, [NB_PIXELS, NB_PIXELS, 1])
+    x = tf.reshape(x, [PIXELS, PIXELS, 1])
+    y = tf.reshape(y, [PIXELS, PIXELS, 1])
     return x, y
 
 
@@ -94,11 +97,11 @@ def _autoencoder(inputs):
 # read costmap dataset
 train_ds, test_ds = import_tf_data()
 test_ds = test_ds.map(_preprocess)
-test_ds = test_ds.batch(batch_size)
+test_ds = test_ds.batch(BATCH_SIZE)
 train_ds = train_ds.map(_preprocess)
 train_ds = train_ds.shuffle(buffer_size=1000)
-train_ds = train_ds.batch(batch_size)
-train_ds = train_ds.repeat(num_epochs)
+train_ds = train_ds.batch(BATCH_SIZE)
+train_ds = train_ds.repeat(NUM_EPOCHS)
 iterator = tf.data.Iterator.from_structure(train_ds.output_types,
                                            train_ds.output_shapes)
 x, y = iterator.get_next()
@@ -108,7 +111,7 @@ test_init_op = iterator.make_initializer(test_ds)
 # calculate the loss and optimize the network
 # claculate the mean square error loss
 loss = tf.losses.mean_squared_error(_autoencoder(x), y)
-train_op = tf.train.AdamOptimizer(learning_rate=lr).minimize(loss)
+train_op = tf.train.AdamOptimizer(learning_rate=LEARNING_RATE).minimize(loss)
 prediction = _autoencoder(x)
 
 # initialize the network
@@ -117,9 +120,9 @@ init = tf.global_variables_initializer()
 with tf.Session() as sess:
     sess.run(init)
     # Compute for 100 epochs.
-    for ep in range(num_epochs):
+    for ep in range(NUM_EPOCHS):
         sess.run(train_init_op)
-        for i in range(batch_per_ep):
+        for i in range(BATCH_PER_EP):
             _, train_loss_v = sess.run([train_op, loss])
             # print('Epoch: {}, Training Loss= {}'.format((ep + 1), loss_value))
         sess.run(test_init_op)
@@ -127,5 +130,5 @@ with tf.Session() as sess:
             loss, x, y, prediction])
         print(('Epoch: {}, Training Loss= {}, Test Loss= {}'.format(
             (ep + 1), train_loss_v, test_loss_v)))
-        if ep % 10 == 0:
+        if DRAW_EPOCH and (ep % 10 == 0):
             _plot(ep, occ, cost_true, cost_pred)

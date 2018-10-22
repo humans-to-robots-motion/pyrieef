@@ -34,17 +34,19 @@ import time
 
 
 def draw_one_data_point(fig, lim,
-                        occ, sdf, cost, numb_rows=1, row=0, workspace=None):
+                        occ, sdf, cost,
+                        numb_rows=1, row=0, workspace=None):
 
     # x_min, x_max, y_min, y_max
-    extend = np.array([lim[0][0], lim[0][1], lim[1][0], lim[1][1]])
+    extent = np.array([lim[0][0], lim[0][1], lim[1][0], lim[1][1]])
 
+    # print(numb_rows)
     ax0 = fig.add_subplot(numb_rows, 3, 1 + 3 * row)
-    image_0 = plt.imshow(occ.T, extent=extend, origin='lower')
+    image_0 = plt.imshow(occ.T, extent=extent, origin='lower')
     ax1 = fig.add_subplot(numb_rows, 3, 2 + 3 * row)
-    image_1 = plt.imshow(sdf.T, extent=extend, origin='lower')
+    image_1 = plt.imshow(sdf.T, extent=extent, origin='lower')
     ax2 = fig.add_subplot(numb_rows, 3, 3 + 3 * row)
-    image_2 = plt.imshow(cost.T, extent=extend, origin='lower')
+    image_2 = plt.imshow(cost.T, extent=extent, origin='lower')
 
     if workspace is not None:
         for circle in workspace.obstacles:
