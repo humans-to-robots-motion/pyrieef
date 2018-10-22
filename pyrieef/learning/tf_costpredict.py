@@ -33,7 +33,7 @@ from dataset import *
 NUM_EPOCHS = 100            # Number of epochs to train the network
 BATCH_SIZE = 100            # Number of samples in each batch
 BATCH_PER_EP = 20
-LEARNING_RATE = 0.01        # Learning rate
+LEARNING_RATE = 0.0001      # Learning rate
 PIXELS = 100                # Used to be 100.
 DRAW_EPOCH = True
 
