@@ -219,10 +219,10 @@ def random_environment_parser():
                       default=False, type="int", dest='savematlabfile',
                       help='Save results in .mat format')
     parser.add_option('--xsize',
-                      default=100, type="int", dest='xsize',
+                      default=24, type="int", dest='xsize',
                       help='Size of the x-dimension (in pixels). X values go from 0-1')
     parser.add_option('--ysize',
-                      default=100, type="int", dest='ysize',
+                      default=24, type="int", dest='ysize',
                       help='Size of the y-dimension (in pixels). Y values go from 0-1')
     parser.add_option('--maxnumobjs',
                       default=3, type="int", dest='maxnumobjs',
