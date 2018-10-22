@@ -46,6 +46,10 @@ try:
     from pyglet.gl import *
 except ImportError as e:
     print("Error occured while running `from pyglet.gl import *`, HINT: make sure you have OpenGL install. On Ubuntu, you can run 'apt-get install python-opengl'. If you're running on a server, you may need a virtual frame buffer; something like this should work: 'xvfb-run -s \"-screen 0 1400x900x24\" python <your_script.py>'")
+except ValueError as e:
+    print(e)
+except:
+    print "Warning no display found!!!"
 
 import math
 import numpy as np

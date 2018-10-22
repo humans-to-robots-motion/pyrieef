@@ -32,7 +32,10 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 cmap = plt.get_cmap('inferno')
 from abc import abstractmethod
-from . import heightmap as hm
+try:
+    from . import heightmap as hm
+except ImportError as e:
+    print e
 
 # Red, Green, Blue
 COLORS = [(139, 0, 0),  (0, 100, 0), (0, 0, 139)]

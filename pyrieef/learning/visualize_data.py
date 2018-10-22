@@ -17,10 +17,10 @@
 #
 #                                        Jim Mainprice on Sunday June 13 2018
 
-from . import common_imports
+import common_imports
 import matplotlib.pyplot as plt
 
-from .dataset import *
+from dataset import *
 from utils.options import *
 from utils.misc import *
 import rendering.workspace_renderer as render

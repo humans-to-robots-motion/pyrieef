@@ -27,20 +27,21 @@ import numpy as np
 import matplotlib
 matplotlib.use('PDF')   # generate postscript output by default
 import matplotlib.pyplot as plt
-from .visualize_data import *
-from .dataset import *
+from visualize_data import *
+from dataset import *
 
 num_epochs = 100   # Number of epochs to train the network
 batch_size = 100   # Number of samples in each batch
 batch_per_ep = 20
 lr = 0.0001        # Learning rate
+NB_PIXELS = 1000   # Used to be 100.
 
 
 def _draw_row(fig, img1, img2, img3, i):
     draw_one_data_point(fig,
-                        np.reshape(img1, (100, 100)),
-                        np.reshape(img2, (100, 100)),
-                        np.reshape(img3, (100, 100)),
+                        np.reshape(img1, (NB_PIXELS, NB_PIXELS)),
+                        np.reshape(img2, (NB_PIXELS, NB_PIXELS)),
+                        np.reshape(img3, (NB_PIXELS, NB_PIXELS)),
                         4, i)
 
 
@@ -58,8 +59,10 @@ def _plot(ep, occ, cost_true, cost_pred):
 
 
 def _preprocess(x, y):
-    x = tf.reshape(x, [100, 100, 1])
-    y = tf.reshape(y, [100, 100, 1])
+    print x.shape
+    print y.shape
+    x = tf.reshape(x, [NB_PIXELS, NB_PIXELS, 1])
+    y = tf.reshape(y, [NB_PIXELS, NB_PIXELS, 1])
     return x, y
 
 
