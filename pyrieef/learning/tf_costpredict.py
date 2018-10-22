@@ -59,11 +59,10 @@ def _plot(ep, occ, cost_true, cost_pred):
     if not os.path.exists(directory):
         os.makedirs(directory)
     fig.savefig(directory + os.sep + 'images_{:03}.pdf'.format(ep))
+    plt.close(fig)
 
 
 def _preprocess(x, y):
-    print x.shape
-    print y.shape
     x = tf.reshape(x, [PIXELS, PIXELS, 1])
     y = tf.reshape(y, [PIXELS, PIXELS, 1])
     return x, y
@@ -90,7 +89,7 @@ def _autoencoder(inputs):
     net = lays.conv2d_transpose(net, 32,    [5, 5], stride=2)
     net = lays.conv2d_transpose(net, 16,    [5, 5], stride=5)
     net = lays.conv2d_transpose(net, 1,     [5, 5], stride=5,
-                                activation_fn=tf.nn.tanh)
+                                activation_fn=tf.nn.sigmoid)
     return net
 
 
@@ -136,10 +135,10 @@ with tf.Session() as sess:
         if ep == 0:
             cost_pred_prev = cost_pred
 
-        if DRAW_EPOCH and (ep % 10 == 0):
+        if DRAW_EPOCH and (ep % 1 == 0):
             _plot(ep, occ, cost_true, cost_pred)
 
-            print(" -- Diff : ", np.linalg.norm(
-                cost_pred - cost_pred_prev, axis=1).sum())
-            print(" -- shape : ", cost_pred_prev.shape)
+            # print(" -- Diff : ", np.linalg.norm(
+            #     cost_pred - cost_pred_prev, axis=1).sum())
+            # print(" -- shape : ", cost_pred_prev.shape)
             cost_pred_prev = cost_pred
