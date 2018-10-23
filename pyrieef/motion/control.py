@@ -162,7 +162,7 @@ class KinematicTrajectoryFollowingLQR:
         u_t = -self._K_matrix * e_t + a_t.reshape(self._n, 1)
         return u_t
 
-    def integrate(self, q_init):
+    def integrate(self, q_init, start_time_step=0):
         """ 
         Integrate the policy forward in time
 
@@ -174,7 +174,7 @@ class KinematicTrajectoryFollowingLQR:
         T = self._trajectory.T()
         trajectory = Trajectory(T=T, n=q_init.size)
         x_t = np.hstack([q_init, np.zeros(q_init.size)])
-        for i in range(T + 1):
+        for i in range(start_time_step, T + 1):
 
             # 1) compute acceleration
             u_t = self.policy(i * dt, x_t.reshape(q_init.size * 2, 1))

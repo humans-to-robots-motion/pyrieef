@@ -73,11 +73,15 @@ for step in range(8000):
     b_x, b_y = mnist.train.next_batch(BATCH_SIZE)
     # print b_y.shape
     # print b_x.shape
-    _, encoded_, decoded_, loss_ = sess.run(
+    _, encoded_, decoded_, train_loss_ = sess.run(
         [train, encoded, decoded, loss], {tf_x: b_x})
 
     if step % 100 == 0:     # plotting
-        print('train loss: %.4f' % loss_)
+        test_loss_ = sess.run(loss, {tf_x: test_x})
+        print('epoch: {}, train loss: {:.4f}, test loss: {:.4f}'.format(
+            mnist.train.epochs_completed,
+            train_loss_,
+            test_loss_))
         # plotting decoded image (second row)
         decoded_data = sess.run(decoded, {tf_x: view_data})
         for i in range(N_TEST_IMG):

@@ -88,8 +88,7 @@ def _autoencoder(inputs):
     net = lays.conv2d_transpose(net, 64,    [5, 5], stride=2)
     net = lays.conv2d_transpose(net, 32,    [5, 5], stride=2)
     net = lays.conv2d_transpose(net, 16,    [5, 5], stride=5)
-    net = lays.conv2d_transpose(net, 1,     [5, 5], stride=5,
-                                activation_fn=tf.nn.sigmoid)
+    net = lays.conv2d_transpose(net, 1,     [5, 5], stride=5)
     return net
 
 

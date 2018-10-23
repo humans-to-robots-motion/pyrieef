@@ -210,7 +210,7 @@ def random_environment_parser():
     parser = optparse.OptionParser("usage: %prog [options] arg1 arg2")
 
     parser.add_option('--numdatasets',
-                      default=10000, type="int", dest='numdatasets',
+                      default=55000, type="int", dest='numdatasets',
                       help='Number of datasets to generate')
     parser.add_option('--savefilename',
                       default='2dcostdata.t7', type="string", dest='savefilename',
@@ -256,8 +256,11 @@ if __name__ == '__main__':
     # filename = 'costdata2d_1k_small.hdf5'
     # filename_ws = 'workspaces_1k_small.hdf5'
 
-    filename = 'costdata2d_10k.hdf5'
-    filename_ws = 'workspaces_10k.hdf5'
+    # filename = 'costdata2d_10k.hdf5'
+    # filename_ws = 'workspaces_10k.hdf5'
+
+    filename = 'costdata2d_55k.hdf5'
+    filename_ws = 'workspaces_55k.hdf5'
 
     datasets, workspaces = random_environments(options)
     write_dictionary_to_file(datasets, filename)

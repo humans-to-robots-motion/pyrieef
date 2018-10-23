@@ -20,22 +20,25 @@ from dataset import *
 tf.set_random_seed(1)
 
 # Hyper Parameters
+BATCHES = 8000
 BATCH_SIZE = 64
 PIXELS = 28        # Used to be 100.
 LR = 0.002         # learning rate
 NUM_TEST_IMG = 5
+DRAW = False
 
 
 # Costmaps
-costmaps = CostmapDataset(filename='costdata2d_10k.hdf5')
+costmaps = CostmapDataset(filename='costdata2d_55k.hdf5')
+costmaps.normalize_maps()
 costmaps.reshape_data_to_tensors()
 
 # plot one example
 print(costmaps.train_inputs.shape)    # (55000, PIXELS * PIXELS)
 print(costmaps.test_inputs.shape)     # (55000, 10)
-plt.imshow(costmaps.test_targets[0].reshape((PIXELS, PIXELS)), cmap='gray')
-plt.title('%i' % np.argmax('cost'))
-plt.show()
+# plt.imshow(costmaps.test_targets[0].reshape((PIXELS, PIXELS)), cmap='gray')
+# plt.title('%i' % np.argmax('cost'))
+# plt.show()
 
 # sys.exit(0)
 
@@ -62,7 +65,7 @@ sess = tf.Session()
 sess.run(tf.global_variables_initializer())
 
 # initialize figure
-f, a = plt.subplots(2, NUM_TEST_IMG, figsize=(5, 2))
+f, a = plt.subplots(4, NUM_TEST_IMG, figsize=(8, 6))
 plt.ion()   # continuously plot
 
 # original data (first row) for viewing
@@ -73,13 +76,24 @@ for i in range(NUM_TEST_IMG):
     a[0][i].set_xticks(())
     a[0][i].set_yticks(())
 
-for step in range(8000):
+# original data (first row) for viewing
+train_view_data = costmaps.train_targets[:NUM_TEST_IMG]
+for i in range(NUM_TEST_IMG):
+    a[2][i].imshow(
+        np.reshape(train_view_data[i], (PIXELS, PIXELS)), cmap='gray')
+    a[2][i].set_xticks(())
+    a[2][i].set_yticks(())
+
+for step in range(BATCHES):
     b_x, b_y = costmaps.next_batch(BATCH_SIZE)
-    _, encoded_, decoded_, loss_ = sess.run(
+    _, encoded_, decoded_, train_loss_ = sess.run(
         [train, encoded, decoded, loss], {tf_x: b_x})
 
-    if step % 100 == 0:     # plotting
-        print('train loss: %.4f' % loss_)
+    if step % 100 == 0:  # plotting
+        test_loss_ = sess.run(loss, {tf_x: costmaps.test_targets})
+        print('Epoch: {}, train loss: {:.4f}, test loss: {:.4f}'.format(
+            costmaps.epochs_completed,
+            train_loss_, test_loss_))
         # plotting decoded image (second row)
         decoded_data = sess.run(decoded, {tf_x: view_data})
         for i in range(NUM_TEST_IMG):
@@ -88,6 +102,13 @@ for step in range(8000):
                 np.reshape(decoded_data[i], (PIXELS, PIXELS)), cmap='gray')
             a[1][i].set_xticks(())
             a[1][i].set_yticks(())
+        decoded_data = sess.run(decoded, {tf_x: train_view_data})
+        for i in range(NUM_TEST_IMG):
+            a[3][i].clear()
+            a[3][i].imshow(
+                np.reshape(decoded_data[i], (PIXELS, PIXELS)), cmap='gray')
+            a[3][i].set_xticks(())
+            a[3][i].set_yticks(())
         plt.draw()
         plt.pause(0.01)
 plt.ioff()

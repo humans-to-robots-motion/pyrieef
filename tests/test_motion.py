@@ -73,12 +73,14 @@ def test_integration():
     trajectory_zero.x()[:] = np.zeros(trajectory.x().size)
     q_t0 = trajectory.configuration(0).copy()
     trajectory_zero.configuration(0)[:] = q_t0
-    for t in range(trajectory.T() + 1):
+    for t in range(1, trajectory.T() + 2):
         v_t = trajectory.velocity(t, dt)
-        q_t = trajectory_zero.configuration(t)
+        q_t = trajectory_zero.configuration(t - 1)
         q_t1 = q_t + v_t * dt
-        trajectory_zero.configuration(t + 1)[:] = q_t1
+        trajectory_zero.configuration(t)[:] = q_t1
         assert_allclose(q_t1, trajectory.configuration(t))
+
+    assert_allclose(trajectory_zero.x(), trajectory.x())
 
     """
     Test acceleration integration

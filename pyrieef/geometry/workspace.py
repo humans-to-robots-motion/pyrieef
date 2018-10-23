@@ -290,7 +290,13 @@ def occupancy_map(nb_points, workspace):
 
 
 class EnvBox(Box):
-    """ Specializes a box to defined an environment """
+    """ Specializes a box to defined an environment 
+
+        Parameters
+        ----------
+        origin: is in the center of the box
+        dim: size of the box
+        """
 
     def __init__(self,
                  origin=np.array([0., 0.]),

@@ -224,6 +224,19 @@ class CostmapDataset(object):
         self.test_inputs = reshape_data_to_tensor(self.test_inputs)
         self.test_targets = reshape_data_to_tensor(self.test_targets)
 
+    def normalize_maps(self):
+        """ normalize all maps"""
+        def normalize(data):
+            print(data.shape)
+            for costmap in data:
+                costmap[:] = costmap - costmap.min()
+                costmap[:] /= costmap.max()
+
+        normalize(self.train_inputs)
+        normalize(self.train_targets)
+        normalize(self.test_inputs)
+        normalize(self.test_targets)
+
     def split_data(self, data):
         """ Load datasets afresh, train_per should be between 0 and 1 """
         assert self.train_per >= 0. and self.train_per < 1.
