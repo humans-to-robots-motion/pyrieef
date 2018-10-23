@@ -30,7 +30,6 @@ PIXELS = 28        # Used to be 100.
 LR = 0.002         # learning rate
 NUM_TEST_IMG = 5
 DRAW = False
-FULLY_CONNECTED = False
 
 
 def _plot(k, input_img, output_img, train_view_data, decoded_data):
@@ -46,11 +45,7 @@ def _plot(k, input_img, output_img, train_view_data, decoded_data):
     # trained data
     for i in range(NUM_TEST_IMG):
         a[1][i].clear()
-        if FULLY_CONNECTED:
-            a[1][i].imshow(
-                np.reshape(output_img[i], (PIXELS, PIXELS)))
-        else:
-            a[1][i].imshow(output_img[i, ..., 0])
+        a[1][i].imshow(output_img[i, ..., 0])
         a[1][i].set_xticks(())
         a[1][i].set_yticks(())
 
@@ -64,11 +59,7 @@ def _plot(k, input_img, output_img, train_view_data, decoded_data):
     # trained data
     for i in range(NUM_TEST_IMG):
         a[3][i].clear()
-        if FULLY_CONNECTED:
-            a[3][i].imshow(
-                np.reshape(decoded_data[i], (PIXELS, PIXELS)))
-        else:
-            a[3][i].imshow(decoded_data[i, ..., 0])
+        a[3][i].imshow(decoded_data[i, ..., 0])
         a[3][i].set_xticks(())
         a[3][i].set_yticks(())
 
@@ -80,8 +71,6 @@ def _plot(k, input_img, output_img, train_view_data, decoded_data):
 
 
 def resize_batch(imgs):
-    if FULLY_CONNECTED:
-        return imgs
     # A function to resize a batch of MNIST images to (32, 32)
     # Args:
     #   imgs: a numpy array of size [batch_size, 28 X 28].
@@ -159,15 +148,14 @@ for step in range(BATCHES):
     _, decoded_, train_loss_ = sess.run(
         [train, decoded, loss],
         feed_dict={tf_x: resize_batch(b_x), tf_y: resize_batch(b_y)})
-    if step % 100 == 0:  # plotting
+    if step % 10 == 0:  # plotting
         test_loss_ = sess.run(
             loss,
-            {tf_x: resize_batch(costmaps.test_inputs[:200]),
-             tf_y: resize_batch(costmaps.test_targets[:200])})
-        print('iter: {}, Epoch: {}, train loss: {:.4f}, test loss: {:.4f}'.format(
-            i, costmaps.epochs_completed, train_loss_, test_loss_))
+            {tf_x: resize_batch(costmaps.test_inputs[:100]),
+             tf_y: resize_batch(costmaps.test_targets[:100])})
+        print('step: {:8}, Epoch: {}, train loss: {:.4f}, test loss: {:.4f}'.format(
+            step, costmaps.epochs_completed, train_loss_, test_loss_))
         # plotting decoded image (second row)
         prediction = sess.run(decoded, {tf_x: resize_batch(test_view_data)})
         _plot(i, b_x[:5], resize_batch(b_y[:5]),
               test_view_data, prediction)
-        i += 1

@@ -87,7 +87,7 @@ for i in range(NUM_TEST_IMG):
 for step in range(BATCHES):
     b_x, b_y = costmaps.next_batch(BATCH_SIZE)
     _, encoded_, decoded_, train_loss_ = sess.run(
-        [train, encoded, decoded, loss], {tf_x: b_x})
+        [train, encoded, decoded, loss], {tf_x: b_y})
 
     if step % 100 == 0:  # plotting
         test_loss_ = sess.run(loss, {tf_x: costmaps.test_targets})

@@ -30,7 +30,7 @@ PIXELS = 28        # Used to be 100.
 LR = 0.002         # learning rate
 NUM_TEST_IMG = 5
 DRAW = False
-FULLY_CONNECTED = False
+FULLY_CONNECTED = True
 
 
 def _plot(k, train_view_data, decoded_data):
@@ -159,7 +159,7 @@ for step in range(BATCHES):
     b_x, b_y = costmaps.next_batch(BATCH_SIZE)
     _, decoded_, train_loss_ = sess.run(
         [train, decoded, loss],
-        {tf_x: resize_batch(b_x)})
+        {tf_x: resize_batch(b_y)})
 
     if step % 100 == 0:  # plotting
         test_loss_ = sess.run(
