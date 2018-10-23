@@ -74,7 +74,7 @@ for i in range(NUM_TEST_IMG):
     a[0][i].set_yticks(())
 
 for step in range(8000):
-    b_y, b_x = costmaps.next_batch(BATCH_SIZE)
+    b_x, b_y = costmaps.next_batch(BATCH_SIZE)
     _, encoded_, decoded_, loss_ = sess.run(
         [train, encoded, decoded, loss], {tf_x: b_x})
 

@@ -286,13 +286,13 @@ class CostmapDataset(object):
             inputs_new_part = self._inputs[start:end]
             x = np.concatenate((inputs_rest_part, inputs_new_part), axis=0)
             y = np.concatenate((targets_rest_part, targets_new_part), axis=0)
-            return y, x
+            return x, y
         else:
             self._index_in_epoch += batch_size
             end = self._index_in_epoch
             x = self._inputs[start:end]
             y = self._targets[start:end]
-            return y, x
+            return x, y
 
 
 class WorkspaceData:
