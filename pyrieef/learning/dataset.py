@@ -17,7 +17,7 @@
 #
 #                                        Jim Mainprice on Sunday June 13 2018
 
-
+import common_imports
 import h5py
 import os
 from utils import *
@@ -110,6 +110,7 @@ def load_data_from_hdf5(filename, train_per):
 
 
 def import_tf_data(filename='costdata2d_10k.hdf5'):
+    """ Works with version 1.9.0rc1 """
     import tensorflow as tf
     rawdata = CostmapDataset(filename)
     # Assume that each row of
@@ -182,7 +183,7 @@ def load_trajectories_from_file(filename='trajectories_1k_small.hdf5'):
     return trajectories
 
 
-class CostmapDataset:
+class CostmapDataset(object):
 
     def __init__(self, filename):
         print(('==> Loading dataset from: ' + filename))
@@ -201,6 +202,28 @@ class CostmapDataset:
             len(self.train_targets),
             self.train_targets.shape)))
 
+        self._epochs_completed = 0
+        self._index_in_epoch = 0
+        self._num_examples = len(self.train_targets)
+
+    @property
+    def num_examples(self):
+        return self._num_examples
+
+    @property
+    def epochs_completed(self):
+        return self._epochs_completed
+
+    def reshape_data_to_tensors(self):
+
+        def reshape_data_to_tensor(data):
+            return data.reshape(data.shape[0], data.shape[1] * data.shape[2])
+
+        self.train_inputs = reshape_data_to_tensor(self.train_inputs)
+        self.train_targets = reshape_data_to_tensor(self.train_targets)
+        self.test_inputs = reshape_data_to_tensor(self.test_inputs)
+        self.test_targets = reshape_data_to_tensor(self.test_targets)
+
     def split_data(self, data):
         """ Load datasets afresh, train_per should be between 0 and 1 """
         assert self.train_per >= 0. and self.train_per < 1.
@@ -209,13 +232,13 @@ class CostmapDataset:
         num_train = int(round(self.train_per * num_data))
         num_test = num_data - num_train
         print(" num_train : {}, num_test : {}".format(num_train, num_test))
-        self.train_inputs=[]
-        self.train_targets=[]
-        self.test_inputs=[]
-        self.test_targets=[]
+        self.train_inputs = []
+        self.train_targets = []
+        self.test_inputs = []
+        self.test_targets = []
         for i, d in enumerate(data.datasets):
-            occupancy=d[0]
-            costmap=d[2]
+            occupancy = d[0]
+            costmap = d[2]
             if i < num_train:
                 self.train_inputs.append(occupancy)
                 self.train_targets.append(costmap)
@@ -224,41 +247,80 @@ class CostmapDataset:
                 self.test_targets.append(costmap)
             if i == self._max_index - 1 and self._size_limit:
                 break
-        self.train_inputs=np.array(self.train_inputs)
-        self.train_targets=np.array(self.train_targets)
+        self.train_inputs = np.array(self.train_inputs)
+        self.train_targets = np.array(self.train_targets)
         if num_test > 0:
-            self.test_inputs=np.array(self.test_inputs)
-            self.test_targets=np.array(self.test_targets)
+            self.test_inputs = np.array(self.test_inputs)
+            self.test_targets = np.array(self.test_targets)
         assert len(self.train_inputs) == num_train
         assert len(self.test_inputs) == num_test
+
+    def next_batch(self, batch_size, shuffle=True):
+        """Return the next `batch_size` examples from this data set."""
+        start = self._index_in_epoch
+        # Shuffle for the first epoch
+        if self._epochs_completed == 0 and start == 0 and shuffle:
+            perm0 = np.arange(self._num_examples)
+            np.random.shuffle(perm0)
+            self._targets = self.train_targets[perm0]
+            self._inputs = self.train_inputs[perm0]
+        # Go to the next epoch
+        if start + batch_size > self._num_examples:
+            # Finished epoch
+            self._epochs_completed += 1
+            # Get the rest examples in this epoch
+            rest_num_examples = self._num_examples - start
+            targets_rest_part = self._targets[start:self._num_examples]
+            inputs_rest_part = self._inputs[start:self._num_examples]
+            # Shuffle the data
+            if shuffle:
+                perm = np.arange(self._num_examples)
+                np.random.shuffle(perm)
+                self._targets = self._targets[perm]
+                self._inputs = self._inputs[perm]
+            # Start next epoch
+            start = 0
+            self._index_in_epoch = batch_size - rest_num_examples
+            end = self._index_in_epoch
+            targets_new_part = self._targets[start:end]
+            inputs_new_part = self._inputs[start:end]
+            x = np.concatenate((inputs_rest_part, inputs_new_part), axis=0)
+            y = np.concatenate((targets_rest_part, targets_new_part), axis=0)
+            return y, x
+        else:
+            self._index_in_epoch += batch_size
+            end = self._index_in_epoch
+            x = self._inputs[start:end]
+            y = self._targets[start:end]
+            return y, x
 
 
 class WorkspaceData:
 
     def __init__(self):
-        self.workspace=None
-        self.occupancy=None
-        self.costmap=None
-        self.signed_distance_field=None
-        self.demonstrations=None
+        self.workspace = None
+        self.occupancy = None
+        self.costmap = None
+        self.signed_distance_field = None
+        self.demonstrations = None
 
 
 def load_workspace_dataset(basename="1k_small.hdf5"):
-    file_ws='workspaces_' + basename
-    file_cost='costdata2d_' + basename
-    file_trj='trajectories_' + basename
-    dataset=WorkspaceData()
-    workspaces=load_workspaces_from_file(file_ws)
-    trajectories=load_trajectories_from_file(file_trj)
-    data=dict_to_object(load_dictionary_from_file(file_cost))
+    file_ws = 'workspaces_' + basename
+    file_cost = 'costdata2d_' + basename
+    file_trj = 'trajectories_' + basename
+    dataset = WorkspaceData()
+    workspaces = load_workspaces_from_file(file_ws)
+    trajectories = load_trajectories_from_file(file_trj)
+    data = dict_to_object(load_dictionary_from_file(file_cost))
     assert len(workspaces) == len(data.datasets)
-    workspaces_dataset=[None] * len(workspaces)
+    workspaces_dataset = [None] * len(workspaces)
     for k, data_file in enumerate(data.datasets):
-        ws=WorkspaceData()
-        ws.workspace=workspaces[k]
-        ws.demonstrations=[trajectories[k]]
-        ws.occupancy=data_file[0]
-        ws.signed_distance_field=data_file[1]
-        ws.costmap=data_file[2]
-        workspaces_dataset[k]=ws
+        ws = WorkspaceData()
+        ws.workspace = workspaces[k]
+        ws.demonstrations = [trajectories[k]]
+        ws.occupancy = data_file[0]
+        ws.signed_distance_field = data_file[1]
+        ws.costmap = data_file[2]
+        workspaces_dataset[k] = ws
     return workspaces_dataset
