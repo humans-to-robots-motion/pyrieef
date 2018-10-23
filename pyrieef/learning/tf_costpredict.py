@@ -80,7 +80,7 @@ def _autoencoder(inputs):
     # net = lays.conv2d(net,      256,  [5, 5], stride=2)
     # fullyconnected
     # print(str(net))
-    # net = lays.fully_connected(net, 100)
+    net = lays.fully_connected(net, 100)
     # decoder
     # 1 x 1 x 128    ->  8 x 8 x 16
     # 8 x 8 x 16   ->  16 x 16 x 32

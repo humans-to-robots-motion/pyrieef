@@ -210,7 +210,7 @@ def random_environment_parser():
     parser = optparse.OptionParser("usage: %prog [options] arg1 arg2")
 
     parser.add_option('--numdatasets',
-                      default=55000, type="int", dest='numdatasets',
+                      default=1000, type="int", dest='numdatasets',
                       help='Number of datasets to generate')
     parser.add_option('--savefilename',
                       default='2dcostdata.t7', type="string", dest='savefilename',
@@ -219,10 +219,10 @@ def random_environment_parser():
                       default=False, type="int", dest='savematlabfile',
                       help='Save results in .mat format')
     parser.add_option('--xsize',
-                      default=28, type="int", dest='xsize',
+                      default=100, type="int", dest='xsize',
                       help='Size of the x-dimension (in pixels). X values go from 0-1')
     parser.add_option('--ysize',
-                      default=28, type="int", dest='ysize',
+                      default=100, type="int", dest='ysize',
                       help='Size of the y-dimension (in pixels). Y values go from 0-1')
     parser.add_option('--maxnumobjs',
                       default=3, type="int", dest='maxnumobjs',
@@ -256,11 +256,11 @@ if __name__ == '__main__':
     # filename = 'costdata2d_1k_small.hdf5'
     # filename_ws = 'workspaces_1k_small.hdf5'
 
-    # filename = 'costdata2d_10k.hdf5'
-    # filename_ws = 'workspaces_10k.hdf5'
+    filename = 'costdata2d_10k.hdf5'
+    filename_ws = 'workspaces_10k.hdf5'
 
-    filename = 'costdata2d_55k.hdf5'
-    filename_ws = 'workspaces_55k.hdf5'
+    # filename = 'costdata2d_55k.hdf5'
+    # filename_ws = 'workspaces_55k.hdf5'
 
     datasets, workspaces = random_environments(options)
     write_dictionary_to_file(datasets, filename)
