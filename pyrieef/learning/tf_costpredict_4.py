@@ -159,3 +159,4 @@ for step in range(BATCHES):
         prediction = sess.run(decoded, {tf_x: resize_batch(test_view_data)})
         _plot(i, b_x[:5], resize_batch(b_y[:5]),
               test_view_data, prediction)
+        i += 1
