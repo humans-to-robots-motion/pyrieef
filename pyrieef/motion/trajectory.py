@@ -74,14 +74,6 @@ class CliquesFunctionNetwork(FunctionNetwork):
     def nb_cliques(self):
         return self._nb_cliques
 
-    def function_on_clique(self, t, x_t):
-        """ calls all functions on one clique 
-            TODO create a test using this function. """
-        value = 0.
-        for f in self._functions[t]:
-            value += f.forward(x_t)
-        return value
-
     def forward(self, x):
         """ We call over all subfunctions in each clique"""
         value = 0.
@@ -121,12 +113,37 @@ class CliquesFunctionNetwork(FunctionNetwork):
         H = np.matrix(np.zeros((
             self.input_dimension(),
             self.input_dimension())))
+        dim = self._clique_dim
         for t, x_t in enumerate(self.all_cliques(x)):
             c_id = t * self._clique_element_dim
             for f in self._functions[t]:
-                dim = self._clique_dim
                 H[c_id:c_id + dim, c_id:c_id + dim] += f.hessian(x_t)
         return H
+
+    def function_on_clique(self, t, x_t):
+        """ calls all functions on one clique 
+            TODO create a test using this function. """
+        value = 0.
+        for f in self._functions[t]:
+            value += f.forward(x_t)
+        return value
+
+    def clique_jacobian(self, J, t):
+        """
+        return the clique jacobian
+        J : the full jacobian
+        """
+        c_id = t * self._clique_element_dim
+        return J[0, c_id:c_id + self._clique_dim]
+
+    def clique_hessian(self, H, t):
+        """
+        return the clique hessian
+        H : the full hessian
+        """
+        dim = self._clique_dim
+        c_id = t * self._clique_element_dim
+        return H[c_id:c_id + dim, c_id:c_id + dim]
 
     def all_cliques(self, x):
         """ returns a list of all cliques """
@@ -167,7 +184,7 @@ class CliquesFunctionNetwork(FunctionNetwork):
         return RangeSubspaceMap(
             dim * self._nb_clique_elements,
             list(range((self._nb_clique_elements - 1) * dim,
-                  self._nb_clique_elements * dim)))
+                       self._nb_clique_elements * dim)))
 
     def right_of_clique_map(self):
         """ x_{t} ; x_{t+1} """
