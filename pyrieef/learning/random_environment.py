@@ -18,14 +18,14 @@
 #                                        Jim Mainprice on Sunday June 13 2018
 
 
-import common_imports
+from . import common_imports
 from geometry.workspace import *
 from utils.misc import *
 from math import *
 from random import *
 import optparse
 import os
-from dataset import *
+from learning.dataset import *
 from tqdm import tqdm
 
 
