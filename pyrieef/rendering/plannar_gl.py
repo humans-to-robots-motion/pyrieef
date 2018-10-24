@@ -49,7 +49,7 @@ except ImportError as e:
 except ValueError as e:
     print(e)
 except:
-    print "Warning no display found!!!"
+    print("Warning no display found!!!")
 
 import math
 import numpy as np

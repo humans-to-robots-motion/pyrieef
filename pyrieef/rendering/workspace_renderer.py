@@ -35,7 +35,7 @@ from abc import abstractmethod
 try:
     from . import heightmap as hm
 except ImportError as e:
-    print e
+    print(e)
 
 # Red, Green, Blue
 COLORS = [(139, 0, 0),  (0, 100, 0), (0, 0, 139)]
