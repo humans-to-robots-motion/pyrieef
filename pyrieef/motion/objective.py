@@ -53,7 +53,8 @@ class MotionOptimization2DCostMap:
         self._term_potential_scalar = 10000000.
         # self._init_potential_scalar = 0.0
         # self._term_potential_scalar = 0.0
-        self._smoothness_scalar = 1.
+        self._velocity_scalar = 1.
+        self._acceleration_scalar = 1.
         self._attractor_stdev = .1
 
         # We only need the signed distance field
@@ -92,11 +93,13 @@ class MotionOptimization2DCostMap:
                     obstacle_scalar=1.,
                     init_potential_scalar=0.,
                     term_potential_scalar=10000000.,
-                    smoothness_scalar=1.):
+                    velocity_scalar=1.,
+                    acceleration_scalar=1):
         self._obstacle_scalar = obstacle_scalar
         self._init_potential_scalar = init_potential_scalar
         self._term_potential_scalar = term_potential_scalar
-        self._smoothness_scalar = smoothness_scalar = 1.
+        self._velocity_scalar = 1.
+        self._acceleration_scalar = 1.
 
     def set_eta(self, eta):
         self._eta = eta
@@ -207,7 +210,7 @@ class MotionOptimization2DCostMap:
                 self.config_space_dim, self.dt),
                 self.function_network.left_of_clique_map())
             self.function_network.register_function_for_all_cliques(
-                Scale(derivative, 10. * self._smoothness_scalar))
+                Scale(derivative, self._velocity_scalar))
             # TODO change the last clique to have 0 velocity change
             # when linearly interpolating
 
@@ -215,7 +218,7 @@ class MotionOptimization2DCostMap:
             derivative = SquaredNormAcceleration(
                 self.config_space_dim, self.dt)
             self.function_network.register_function_for_all_cliques(
-                Scale(derivative, self._smoothness_scalar))
+                Scale(derivative, self._acceleration_scalar))
         else:
             raise ValueError("deriv_order ({}) not suported".format(
                 deriv_order))
