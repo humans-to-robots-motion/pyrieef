@@ -47,14 +47,16 @@ objective = TrajectoryOptimizationViewer(
         T=trajectory.T(),
         q_init=trajectory.initial_configuration(),
         q_goal=trajectory.final_configuration()),
-    draw=True,
+    draw=False,
     draw_gradient=True)
 
 # ----------------------------------------------------------------------------
 # Runs a Newton optimization algorithm on the objective
 # ----------------------------------------------------------------------------
-algorithms.newton_optimize_trajectory(objective, trajectory)
+t_0 = time.time()
+algorithms.newton_optimize_trajectory(
+    objective, trajectory, verbose=True, maxiter=100)
 
-print("Done.")
+print("Done. ({} sec.)".format(time.time() - t_0))
 while True:
     objective.draw(trajectory)

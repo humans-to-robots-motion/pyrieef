@@ -55,7 +55,7 @@ class MotionOptimization2DCostMap:
         # self._init_potential_scalar = 0.0
         # self._term_potential_scalar = 0.0
         self._velocity_scalar = 1.
-        self._acceleration_scalar = 1.
+        self._acceleration_scalar = 10.
         self._attractor_stdev = .1
 
         # We only need the signed distance field
@@ -103,6 +103,13 @@ class MotionOptimization2DCostMap:
         self._acceleration_scalar = acceleration_scalar
         self._term_velocity_scalar = 100000.
 
+    def set_test_objective(self):
+        """ This objective does not collide with the enviroment"""
+        self.create_sdf_test_workspace()
+        self.obstacle_potential_from_sdf()
+        self.create_clique_network()
+        self.create_objective()
+
     def set_eta(self, eta):
         self._eta = eta
 
@@ -121,10 +128,23 @@ class MotionOptimization2DCostMap:
 
     def create_sdf_hardcoded_workspace(self):
         workspace = Workspace(self.box)
-        workspace.obstacles.append(Circle(np.array([0.2, .15]), .1))
-        workspace.obstacles.append(Circle(np.array([-.1, .15]), .1))
+        p1 = np.array([0.2, .15])
+        p2 = np.array([-.1, .15])
+        workspace.obstacles.append(Circle(p1, .1))
+        workspace.obstacles.append(Circle(p2, .1))
         self.signed_distance_field = SignedDistanceWorkspaceMap(workspace)
         self.workspace = workspace
+        return workspace
+
+    def create_sdf_test_workspace(self):
+        workspace = Workspace(self.box)
+        p1 = np.array([2, 2])
+        p2 = np.array([-2, 2])
+        workspace.obstacles.append(Circle(p1, .1))
+        workspace.obstacles.append(Circle(p2, .1))
+        self.signed_distance_field = SignedDistanceWorkspaceMap(workspace)
+        self.workspace = workspace
+        return workspace
 
     def create_smoothness_metric(self):
         """ TODO this does not seem to work at all... """
@@ -255,10 +275,15 @@ class MotionOptimization2DCostMap:
 
     def add_obstacle_barrier(self):
         """ obstacle barrier function """
+        if self.signed_distance_field is None:
+            return
         barrier = LogBarrierFunction()
-        barrier.set_mu(.1)
+        barrier.set_mu(.01)
+        potential = Compose(barrier, self.signed_distance_field)
         self.function_network.register_function_for_all_cliques(
-            Compose(barrier, self.signed_distance_field))
+            Pullback(
+                potential,
+                self.function_network.center_of_clique_map()))
 
     def add_obstacle_terms(self, geodesic=False):
         """ Takes a matrix and adds a isometric potential term
@@ -297,7 +322,7 @@ class MotionOptimization2DCostMap:
         self.add_obstacle_terms()
         self.add_box_limits()
         self.add_init_and_terminal_terms()
-        # print self.objective.nb_cliques()
+        self.add_obstacle_barrier()
 
     def optimize(self,
                  q_init,

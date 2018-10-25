@@ -117,7 +117,7 @@ class LogBarrierFunction(DifferentiableMap):
         mu : float
         alpha : float
 
-         """
+    """
 
     def __init__(self, margin=1e-10):
         self.mu = .1

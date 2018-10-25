@@ -331,31 +331,33 @@ def test_motion_optimimization_2d():
     np.random.seed(0)
 
     print("Check Motion Optimization (Derivatives)")
-    objective = MotionOptimization2DCostMap()
-    trajectory = Trajectory(objective.T)
-    sum_acceleration = objective.cost(trajectory)
+    problem = MotionOptimization2DCostMap()
+    problem.set_test_objective()
+
+    trajectory = Trajectory(problem.T)
+    sum_acceleration = problem.cost(trajectory)
     print(("sum_acceleration : ", sum_acceleration))
     q_init = np.zeros(2)
     q_goal = np.ones(2)
     trajectory = linear_interpolation_trajectory(
-        q_init, q_goal, objective.T)
+        q_init, q_goal, problem.T)
     print(trajectory)
     print((trajectory.final_configuration()))
-    sum_acceleration = objective.cost(trajectory)
+    sum_acceleration = problem.cost(trajectory)
     print(("sum_acceleration : ", sum_acceleration))
 
     print("Test J for trajectory")
     assert check_jacobian_against_finite_difference(
-        objective.objective, False)
+        problem.objective, False)
 
     # Check the hessian of the trajectory
     print("Test H for trajectory")
     is_close = check_hessian_against_finite_difference(
-        objective.objective, False, tolerance=1e-2)
+        problem.objective, False, tolerance=1e-2)
 
-    xi = np.random.rand(objective.objective.input_dimension())
-    H = objective.objective.hessian(xi)
-    H_diff = finite_difference_hessian(objective.objective, xi)
+    xi = np.random.rand(problem.objective.input_dimension())
+    H = problem.objective.hessian(xi)
+    H_diff = finite_difference_hessian(problem.objective, xi)
     H_delta = H - H_diff
     print((" - H_delta dist = ", np.linalg.norm(H_delta, ord='fro')))
     print((" - H_delta maxi = ", np.max(np.absolute(H_delta))))
@@ -471,6 +473,7 @@ def test_smoothness_metric():
         q_init=trajectory.initial_configuration(),
         q_goal=trajectory.final_configuration()
     )
+    objective.set_scalars(acceleration_scalar=1.)
     objective.create_clique_network()
     objective.add_smoothness_terms(2)
     objective.create_objective()
@@ -495,10 +498,11 @@ def test_smoothness_metric():
 
 def test_trajectory_objective():
     q_init = np.zeros(2)
-    optimizer = MotionOptimization2DCostMap(T=10, n=q_init.size)
-    objective = TrajectoryObjectiveFunction(q_init, optimizer.function_network)
+    problem = MotionOptimization2DCostMap(T=10, n=q_init.size)
+    problem.set_test_objective()
+    objective = TrajectoryObjectiveFunction(q_init, problem.function_network)
     assert check_jacobian_against_finite_difference(objective, False)
-    assert check_hessian_against_finite_difference(objective, False)
+    assert check_hessian_against_finite_difference(objective, False, 1e-3)
 
 
 def test_optimize():
