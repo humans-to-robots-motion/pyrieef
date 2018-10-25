@@ -48,9 +48,10 @@ class MotionOptimization2DCostMap:
         self.q_init = q_init if q_init is not None else np.zeros(2)
 
         self._eta = 10.
-        self._obstacle_scalar = 1.
+        self._obstacle_scalar = 3.
         self._init_potential_scalar = 0.
         self._term_potential_scalar = 10000000.
+        self._term_velocity_scalar = 100000.
         # self._init_potential_scalar = 0.0
         # self._term_potential_scalar = 0.0
         self._velocity_scalar = 1.
@@ -98,8 +99,9 @@ class MotionOptimization2DCostMap:
         self._obstacle_scalar = obstacle_scalar
         self._init_potential_scalar = init_potential_scalar
         self._term_potential_scalar = term_potential_scalar
-        self._velocity_scalar = 1.
-        self._acceleration_scalar = 1.
+        self._velocity_scalar = velocity_scalar
+        self._acceleration_scalar = acceleration_scalar
+        self._term_velocity_scalar = 100000.
 
     def set_eta(self, eta):
         self._eta = eta
@@ -203,6 +205,15 @@ class MotionOptimization2DCostMap:
         self.function_network.register_function_for_clique(
             i, Scale(initial_potential, scalar))
 
+    def add_final_velocity_terms(self):
+
+        derivative = Pullback(SquaredNormVelocity(
+            self.config_space_dim, self.dt),
+            self.function_network.left_of_clique_map())
+
+        self.function_network.register_function_last_clique(
+            Scale(derivative, self._term_velocity_scalar))
+
     def add_smoothness_terms(self, deriv_order=2):
 
         if deriv_order == 1:
@@ -242,6 +253,13 @@ class MotionOptimization2DCostMap:
         self.function_network.register_function_for_all_cliques(
             Scale(ProductFunction(cost, squared_norm_vel), scalar))
 
+    def add_obstacle_barrier(self):
+        """ obstacle barrier function """
+        barrier = LogBarrierFunction()
+        barrier.set_mu(.1)
+        self.function_network.register_function_for_all_cliques(
+            Compose(barrier, self.signed_distance_field))
+
     def add_obstacle_terms(self, geodesic=False):
         """ Takes a matrix and adds a isometric potential term
             to all cliques """
@@ -274,6 +292,7 @@ class MotionOptimization2DCostMap:
             self.q_init, self.function_network)
 
     def add_all_terms(self):
+        self.add_final_velocity_terms()
         self.add_smoothness_terms(2)
         self.add_obstacle_terms()
         self.add_box_limits()

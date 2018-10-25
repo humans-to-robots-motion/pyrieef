@@ -24,6 +24,8 @@ import numpy
 x = numpy.linspace(0., 6.28, 100)
 # series = numpy.tan(x)
 series = numpy.cos(x)
+# x = numpy.linspace(0., 10., 3)
+# series = -numpy.log(-x)
 plt.figure()
 plt.plot(series)
 plt.show()

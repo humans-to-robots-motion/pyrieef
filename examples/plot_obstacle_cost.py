@@ -36,7 +36,7 @@ def plot(obst_cost, label):
 workspace = Workspace()
 workspace.obstacles.append(Circle(np.array([0., 0.]), 0.1))
 sdf = SignedDistanceWorkspaceMap(workspace)
-fig = plt.figure(figsize=(7, 6.5))
+fig = plt.figure()
 plot(CostGridPotential2D(sdf, 10., .1, 1.), "10")
 plot(CostGridPotential2D(sdf, 20., .1, 1.), "20")
 plot(CostGridPotential2D(sdf, 30., .1, 1.), "30")

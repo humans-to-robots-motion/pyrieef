@@ -34,7 +34,7 @@ tf.set_random_seed(1)
 
 # Hyper Parameters
 BATCHES = 8000
-BATCH_SIZE = 64
+BATCH_SIZE = 1000
 PIXELS = 28        # Used to be 100.
 LR = 0.002         # learning rate
 NUM_TEST_IMG = 5
@@ -99,7 +99,14 @@ sess = tf.Session()
 sess.run(tf.global_variables_initializer())
 
 # initialize figure
-fig, a = plt.subplots(3, NUM_TEST_IMG, figsize=(8, 4))
+fig = plt.figure(figsize=(8, 4))
+grid = plt.GridSpec(3, NUM_TEST_IMG, wspace=0.4, hspace=0.3)
+
+a = [None] * 3
+for i in range(3):
+    a[i] = [None] * NUM_TEST_IMG
+    for j in range(NUM_TEST_IMG):
+        a[i][j] = fig.add_subplot(grid[i, j])
 plt.ion()   # continuously plot
 
 # original data (first row) for viewing
@@ -121,6 +128,7 @@ i = 0
 
 train_loss_ = 0.
 test_loss_ = 0.
+# loss = []
 for step in range(BATCHES):
     b_x, b_y = costmaps.next_batch(BATCH_SIZE)
     _, decoded_, train_loss_ = sess.run(
@@ -137,6 +145,7 @@ for step in range(BATCHES):
         infostr += 'train loss: {:.4f}, test loss: {:.4f}'.format(
             train_loss_, test_loss_)
         print(infostr)
+        # loss.append([train_loss_, test_loss_])
         # plotting decoded image (second row)
         decoded_data = sess.run(
             decoded, {tf_x: resize_batch(test_view_data_inputs)})

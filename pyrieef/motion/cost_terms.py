@@ -101,6 +101,55 @@ class SquaredNormAcceleration(SquaredNormDerivative):
         self._derivative = FiniteDifferencesAcceleration(dim, dt)
 
 
+class LogBarrierFunction(DifferentiableMap):
+
+    """
+    Log barrier function
+
+        f(x) = -mu log(x)
+
+    Note fot the sdf the sign has to be flipped, you can set
+    alpha to -1.
+
+    Parameters
+    ----------
+        g : R^n -> R, constraint function that allways has to be positive
+        mu : float
+        alpha : float
+
+         """
+
+    def __init__(self, margin=1e-10):
+        self.mu = .1
+        self._margin = margin
+
+    def output_dimension(self):
+        return 1
+
+    def input_dimension(self):
+        return 1
+
+    def set_mu(self, mu):
+        self._mu = mu
+
+    def forward(self, x):
+        return -self.mu * np.log(x)
+
+    def jacobian(self, x):
+        J = np.matrix(np.zeros((1, 1)))
+        if x < self._margin:
+            return J
+        J[0, 0] = -self.mu / x
+        return J
+
+    def hessian(self, x):
+        H = np.matrix(np.zeros((1, 1)))
+        if x < self._margin:
+            return H
+        H[0, 0] = self.mu / (x ** 2)
+        return H
+
+
 class BoundBarrier(DifferentiableMap):
 
     """ Barrier between values v_lower and v_upper """

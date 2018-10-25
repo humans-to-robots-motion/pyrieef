@@ -277,6 +277,19 @@ def test_squared_norm_derivatives():
         assert abs(f_a2(c_t[0:]) - f_a(c_t[0:])) < 1e-10
 
 
+def test_log_barrier():
+
+    np.random.seed(0)
+
+    f = LogBarrierFunction()
+
+    print("Check BoundBarrier (J implementation) : ")
+    assert check_jacobian_against_finite_difference(f)
+
+    print("Check BoundBarrier (H implementation) : ")
+    assert check_hessian_against_finite_difference(f)
+
+
 def test_bound_barrier():
 
     np.random.seed(0)
@@ -518,6 +531,7 @@ if __name__ == "__main__":
     test_trajectory()
     test_continuous_trajectory()
     test_squared_norm_derivatives()
+    test_log_barrier()
     test_bound_barrier()
     test_obstacle_potential()
     test_motion_optimimization_2d()
