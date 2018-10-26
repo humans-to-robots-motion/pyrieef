@@ -18,7 +18,7 @@
 #                                        Jim Mainprice on Sunday June 13 2018
 
 
-from . import common_imports
+import common_imports
 from geometry.workspace import *
 from utils.misc import *
 from math import *
@@ -27,7 +27,8 @@ import optparse
 import os
 from learning.dataset import *
 from tqdm import tqdm
-
+from numpy.testing import assert_allclose
+import itertools
 
 def samplerandpt(lims):
     """
@@ -62,16 +63,30 @@ def grids(workspace, grid_to_world, epsilon):
         matrix.astype(float)
     """
     # print "grid_to_world.shape : ", grid_to_world.shape
-    occupancy = np.zeros((grid_to_world.shape[0], grid_to_world.shape[1]))
-    sdf = np.zeros((grid_to_world.shape[0], grid_to_world.shape[1]))
-    costs = np.zeros((grid_to_world.shape[0], grid_to_world.shape[1]))
-    # return [None, None, None]
-    for i in range(grid_to_world.shape[0]):
-        for j in range(grid_to_world.shape[1]):
+    m = grid_to_world.shape[0]
+    assert grid_to_world.shape[1] == m
+
+    occupancy = np.zeros((m, m))
+    sdf = np.zeros((m, m))
+    costs = np.zeros((m, m))
+    meshgrid = workspace.box.stacked_meshgrid(m)
+    sdf_mat = SignedDistanceWorkspaceMap(workspace)(meshgrid).T
+    occupancy_mat = sdf_mat <= 0.
+    test_grids = False
+    if test_grids:
+        # return [None, None, None]
+        for i, j in itertools.product(range(m), range(m)):
             [min_dist, obstacle_id] = workspace.min_dist(grid_to_world[i, j])
             sdf[i, j] = min_dist
             occupancy[i, j] = min_dist <= 0.
             costs[i, j] = chomp_obstacle_cost(min_dist, epsilon)
+            
+        assert_allclose(sdf_mat, sdf)
+        assert_allclose(occupancy_mat, occupancy)
+    else:
+        for i, j in itertools.product(range(m), range(m)):
+            costs[i, j] = chomp_obstacle_cost(sdf[i, j], epsilon)
+
     return [occupancy, sdf, costs]
 
 
@@ -165,7 +180,7 @@ def random_environments(opt):
             [min_dist, obstacle_id] = workspace.min_dist(c)
             if True or min_dist >= (r + 0.1):
                 workspace.add_circle(c, r)
-            numtries = numtries + 1  # Increment num tries
+            numtries += 1  # Increment num tries
 
             # Go further only if we have not exceeded all tries
             if len(workspace.obstacles) >= nobj or numtries >= maxnumtries:
@@ -184,8 +199,6 @@ def random_environments(opt):
 
                 if opt.display:
                     draw_grids([occ, sdf, cost])
-
-                k = k + 1
                 break
         else:
             print('[OBJS] Reached max number of tries. Restarting run...')
@@ -210,7 +223,7 @@ def random_environment_parser():
     parser = optparse.OptionParser("usage: %prog [options] arg1 arg2")
 
     parser.add_option('--numdatasets',
-                      default=1000, type="int", dest='numdatasets',
+                      default=55000, type="int", dest='numdatasets',
                       help='Number of datasets to generate')
     parser.add_option('--savefilename',
                       default='2dcostdata.t7', type="string", dest='savefilename',
@@ -219,10 +232,10 @@ def random_environment_parser():
                       default=False, type="int", dest='savematlabfile',
                       help='Save results in .mat format')
     parser.add_option('--xsize',
-                      default=100, type="int", dest='xsize',
+                      default=28, type="int", dest='xsize',
                       help='Size of the x-dimension (in pixels). X values go from 0-1')
     parser.add_option('--ysize',
-                      default=100, type="int", dest='ysize',
+                      default=28, type="int", dest='ysize',
                       help='Size of the y-dimension (in pixels). Y values go from 0-1')
     parser.add_option('--maxnumobjs',
                       default=3, type="int", dest='maxnumobjs',
@@ -256,11 +269,11 @@ if __name__ == '__main__':
     # filename = 'costdata2d_1k_small.hdf5'
     # filename_ws = 'workspaces_1k_small.hdf5'
 
-    filename = 'costdata2d_10k.hdf5'
-    filename_ws = 'workspaces_10k.hdf5'
+    # filename = 'costdata2d_10k.hdf5'
+    # filename_ws = 'workspaces_10k.hdf5'
 
-    # filename = 'costdata2d_55k.hdf5'
-    # filename_ws = 'workspaces_55k.hdf5'
+    filename = 'costdata2d_55k.hdf5'
+    filename_ws = 'workspaces_55k.hdf5'
 
     datasets, workspaces = random_environments(options)
     write_dictionary_to_file(datasets, filename)
