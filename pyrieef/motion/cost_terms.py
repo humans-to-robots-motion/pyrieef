@@ -133,7 +133,12 @@ class LogBarrierFunction(DifferentiableMap):
         self._mu = mu
 
     def forward(self, x):
-        return -self.mu * np.log(x)
+        barrier = -self.mu * np.log(x)
+        d = x < self._margin
+        if not x.shape == (self.input_dimension(),):
+            return np.where(d, float("inf"), barrier)
+        else:
+            return float("inf") if d else barrier
 
     def jacobian(self, x):
         J = np.matrix(np.zeros((1, 1)))

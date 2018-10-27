@@ -18,7 +18,7 @@
 #                                        Jim Mainprice on Sunday June 13 2018
 
 
-from . import common_imports
+import common_imports
 from graph.shortest_path import *
 from learning.dataset import *
 from learning.random_environment import *
@@ -67,7 +67,8 @@ def optimize(path, workspace, costmap, verbose=False):
         acceleration_scalar=1.)
     optimizer.create_clique_network()
     optimizer.add_smoothness_terms(2)
-    optimizer.add_obstacle_terms()
+    # optimizer.add_obstacle_terms()
+    optimizer.add_obstacle_barrier()
     optimizer.add_box_limits()
     optimizer.add_attractor(trajectory)
     optimizer.create_objective()

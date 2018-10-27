@@ -35,6 +35,7 @@ from pyrieef.motion.trajectory import *
 from pyrieef.utils.collision_checking import *
 
 DRAW = True
+VERBOSE = False
 demonstrations.TRAJ_LENGTH = 20
 
 
@@ -49,7 +50,8 @@ def optimize_path(objective, workspace, path):
         objective.viewer.image_id = 0
         objective.viewer.draw_ws_obstacles()
 
-    algorithms.newton_optimize_trajectory(objective, path, verbose=True)
+    algorithms.newton_optimize_trajectory(objective, path, 
+        verbose=VERBOSE, maxiter=100)
     return path
 
 
@@ -96,4 +98,6 @@ np.random.seed(0)
 workspaces = [sample_workspace(nb_circles=5) for i in range(100)]
 for k, workspace in enumerate(tqdm(workspaces)):
     path = graph_search_path(graph, workspace, nb_points)
+    if collision_check_trajectory(workspace, path):
+        continue
     optimize_path(objective, workspace, path)

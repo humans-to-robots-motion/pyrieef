@@ -278,8 +278,9 @@ class MotionOptimization2DCostMap:
         if self.signed_distance_field is None:
             return
         barrier = LogBarrierFunction()
-        barrier.set_mu(.01)
+        barrier.set_mu(20.)
         potential = Compose(barrier, self.signed_distance_field)
+        # self.obstacle_potential = potential
         self.function_network.register_function_for_all_cliques(
             Pullback(
                 potential,
@@ -319,7 +320,7 @@ class MotionOptimization2DCostMap:
     def add_all_terms(self):
         self.add_final_velocity_terms()
         self.add_smoothness_terms(2)
-        self.add_obstacle_terms()
+        # self.add_obstacle_terms()
         self.add_box_limits()
         self.add_init_and_terminal_terms()
         self.add_obstacle_barrier()

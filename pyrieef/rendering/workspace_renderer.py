@@ -57,6 +57,7 @@ class WorkspaceRender:
     def __init__(self, workspace):
         self._wait_for_keyboard = False
         self.set_workspace(workspace)
+        self.workspace_id = 0
 
     def set_workspace(self, workspace):
         self._workspace = workspace
@@ -215,6 +216,7 @@ class WorkspaceOpenGl(WorkspaceRender):
 
     def draw_ws_background(self, function):
         Z = function(self._workspace.box.stacked_meshgrid())
+        Z = Z.clip(max=1)
         self._max_z = Z.max()
         self._min_z = Z.min()
         Z = (Z - self._min_z * np.ones(Z.shape)) / (self._max_z - self._min_z)
@@ -229,13 +231,14 @@ class WorkspaceOpenGl(WorkspaceRender):
     def draw_ws_obstacles(self):
         for i, o in enumerate(self._workspace.obstacles):
             if isinstance(o, Circle):
-                circ = make_circle(self._scale * o.radius, 30)
+                circ = make_circle(self._scale * o.radius, 30, False)
                 origin = o.origin - np.array(
                     [self._extent.x_min, self._extent.y_min])
                 t = Transform(translation=self._scale * origin)
-                print(("o.origin {}, o.radius {}".format(o.origin, o.radius)))
+                # print(("o.origin {}, o.radius {}".format(
+                #     o.origin, o.radius)))
                 circ.add_attr(t)
-                circ.set_color(*COLORS[i])
+                circ.set_color(*COLORS[i%3])
                 self.gl.add_geom(circ)
 
     def show(self):
