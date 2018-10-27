@@ -216,7 +216,7 @@ class WorkspaceOpenGl(WorkspaceRender):
 
     def draw_ws_background(self, function):
         Z = function(self._workspace.box.stacked_meshgrid())
-        Z = Z.clip(max=1)
+        # Z = Z.clip(max=1)
         self._max_z = Z.max()
         self._min_z = Z.min()
         Z = (Z - self._min_z * np.ones(Z.shape)) / (self._max_z - self._min_z)

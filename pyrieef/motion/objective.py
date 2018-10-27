@@ -48,7 +48,7 @@ class MotionOptimization2DCostMap:
         self.q_init = q_init if q_init is not None else np.zeros(2)
 
         self._eta = 10.
-        self._obstacle_scalar = 3.
+        self._obstacle_scalar = 1.
         self._init_potential_scalar = 0.
         self._term_potential_scalar = 10000000.
         self._term_velocity_scalar = 100000.
@@ -319,8 +319,9 @@ class MotionOptimization2DCostMap:
 
     def add_all_terms(self):
         self.add_final_velocity_terms()
+        self.add_smoothness_terms(1)
         self.add_smoothness_terms(2)
-        # self.add_obstacle_terms()
+        self.add_obstacle_terms()
         self.add_box_limits()
         self.add_init_and_terminal_terms()
         self.add_obstacle_barrier()

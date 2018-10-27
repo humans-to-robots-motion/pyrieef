@@ -35,6 +35,7 @@ from pyrieef.motion.trajectory import *
 from pyrieef.utils.collision_checking import *
 
 DRAW = True
+DRAW_3D = False
 VERBOSE = False
 demonstrations.TRAJ_LENGTH = 20
 
@@ -87,7 +88,7 @@ motion_objective = MotionOptimization2DCostMap(
     q_init=np.zeros(2),
     q_goal=np.zeros(2))
 objective = TrajectoryOptimizationViewer(
-    motion_objective, draw=DRAW, draw_gradient=True, use_3d_viewer=True)
+    motion_objective, draw=DRAW, draw_gradient=True, use_3d_viewer=DRAW_3D)
 
 nb_points = 40  # points for the grid on which to perform graph search.
 grid = np.ones((nb_points, nb_points))
