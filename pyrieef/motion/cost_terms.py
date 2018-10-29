@@ -108,8 +108,7 @@ class LogBarrierFunction(DifferentiableMap):
 
         f(x) = -mu log(x)
 
-    Note fot the sdf the sign has to be flipped, you can set
-    alpha to -1.
+    Note fot the sdf the sign has to be flipped, you can set alpha to -1.
 
     Parameters
     ----------
@@ -133,12 +132,14 @@ class LogBarrierFunction(DifferentiableMap):
         self._mu = mu
 
     def forward(self, x):
-        barrier = -self.mu * np.log(x)
+        """ TODO add this notion of infity """
+        # np.Infity throws warnning in current version of linesearch
+        infity = 1e200
         d = x < self._margin
-        if x.shape == (self.input_dimension(),):
-            return float("inf") if d else barrier
+        if x.shape == ():
+            return infity if d else -self.mu * np.log(x)
         else:
-            return np.where(d, float("inf"), barrier)
+            return np.where(d, infity, -self.mu * np.log(x))
 
     def jacobian(self, x):
         J = np.matrix(np.zeros((1, 1)))

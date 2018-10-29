@@ -343,14 +343,16 @@ class MotionOptimization2DCostMap:
             optimizer.set_eta(self._eta)
 
             dist = float("inf")
+            gradient = xi
+            delta = xi
             for i in range(nb_steps):
                 xi = optimizer.one_step(xi)
                 trajectory.active_segment()[:] = xi
                 dist = np.linalg.norm(
                     trajectory.final_configuration() - self.q_goal)
-                # print "dist[{}] : {}, objective : {}, gnorm {}".format(
-                #     i, dist, optimizer.objective(xi),
-                #     np.linalg.norm(optimizer.gradient(xi)))
+                print "dist[{}] : {}, objective : {}, gnorm {}".format(
+                    i, dist, optimizer.objective(xi),
+                    np.linalg.norm(optimizer.gradient(xi)))
                 gradient = optimizer.gradient(xi)
                 delta = optimizer.delta(xi)
 
