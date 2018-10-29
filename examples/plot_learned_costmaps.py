@@ -48,7 +48,7 @@ def lrelu(x, alpha=0.3):
 def autoencoder_cnn(X_in):
 
     print("---------------------------------------------")
-    print("Define layers of AutoEncoder !!!")
+    print("Define layers of auto encoder !!!")
     print("---------------------------------------------")
 
     dec_in_channels = 1
@@ -99,7 +99,8 @@ def autoencoder_cnn(X_in):
 
     x = tf.contrib.layers.flatten(x)
     print(x.get_shape())
-    x = tf.layers.dense(x, units=28 * 28, activation=tf.nn.sigmoid)
+    x = tf.layers.dense(
+        x, units=28 * 28, activation=tf.nn.sigmoid)
     print(x.get_shape())
     img = tf.reshape(x, shape=[-1, 28, 28])
     return img
@@ -132,28 +133,29 @@ sess = tf.Session()
 sess.run(tf.global_variables_initializer())
 
 # initialize figure
-fig = plt.figure(figsize=(8, 4))
-grid = plt.GridSpec(3, NUM_TEST_IMG, wspace=0.4, hspace=0.3)
+if DRAW:
+    fig = plt.figure(figsize=(8, 4))
+    grid = plt.GridSpec(3, NUM_TEST_IMG, wspace=0.4, hspace=0.3)
 
-a = [None] * 3
-for i in range(3):
-    a[i] = [None] * NUM_TEST_IMG
-    for j in range(NUM_TEST_IMG):
-        a[i][j] = fig.add_subplot(grid[i, j])
-plt.ion()   # continuously plot
-
-# original data (first row) for viewing
-test_view_data_inputs = costmaps.test_inputs[:NUM_TEST_IMG]
-test_view_data_targets = costmaps.test_targets[:NUM_TEST_IMG]
-for i in range(NUM_TEST_IMG):
-    a[0][i].imshow(test_view_data_inputs[i].reshape(28, 28))
-    a[0][i].set_xticks(())
-    a[0][i].set_yticks(())
+    a = [None] * 3
+    for i in range(3):
+        a[i] = [None] * NUM_TEST_IMG
+        for j in range(NUM_TEST_IMG):
+            a[i][j] = fig.add_subplot(grid[i, j])
+    plt.ion()   # continuously plot
 
     # original data (first row) for viewing
-    a[1][i].imshow(test_view_data_targets[i].reshape(28, 28))
-    a[1][i].set_xticks(())
-    a[1][i].set_yticks(())
+    test_view_data_inputs = costmaps.test_inputs[:NUM_TEST_IMG]
+    test_view_data_targets = costmaps.test_targets[:NUM_TEST_IMG]
+    for i in range(NUM_TEST_IMG):
+        a[0][i].imshow(test_view_data_inputs[i].reshape(28, 28))
+        a[0][i].set_xticks(())
+        a[0][i].set_yticks(())
+
+        # original data (first row) for viewing
+        a[1][i].imshow(test_view_data_targets[i].reshape(28, 28))
+        a[1][i].set_xticks(())
+        a[1][i].set_yticks(())
 
 i = 0
 
@@ -179,16 +181,17 @@ for step in range(BATCHES):
         print(infostr)
         # loss.append([train_loss_, test_loss_])
         # plotting decoded image (second row)
-        decoded_data = sess.run(
-            decoded, {tf_x: test_view_data_inputs.reshape((-1, 28, 28))})
-        # trained data
-        for i in range(NUM_TEST_IMG):
-            a[2][i].clear()
-            a[2][i].imshow(decoded_data[i])
-            a[2][i].set_xticks(())
-            a[2][i].set_yticks(())
-        i += 1
-        plt.draw()
-        plt.pause(0.01)
+
+        if DRAW:
+            decoded_data = sess.run(
+                decoded, {tf_x: test_view_data_inputs.reshape((-1, 28, 28))})
+            for i in range(NUM_TEST_IMG):
+                a[2][i].clear()
+                a[2][i].imshow(decoded_data[i])
+                a[2][i].set_xticks(())
+                a[2][i].set_yticks(())
+            i += 1
+            plt.draw()
+            plt.pause(0.01)
 
 plt.ioff()
