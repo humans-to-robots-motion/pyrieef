@@ -192,7 +192,7 @@ for step in range(BATCHES):
                 a[2][i].imshow(decoded_data[i])
                 a[2][i].set_xticks(())
                 a[2][i].set_yticks(())
-            if SAVE_TO_FILE and k % 20:
+            if SAVE_TO_FILE and (k % 20 == 0):
                 directory = learning_data_dir() + os.sep + "results"
                 if not os.path.exists(directory):
                     os.makedirs(directory)
