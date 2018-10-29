@@ -18,13 +18,10 @@
 #                                        Jim Mainprice on Sunday June 13 2018
 
 import demos_common_imports
-import time
 import numpy as np
-from numpy.testing import assert_allclose
 from tqdm import tqdm
 
 from pyrieef.geometry.workspace import EnvBox
-from pyrieef.motion.trajectory import linear_interpolation_trajectory
 from pyrieef.motion.objective import MotionOptimization2DCostMap
 from pyrieef.optimization import algorithms
 from pyrieef.rendering.optimization import TrajectoryOptimizationViewer
@@ -51,8 +48,8 @@ def optimize_path(objective, workspace, path):
         objective.viewer.image_id = 0
         objective.viewer.draw_ws_obstacles()
 
-    algorithms.newton_optimize_trajectory(objective, path, 
-        verbose=VERBOSE, maxiter=100)
+    algorithms.newton_optimize_trajectory(
+        objective, path, verbose=VERBOSE, maxiter=100)
     return path
 
 

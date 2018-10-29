@@ -196,7 +196,7 @@ class MotionOptimization2DCostMap:
             alphas[t] = np.exp(-dist / (self._attractor_stdev ** 2))
         alphas /= alphas.sum()
 
-        for t in range(1,  trajectory.T()):
+        for t in range(1, trajectory.T()):
             potential = Pullback(
                 SquaredNorm(self.q_goal),
                 self.function_network.center_of_clique_map())

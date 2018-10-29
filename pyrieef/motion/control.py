@@ -1,6 +1,4 @@
 
-#!/usr/bin/env python
-
 # Copyright (c) 2018, University of Stuttgart
 # All rights reserved.
 #
@@ -22,7 +20,6 @@ import scipy
 import numpy as np
 from numpy.linalg import inv
 from numpy.linalg import eigvals
-from numpy import dot
 from .trajectory import Trajectory
 
 
@@ -50,7 +47,7 @@ def controller_lqr_discrete_time(A, B, Q, R):
     Returns
     ----------
         K : gain the optimal gain K,
-        P : the solution matrix X, and the closed loop system 
+        P : the solution matrix X, and the closed loop system
         eigVals: eigenvalues.
 
         The optimal input is then computed as:
@@ -163,7 +160,7 @@ class KinematicTrajectoryFollowingLQR:
         return u_t
 
     def integrate(self, q_init, start_time_step=0):
-        """ 
+        """
         Integrate the policy forward in time
 
         Parameters

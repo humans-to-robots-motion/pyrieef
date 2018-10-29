@@ -72,6 +72,7 @@ def autoencoder_cnn(inputs):
                                 activation_fn=tf.nn.sigmoid)
     return net
 
+
 # Costmaps
 costmaps = CostmapDataset(filename='costdata2d_55k.hdf5')
 costmaps.normalize_maps()

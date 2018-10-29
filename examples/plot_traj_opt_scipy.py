@@ -20,10 +20,10 @@
 import demos_common_imports
 import time
 import numpy as np
-from numpy.testing import assert_allclose
 
 from pyrieef.geometry.workspace import EnvBox
 from pyrieef.motion.trajectory import linear_interpolation_trajectory
+from pyrieef.motion.trajectory import no_motion_trajectory
 from pyrieef.motion.objective import MotionOptimization2DCostMap
 from pyrieef.optimization import algorithms
 from pyrieef.rendering.optimization import TrajectoryOptimizationViewer
@@ -35,6 +35,7 @@ trajectory = linear_interpolation_trajectory(
     q_goal=.3 * np.ones(2),
     T=22
 )
+# trajectory = no_motion_trajectory(q_init=-.22 * np.ones(2), T=22)
 
 # -----------------------------------------------------------------------------
 # The Objective function is wrapped in the optimization viewer object

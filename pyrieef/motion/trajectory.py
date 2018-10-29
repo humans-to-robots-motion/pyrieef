@@ -316,19 +316,19 @@ class Trajectory:
         return self._x[beg_idx:end_idx]
 
     def velocity(self, i, dt):
-        """ 
+        """
         returns velocity at index i
             WARNING It is not the same convention as for the clique
                     Here we suppose the velocity at q_init to be 0,
-                    so the finite difference is left sided (q_t - q_t-1)/dt 
-                    This is different from the right sided version 
+                    so the finite difference is left sided (q_t - q_t-1)/dt
+                    This is different from the right sided version
                     (q_t+1 - q_t)/dt implemented in the cost term module.
 
             With left side FD we directly get the integration scheme:
 
                 q_{t+1} = q_t + v_t * dt + a_t * dt^2
 
-            where v_t and a_t are velocity and acceleration 
+            where v_t and a_t are velocity and acceleration
             at index t, with v_0 = 0.
             """
         if i == 0:
@@ -338,7 +338,7 @@ class Trajectory:
         return (q_i_2 - q_i_1) / dt
 
     def acceleration(self, i, dt):
-        """ 
+        """
         returns acceleration at index i
             Note that we suppose velocity at q_init to be 0 """
         id_init = 0 if i == 0 else i - 1

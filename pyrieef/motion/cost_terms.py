@@ -134,12 +134,13 @@ class LogBarrierFunction(DifferentiableMap):
     def forward(self, x):
         """ TODO add this notion of infity """
         # np.Infity throws warnning in current version of linesearch
-        infity = 1e200
+        # infinity = 1e+200, otherwise does not work
+        infinity = np.Infinity
         d = x < self._margin
         if x.shape == ():
-            return infity if d else -self.mu * np.log(x)
+            return infinity if d else -self.mu * np.log(x)
         else:
-            return np.where(d, infity, -self.mu * np.log(x))
+            return np.where(d, infinity, -self.mu * np.log(x))
 
     def jacobian(self, x):
         J = np.matrix(np.zeros((1, 1)))

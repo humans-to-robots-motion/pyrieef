@@ -21,14 +21,11 @@ import demos_common_imports
 import numpy as np
 from pyrieef.geometry.workspace import *
 from pyrieef.motion.trajectory import *
-from pyrieef.motion.objective import MotionOptimization2DCostMap
 from pyrieef.motion.control import KinematicTrajectoryFollowingLQR
-from pyrieef.optimization import algorithms
-from pyrieef.rendering.optimization import TrajectoryOptimizationViewer
 from pyrieef.rendering.workspace_renderer import WorkspaceDrawer
 
-""" 
-Integrate LQR forward in time by following a straight line constant 
+"""
+Integrate LQR forward in time by following a straight line constant
 speed trajectory
 """
 
