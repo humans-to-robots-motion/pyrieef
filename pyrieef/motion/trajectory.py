@@ -22,7 +22,7 @@ from geometry.differentiable_geometry import *
 
 
 class FunctionNetwork(DifferentiableMap):
-    """ 
+    """
         Base class to implement a function network
         It registers functions and evaluates
         f(x_0, x_1, ... ) = \sum_i f_i(x_0, x_1, ...)
@@ -48,7 +48,7 @@ class FunctionNetwork(DifferentiableMap):
 
 
 class CliquesFunctionNetwork(FunctionNetwork):
-    """ 
+    """
         Base class to implement a function network
         It allows to register functions and evaluates
         f(x_{i-1}, x_i, x_{i+1}) = \sum_i f_i(x_{i-1}, x_i, x_{i+1})
@@ -121,8 +121,10 @@ class CliquesFunctionNetwork(FunctionNetwork):
         return H
 
     def clique_value(self, t, x_t):
-        """ calls all functions on one clique 
-            TODO create a test using this function. """
+        """
+        return the clique value
+        TODO create a test using this function.
+        """
         value = 0.
         for f in self._functions[t]:
             value += f.forward(x_t)
@@ -300,12 +302,18 @@ class Trajectory:
         self._x = x.copy()
 
     def active_segment(self):
+        """
+        The active segment of the trajectory
+        removes the first configuration on the trajectory
+        """
         return self._x[self._n:]
 
     def initial_configuration(self):
+        """ first configuration """
         return self.configuration(0)
 
     def final_configuration(self):
+        """ last active configuration """
         return self.configuration(self._T)
 
     def configuration(self, i):
