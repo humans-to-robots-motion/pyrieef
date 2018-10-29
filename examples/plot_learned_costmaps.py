@@ -20,13 +20,14 @@
 import demos_common_imports
 import tensorflow as tf
 import tensorflow.contrib.layers as lays
+import matplotlib
+matplotlib.use('PDF')   # generate postscript output by default
 from matplotlib import cm
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 import sys
 from pyrieef.learning.dataset import *
-from skimage import transform
 
 # works with tensotflow 1.1.0.
 
@@ -39,6 +40,7 @@ PIXELS = 28        # Used to be 100.
 LR = 0.002         # learning rate
 NUM_TEST_IMG = 5
 DRAW = False
+SAVE_TO_FILE = True
 
 
 def lrelu(x, alpha=0.3):
@@ -133,7 +135,7 @@ sess = tf.Session()
 sess.run(tf.global_variables_initializer())
 
 # initialize figure
-if DRAW:
+if DRAW or SAVE_TO_FILE:
     fig = plt.figure(figsize=(8, 4))
     grid = plt.GridSpec(3, NUM_TEST_IMG, wspace=0.4, hspace=0.3)
 
@@ -157,7 +159,7 @@ if DRAW:
         a[1][i].set_xticks(())
         a[1][i].set_yticks(())
 
-i = 0
+k = 0
 
 train_loss_ = 0.
 test_loss_ = 0.
@@ -182,7 +184,7 @@ for step in range(BATCHES):
         # loss.append([train_loss_, test_loss_])
         # plotting decoded image (second row)
 
-        if DRAW:
+        if DRAW or SAVE_TO_FILE:
             decoded_data = sess.run(
                 decoded, {tf_x: test_view_data_inputs.reshape((-1, 28, 28))})
             for i in range(NUM_TEST_IMG):
@@ -190,8 +192,15 @@ for step in range(BATCHES):
                 a[2][i].imshow(decoded_data[i])
                 a[2][i].set_xticks(())
                 a[2][i].set_yticks(())
-            i += 1
-            plt.draw()
-            plt.pause(0.01)
+            if SAVE_TO_FILE and k % 20:
+                directory = learning_data_dir() + os.sep + "results"
+                if not os.path.exists(directory):
+                    os.makedirs(directory)
+                fig.savefig(directory + os.sep + 'images_{:03}.pdf'.format(k))
+                plt.close(fig)
+            k += 1
+            if DRAW:
+                plt.draw()
+                plt.pause(0.01)
 
 plt.ioff()
