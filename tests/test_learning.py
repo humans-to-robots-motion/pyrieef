@@ -29,8 +29,15 @@ import sys
 def test_random_enviroments():
     sys.argn = 0
     sys.argv = []
-    parser = random_environment_parser()
-    (options, args) = parser.parse_args()
+    options = RandomEnvironmentOptions().get_options()
+    options.numdatasets = 5
+    datasets, workspaces = random_environments(options)
+    assert len(workspaces["datasets"]) == options.numdatasets
+    assert len(datasets["datasets"]) == options.numdatasets
+
+
+def test_standard_dataset():
+    options = RandomEnvironmentOptions("costdata2d_55k_28").get_options()
     options.numdatasets = 5
     datasets, workspaces = random_environments(options)
     assert len(workspaces["datasets"]) == options.numdatasets
@@ -57,4 +64,5 @@ def test_demonstrations():
 
 if __name__ == "__main__":
     test_random_enviroments()
+    test_standard_dataset()
     test_demonstrations()

@@ -17,17 +17,30 @@
 #
 #                                        Jim Mainprice on Sunday June 13 2018
 
-from collections import namedtuple
+# from collections import namedtuple
 import sys
 import os
 from time import sleep
 
 
 def dict_to_object(d):
+    """
+    Converts a dictionary to an object
+
+        Use to work with
+        namedtuple('object', d.keys())(*d.values())
+
+    TODO: bit sure what the first part is for.
+    """
     for k, v in list(d.items()):
         if isinstance(v, dict):
             d[k] = dict_to_object(v)
-    return namedtuple('object', list(d.keys()))(*list(d.values()))
+
+    class DObj(object):
+        pass
+    dobj = DObj()
+    dobj.__dict__ = d
+    return dobj
 
 
 def show_progress(idx, idx_max):

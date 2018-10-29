@@ -25,10 +25,11 @@ from math import *
 from random import *
 import optparse
 import os
-from learning.dataset import *
+from learning import dataset
 from tqdm import tqdm
 from numpy.testing import assert_allclose
 import itertools
+
 
 def samplerandpt(lims):
     """
@@ -80,7 +81,7 @@ def grids(workspace, grid_to_world, epsilon):
             sdf[i, j] = min_dist
             occupancy[i, j] = min_dist <= 0.
             costs[i, j] = chomp_obstacle_cost(min_dist, epsilon)
-            
+
         assert_allclose(sdf_mat, sdf)
         assert_allclose(occupancy_mat, occupancy)
     else:
@@ -94,7 +95,7 @@ def sample_circle_workspace(box,
                             nobjs_max=3,
                             random_max=False,
                             maxnumtries=100):
-    """ Samples a workspace made of a maximum of 
+    """ Samples a workspace made of a maximum of
         nobjs_max circles that do not intersect 
         todo replace the random environment script to use this function """
     workspace = Workspace(box)
@@ -218,51 +219,77 @@ def random_environments(opt):
     return data, workspaces
 
 
-def random_environment_parser():
+class RandomEnvironmentOptions:
 
-    parser = optparse.OptionParser("usage: %prog [options] arg1 arg2")
+    def __init__(self, dataset_id=None):
+        if dataset_id is None:
+            self._use_parser = True
+        else:
+            self._use_parser = False
+            self._dataset_id = dataset_id
 
-    parser.add_option('--numdatasets',
-                      default=55000, type="int", dest='numdatasets',
-                      help='Number of datasets to generate')
-    parser.add_option('--savefilename',
-                      default='2dcostdata.t7', type="string", dest='savefilename',
-                      help='Filename to save results in (in local directory)')
-    parser.add_option('--savematlabfile',
-                      default=False, type="int", dest='savematlabfile',
-                      help='Save results in .mat format')
-    parser.add_option('--xsize',
-                      default=28, type="int", dest='xsize',
-                      help='Size of the x-dimension (in pixels). X values go from 0-1')
-    parser.add_option('--ysize',
-                      default=28, type="int", dest='ysize',
-                      help='Size of the y-dimension (in pixels). Y values go from 0-1')
-    parser.add_option('--maxnumobjs',
-                      default=3, type="int", dest='maxnumobjs',
-                      help='Maximum number of obst. per scene (ranges from 1-this number)')
-    parser.add_option('--minobjrad',
-                      default=0.05, type="float", dest='minobjrad',
-                      help='Minimum radius of any obstacle (in m)')
-    parser.add_option('--maxobjrad',
-                      default=0.3, type="float", dest='maxobjrad',
-                      help='Maximum radius of any obstacle (in m)')
-    parser.add_option('--epsilon',
-                      default=0.1, type="float", dest='epsilon',
-                      help='Distance from obstacle at which obstacle cost zeroes out (in m)')
-    parser.add_option('--display',
-                      default=False, type="int", dest='display',
-                      help='If set, displays the obstacle costs/occ grids in 2D')
-    parser.add_option('--seed',
-                      default=0, type="int", dest='seed',
-                      help='Random number seed. -ve values mean random seed')
+    def environment_parser(self):
 
-    return parser
+        parser = optparse.OptionParser("usage: %prog [options] arg1 arg2")
+
+        parser.add_option('--numdatasets',
+                          default=55000, type="int", dest='numdatasets',
+                          help='Number of datasets to generate')
+        parser.add_option('--savefilename',
+                          default='2dcostdata.t7', type="string", dest='savefilename',
+                          help='Filename to save results in (in local directory)')
+        parser.add_option('--savematlabfile',
+                          default=False, type="int", dest='savematlabfile',
+                          help='Save results in .mat format')
+        parser.add_option('--xsize',
+                          default=28, type="int", dest='xsize',
+                          help='Size of the x-dimension (in pixels). X values go from 0-1')
+        parser.add_option('--ysize',
+                          default=28, type="int", dest='ysize',
+                          help='Size of the y-dimension (in pixels). Y values go from 0-1')
+        parser.add_option('--maxnumobjs',
+                          default=3, type="int", dest='maxnumobjs',
+                          help='Maximum number of obst. per scene (ranges from 1-this number)')
+        parser.add_option('--minobjrad',
+                          default=0.05, type="float", dest='minobjrad',
+                          help='Minimum radius of any obstacle (in m)')
+        parser.add_option('--maxobjrad',
+                          default=0.3, type="float", dest='maxobjrad',
+                          help='Maximum radius of any obstacle (in m)')
+        parser.add_option('--epsilon',
+                          default=0.1, type="float", dest='epsilon',
+                          help='Distance from obstacle at which obstacle cost zeroes out (in m)')
+        parser.add_option('--display',
+                          default=False, type="int", dest='display',
+                          help='If set, displays the obstacle costs/occ grids in 2D')
+        parser.add_option('--seed',
+                          default=0, type="int", dest='seed',
+                          help='Random number seed. -ve values mean random seed')
+
+        return parser
+
+    def get_options(self):
+        """ Load dataset options from file or option parser """
+        if self._use_parser:
+            parser = self.environment_parser()
+            (options, args) = parser.parse_args()
+            return options
+        else:
+            import yaml
+            directory = dataset.learning_data_dir()
+            filename = directory + os.sep + "synthetic_data.yaml"
+            with open(filename, 'r') as stream:
+                try:
+                    options = yaml.load(stream)[0]
+                except yaml.YAMLError as exc:
+                    print(exc)
+            return dict_to_object(options[self._dataset_id])
 
 
 if __name__ == '__main__':
 
-    parser = random_environment_parser()
-    (options, args) = parser.parse_args()
+    parser = RandomEnvironmentOptions()
+    options = parser.get_options()
     # if len(args) != 2:
     #     parser.error("incorrect number of arguments")
 
