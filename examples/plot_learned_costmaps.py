@@ -34,43 +34,75 @@ tf.set_random_seed(1)
 
 # Hyper Parameters
 BATCHES = 8000
-BATCH_SIZE = 1000
+BATCH_SIZE = 64
 PIXELS = 28        # Used to be 100.
 LR = 0.002         # learning rate
 NUM_TEST_IMG = 5
 DRAW = False
 
 
-def resize_batch(imgs):
-    # A function to resize a batch of MNIST images to (32, 32)
-    # Args:
-    #   imgs: a numpy array of size [batch_size, 28 X 28].
-    # Returns:
-    #   a numpy array of size [batch_size, 32, 32].
-    imgs = imgs.reshape((-1, 28, 28, 1))
-    resized_imgs = np.zeros((imgs.shape[0], 32, 32, 1))
-    for i in range(imgs.shape[0]):
-        resized_imgs[i, ..., 0] = transform.resize(imgs[i, ..., 0], (32, 32))
-    return resized_imgs
+def lrelu(x, alpha=0.3):
+    return tf.maximum(x, tf.multiply(x, alpha))
 
 
-def autoencoder_cnn(inputs):
-    # encoder
-    # 32 x 32 x 1   ->  16 x 16 x 32
-    # 16 x 16 x 32  ->  8 x 8 x 16
-    # 8 x 8 x 16    ->  2 x 2 x 8
-    net = lays.conv2d(inputs, 32, [5, 5], stride=2, padding='SAME')
-    net = lays.conv2d(net, 16, [5, 5], stride=2, padding='SAME')
-    net = lays.conv2d(net, 8, [5, 5], stride=4, padding='SAME')
-    # decoder
-    # 2 x 2 x 8    ->  8 x 8 x 16
-    # 8 x 8 x 16   ->  16 x 16 x 32
-    # 16 x 16 x 32  ->  32 x 32 x 1
-    net = lays.conv2d_transpose(net, 16, [5, 5], stride=4, padding='SAME')
-    net = lays.conv2d_transpose(net, 32, [5, 5], stride=2, padding='SAME')
-    net = lays.conv2d_transpose(net, 1, [5, 5], stride=2, padding='SAME',
-                                activation_fn=tf.nn.sigmoid)
-    return net
+def autoencoder_cnn(X_in):
+
+    print("---------------------------------------------")
+    print("Define layers of AutoEncoder !!!")
+    print("---------------------------------------------")
+
+    dec_in_channels = 1
+    n_latent = 8
+
+    reshaped_dim = [-1, 7, 7, dec_in_channels]
+    inputs_decoder = 49 * dec_in_channels / 2
+    activation = lrelu
+    nb_filters = 64
+
+    # Encoder.
+    X = tf.reshape(X_in, shape=[-1, 28, 28, 1])
+    x = tf.layers.conv2d(
+        X, filters=nb_filters, kernel_size=4, strides=2,
+        padding='same', activation=activation)
+    print(x.get_shape())
+    x = tf.layers.conv2d(
+        x, filters=nb_filters, kernel_size=4, strides=2,
+        padding='same', activation=activation)
+    print(x.get_shape())
+    x = tf.layers.conv2d(
+        x, filters=nb_filters, kernel_size=4, strides=1,
+        padding='same', activation=activation)
+    print(x.get_shape())
+    x = tf.contrib.layers.flatten(x)
+    print(x.get_shape())
+    x = tf.layers.dense(x, units=n_latent)
+    print(x.get_shape())
+
+    # Decoder.
+    x = tf.layers.dense(x, units=inputs_decoder * 2 + 1,
+                        activation=lrelu)
+    print(x.get_shape())
+    x = tf.reshape(x, reshaped_dim)
+    print(x.get_shape())
+    x = tf.layers.conv2d_transpose(
+        x, filters=nb_filters, kernel_size=4, strides=2,
+        padding='same', activation=tf.nn.relu)
+    print(x.get_shape())
+    x = tf.layers.conv2d_transpose(
+        x, filters=nb_filters, kernel_size=4, strides=1,
+        padding='same', activation=tf.nn.relu)
+    print(x.get_shape())
+    x = tf.layers.conv2d_transpose(
+        x, filters=nb_filters, kernel_size=4, strides=1,
+        padding='same', activation=tf.nn.relu)
+    print(x.get_shape())
+
+    x = tf.contrib.layers.flatten(x)
+    print(x.get_shape())
+    x = tf.layers.dense(x, units=28 * 28, activation=tf.nn.sigmoid)
+    print(x.get_shape())
+    img = tf.reshape(x, shape=[-1, 28, 28])
+    return img
 
 
 # Costmaps
@@ -87,8 +119,8 @@ print(costmaps.test_inputs.shape)     # (55000, 10)
 
 # sys.exit(0)
 
-tf_x = tf.placeholder(tf.float32, (None, 32, 32, 1))
-tf_y = tf.placeholder(tf.float32, (None, 32, 32, 1))
+tf_x = tf.placeholder(tf.float32, (None, 28, 28))
+tf_y = tf.placeholder(tf.float32, (None, 28, 28))
 decoded = autoencoder_cnn(tf_x)
 # loss = tf.losses.mean_squared_error(
 #     labels=tf_y,
@@ -114,14 +146,12 @@ plt.ion()   # continuously plot
 test_view_data_inputs = costmaps.test_inputs[:NUM_TEST_IMG]
 test_view_data_targets = costmaps.test_targets[:NUM_TEST_IMG]
 for i in range(NUM_TEST_IMG):
-    a[0][i].imshow(
-        np.reshape(test_view_data_inputs[i], (PIXELS, PIXELS)))
+    a[0][i].imshow(test_view_data_inputs[i].reshape(28, 28))
     a[0][i].set_xticks(())
     a[0][i].set_yticks(())
 
     # original data (first row) for viewing
-    a[1][i].imshow(
-        np.reshape(test_view_data_targets[i], (PIXELS, PIXELS)))
+    a[1][i].imshow(test_view_data_targets[i].reshape(28, 28))
     a[1][i].set_xticks(())
     a[1][i].set_yticks(())
 
@@ -134,12 +164,13 @@ for step in range(BATCHES):
     b_x, b_y = costmaps.next_batch(BATCH_SIZE)
     _, decoded_, train_loss_ = sess.run(
         [train, decoded, loss],
-        feed_dict={tf_x: resize_batch(b_x), tf_y: resize_batch(b_y)})
+        feed_dict={tf_x: b_x.reshape((-1, 28, 28)),
+                   tf_y: b_y.reshape((-1, 28, 28))})
     if step % 2 == 0:  # plotting
         test_loss_ = sess.run(
             loss,
-            {tf_x: resize_batch(costmaps.test_inputs[:50]),
-             tf_y: resize_batch(costmaps.test_targets[:50])})
+            {tf_x: costmaps.test_inputs[:50].reshape((-1, 28, 28)),
+             tf_y: costmaps.test_targets[:50].reshape((-1, 28, 28))})
         epoch = costmaps.epochs_completed
         infostr = str()
         infostr += 'step: {:8}, epoch: {:3}, '.format(step, epoch)
@@ -149,11 +180,11 @@ for step in range(BATCHES):
         # loss.append([train_loss_, test_loss_])
         # plotting decoded image (second row)
         decoded_data = sess.run(
-            decoded, {tf_x: resize_batch(test_view_data_inputs)})
+            decoded, {tf_x: test_view_data_inputs.reshape((-1, 28, 28))})
         # trained data
         for i in range(NUM_TEST_IMG):
             a[2][i].clear()
-            a[2][i].imshow(decoded_data[i, ..., 0])
+            a[2][i].imshow(decoded_data[i])
             a[2][i].set_xticks(())
             a[2][i].set_yticks(())
         i += 1
