@@ -17,21 +17,13 @@
 #
 #                                        Jim Mainprice on Sunday June 13 2018
 
+
 import demos_common_imports
 import tensorflow as tf
-import tensorflow.contrib.layers as lays
-import matplotlib
-matplotlib.use('PDF')   # generate postscript output by default
-from matplotlib import cm
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-import numpy as np
-import sys
 from pyrieef.learning.dataset import *
+from pyrieef.learning.tf_networks import *
 
 # works with tensotflow 1.1.0.
-
-tf.set_random_seed(1)
 
 # Hyper Parameters
 BATCHES = 8000
@@ -41,71 +33,17 @@ LR = 0.002         # learning rate
 NUM_TEST_IMG = 5
 DRAW = False
 SAVE_TO_FILE = True
+if DRAW or SAVE_TO_FILE:
+    import matplotlib
+    if SAVE_TO_FILE:
+        matplotlib.use('PDF')   # generate postscript output by default
+    import matplotlib.pyplot as plt
 
+tf.set_random_seed(1)
 
-def lrelu(x, alpha=0.3):
-    return tf.maximum(x, tf.multiply(x, alpha))
-
-
-def autoencoder_cnn(X_in):
-
-    print("---------------------------------------------")
-    print("Define layers of auto encoder !!!")
-    print("---------------------------------------------")
-
-    dec_in_channels = 1
-    n_latent = 8
-
-    reshaped_dim = [-1, 7, 7, dec_in_channels]
-    inputs_decoder = 49 * dec_in_channels / 2
-    activation = lrelu
-    nb_filters = 64
-
-    # Encoder.
-    X = tf.reshape(X_in, shape=[-1, 28, 28, 1])
-    x = tf.layers.conv2d(
-        X, filters=nb_filters, kernel_size=4, strides=2,
-        padding='same', activation=activation)
-    print(x.get_shape())
-    x = tf.layers.conv2d(
-        x, filters=nb_filters, kernel_size=4, strides=2,
-        padding='same', activation=activation)
-    print(x.get_shape())
-    x = tf.layers.conv2d(
-        x, filters=nb_filters, kernel_size=4, strides=1,
-        padding='same', activation=activation)
-    print(x.get_shape())
-    x = tf.contrib.layers.flatten(x)
-    print(x.get_shape())
-    x = tf.layers.dense(x, units=n_latent)
-    print(x.get_shape())
-
-    # Decoder.
-    x = tf.layers.dense(x, units=inputs_decoder * 2 + 1,
-                        activation=lrelu)
-    print(x.get_shape())
-    x = tf.reshape(x, reshaped_dim)
-    print(x.get_shape())
-    x = tf.layers.conv2d_transpose(
-        x, filters=nb_filters, kernel_size=4, strides=2,
-        padding='same', activation=tf.nn.relu)
-    print(x.get_shape())
-    x = tf.layers.conv2d_transpose(
-        x, filters=nb_filters, kernel_size=4, strides=1,
-        padding='same', activation=tf.nn.relu)
-    print(x.get_shape())
-    x = tf.layers.conv2d_transpose(
-        x, filters=nb_filters, kernel_size=4, strides=1,
-        padding='same', activation=tf.nn.relu)
-    print(x.get_shape())
-
-    x = tf.contrib.layers.flatten(x)
-    print(x.get_shape())
-    x = tf.layers.dense(
-        x, units=28 * 28, activation=tf.nn.sigmoid)
-    print(x.get_shape())
-    img = tf.reshape(x, shape=[-1, 28, 28])
-    return img
+# Define Network
+# network = ConvDeconv64()
+network = ConvDeconvSmall()
 
 
 # Costmaps
@@ -113,18 +51,9 @@ costmaps = CostmapDataset(filename='costdata2d_55k.hdf5')
 costmaps.normalize_maps()
 costmaps.reshape_data_to_tensors()
 
-# plot one example
-print(costmaps.train_inputs.shape)    # (55000, PIXELS * PIXELS)
-print(costmaps.test_inputs.shape)     # (55000, 10)
-# plt.imshow(costmaps.test_targets[0].reshape((PIXELS, PIXELS)), cmap='gray')
-# plt.title('%i' % np.argmax('cost'))
-# plt.show()
-
-# sys.exit(0)
-
-tf_x = tf.placeholder(tf.float32, (None, 28, 28))
-tf_y = tf.placeholder(tf.float32, (None, 28, 28))
-decoded = autoencoder_cnn(tf_x)
+tf_x = network.placeholder()
+tf_y = network.placeholder()
+decoded = network.define(tf_x)
 # loss = tf.losses.mean_squared_error(
 #     labels=tf_y,
 #     predictions=decoded)
@@ -168,13 +97,13 @@ for step in range(BATCHES):
     b_x, b_y = costmaps.next_batch(BATCH_SIZE)
     _, decoded_, train_loss_ = sess.run(
         [train, decoded, loss],
-        feed_dict={tf_x: b_x.reshape((-1, 28, 28)),
-                   tf_y: b_y.reshape((-1, 28, 28))})
+        feed_dict={tf_x: network.resize_batch(b_x),
+                   tf_y: network.resize_batch(b_y)})
     if step % 2 == 0:  # plotting
         test_loss_ = sess.run(
             loss,
-            {tf_x: costmaps.test_inputs[:50].reshape((-1, 28, 28)),
-             tf_y: costmaps.test_targets[:50].reshape((-1, 28, 28))})
+            {tf_x: network.resize_batch(costmaps.test_inputs[:50]),
+             tf_y: network.resize_batch(costmaps.test_targets[:50])})
         epoch = costmaps.epochs_completed
         infostr = str()
         infostr += 'step: {:8}, epoch: {:3}, '.format(step, epoch)
@@ -186,10 +115,10 @@ for step in range(BATCHES):
 
         if DRAW or SAVE_TO_FILE:
             decoded_data = sess.run(
-                decoded, {tf_x: test_view_data_inputs.reshape((-1, 28, 28))})
+                decoded, {tf_x: network.resize_batch(test_view_data_inputs)})
             for i in range(NUM_TEST_IMG):
                 a[2][i].clear()
-                a[2][i].imshow(decoded_data[i])
+                a[2][i].imshow(network.resize_output(decoded_data, i))
                 a[2][i].set_xticks(())
                 a[2][i].set_yticks(())
             if SAVE_TO_FILE and (k % 20 == 0):
