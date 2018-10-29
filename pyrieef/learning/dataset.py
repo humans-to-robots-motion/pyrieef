@@ -182,6 +182,8 @@ def load_trajectories_from_file(filename='trajectories_1k_small.hdf5'):
         trajectories[k] = Trajectory(q_init=trj[:n], x=trj)
     return trajectories
 
+# def get_dataset_id(datasets_id):
+    
 
 class CostmapDataset(object):
 

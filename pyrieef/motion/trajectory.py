@@ -120,7 +120,7 @@ class CliquesFunctionNetwork(FunctionNetwork):
                 H[c_id:c_id + dim, c_id:c_id + dim] += f.hessian(x_t)
         return H
 
-    def function_on_clique(self, t, x_t):
+    def clique_value(self, t, x_t):
         """ calls all functions on one clique 
             TODO create a test using this function. """
         value = 0.

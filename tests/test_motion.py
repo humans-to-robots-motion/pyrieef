@@ -211,7 +211,7 @@ def test_center_of_clique():
     center_of_clique = network.center_of_clique_map()
     network.register_function_for_all_cliques(center_of_clique)
     for t, x_t in enumerate(network.all_cliques(trajectory.x())):
-        assert (np.linalg.norm(network.function_on_clique(t, x_t) -
+        assert (np.linalg.norm(network.clique_value(t, x_t) -
                                x_t[2:4]) < 1.e-10)
 
 
