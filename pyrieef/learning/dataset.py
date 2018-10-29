@@ -17,7 +17,7 @@
 #
 #                                        Jim Mainprice on Sunday June 13 2018
 
-from . import common_imports
+import common_imports
 import h5py
 import os
 from utils import *
@@ -182,8 +182,6 @@ def load_trajectories_from_file(filename='trajectories_1k_small.hdf5'):
         trajectories[k] = Trajectory(q_init=trj[:n], x=trj)
     return trajectories
 
-# def get_dataset_id(datasets_id):
-    
 
 class CostmapDataset(object):
 

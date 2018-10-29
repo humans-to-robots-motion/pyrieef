@@ -42,7 +42,7 @@ def samplerandpt(lims):
 
 
 def chomp_obstacle_cost(min_dist, epsilon):
-    """ 
+    """
         Compute the cost function now (From CHOMP paper)
         If min_dist < 0, cost = -min_dist + epsilon/2
         If min_dist >= 0 && min_dist < epsilon, have a different cost 
@@ -67,23 +67,23 @@ def grids(workspace, grid_to_world, epsilon):
     m = grid_to_world.shape[0]
     assert grid_to_world.shape[1] == m
 
-    occupancy = np.zeros((m, m))
-    sdf = np.zeros((m, m))
     costs = np.zeros((m, m))
     meshgrid = workspace.box.stacked_meshgrid(m)
-    sdf_mat = SignedDistanceWorkspaceMap(workspace)(meshgrid).T
-    occupancy_mat = sdf_mat <= 0.
+    sdf = SignedDistanceWorkspaceMap(workspace)(meshgrid).T
+    occupancy = sdf <= 0.
     test_grids = False
     if test_grids:
         # return [None, None, None]
+        occupancy_tmp = np.zeros((m, m))
+        sdf_tmp = np.zeros((m, m))
         for i, j in itertools.product(range(m), range(m)):
             [min_dist, obstacle_id] = workspace.min_dist(grid_to_world[i, j])
-            sdf[i, j] = min_dist
-            occupancy[i, j] = min_dist <= 0.
+            sdf_tmp[i, j] = min_dist
+            occupancy_tmp[i, j] = min_dist <= 0.
             costs[i, j] = chomp_obstacle_cost(min_dist, epsilon)
 
-        assert_allclose(sdf_mat, sdf)
-        assert_allclose(occupancy_mat, occupancy)
+        assert_allclose(sdf_tmp, sdf)
+        assert_allclose(occupancy_tmp, occupancy)
     else:
         for i, j in itertools.product(range(m), range(m)):
             costs[i, j] = chomp_obstacle_cost(sdf[i, j], epsilon)
@@ -233,7 +233,7 @@ class RandomEnvironmentOptions:
         parser = optparse.OptionParser("usage: %prog [options] arg1 arg2")
 
         parser.add_option('--numdatasets',
-                          default=55000, type="int", dest='numdatasets',
+                          default=1000, type="int", dest='numdatasets',
                           help='Number of datasets to generate')
         parser.add_option('--savefilename',
                           default='2dcostdata.t7', type="string", dest='savefilename',
@@ -286,6 +286,42 @@ class RandomEnvironmentOptions:
             return dict_to_object(options[self._dataset_id])
 
 
+def get_dataset_id(data_id):
+    import yaml
+    directory = dataset.learning_data_dir()
+    filename = directory + os.sep + "synthetic_data.yaml"
+    with open(filename, 'r') as stream:
+        try:
+            options_data = yaml.load(stream)
+            print(options_data)
+        except yaml.YAMLError as exc:
+            print(exc)
+    options = dict_to_object(options_data[data_id])
+    filename = options.filename + "." + options.type
+    filepath = dataset.learning_data_dir() + os.sep + filename
+    if os.path.exists(filepath) and os.path.isfile(filepath):
+        data = dataset.CostmapDataset(filename)
+        numtrain = data.train_inputs.shape[0]
+        numtest = data.test_inputs.shape[0]
+        numdatasets = numtrain + numtest
+        assert options.numdatasets == numdatasets
+        assert options.xsize == data.train_targets.shape[1]
+        assert options.ysize == data.train_targets.shape[2]
+        assert options.xsize == data.train_inputs.shape[1]
+        assert options.ysize == data.train_inputs.shape[2]
+        assert options.xsize == data.test_targets.shape[1]
+        assert options.ysize == data.test_targets.shape[2]
+        assert options.xsize == data.test_inputs.shape[1]
+        assert options.ysize == data.test_inputs.shape[2]
+        return data
+    else:
+        datasets, workspaces = random_environments(options)
+        dataset.write_dictionary_to_file(datasets, filename)
+        dataset.write_dictionary_to_file(
+            workspaces, options.workspaces + "." + options.type)
+        return get_dataset_id(data_id)
+
+
 if __name__ == '__main__':
 
     parser = RandomEnvironmentOptions()
@@ -293,15 +329,15 @@ if __name__ == '__main__':
     # if len(args) != 2:
     #     parser.error("incorrect number of arguments")
 
-    # filename = 'costdata2d_1k_small.hdf5'
-    # filename_ws = 'workspaces_1k_small.hdf5'
+    filename = 'costdata2d_1k_small.hdf5'
+    filename_ws = 'workspaces_1k_small.hdf5'
 
     # filename = 'costdata2d_10k.hdf5'
     # filename_ws = 'workspaces_10k.hdf5'
 
-    filename = 'costdata2d_55k.hdf5'
-    filename_ws = 'workspaces_55k.hdf5'
+    # filename = 'costdata2d_55k.hdf5'
+    # filename_ws = 'workspaces_55k.hdf5'
 
     datasets, workspaces = random_environments(options)
-    write_dictionary_to_file(datasets, filename)
-    write_dictionary_to_file(workspaces, filename_ws)
+    dataset.write_dictionary_to_file(datasets, filename)
+    dataset.write_dictionary_to_file(workspaces, filename_ws)

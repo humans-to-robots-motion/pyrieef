@@ -6,7 +6,7 @@ from skimage import transform
 
 class Network:
 
-    """ Conviniences class to easily swap networks """
+    """ Convenience class to easily swap networks """
 
     def __init__(self):
         self._network = None

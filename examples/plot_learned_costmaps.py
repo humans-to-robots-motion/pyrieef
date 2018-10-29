@@ -20,6 +20,7 @@
 
 import demos_common_imports
 import tensorflow as tf
+from pyrieef.learning.random_environment import *
 from pyrieef.learning.dataset import *
 from pyrieef.learning.tf_networks import *
 
@@ -31,8 +32,8 @@ BATCH_SIZE = 64
 PIXELS = 28        # Used to be 100.
 LR = 0.002         # learning rate
 NUM_TEST_IMG = 5
-DRAW = False
-SAVE_TO_FILE = True
+DRAW = True
+SAVE_TO_FILE = False
 if DRAW or SAVE_TO_FILE:
     import matplotlib
     if SAVE_TO_FILE:
@@ -47,7 +48,7 @@ network = ConvDeconvSmall()
 
 
 # Costmaps
-costmaps = CostmapDataset(filename='costdata2d_55k.hdf5')
+costmaps = get_dataset_id(data_id='costdata2d_1k_28')
 costmaps.normalize_maps()
 costmaps.reshape_data_to_tensors()
 

@@ -1,6 +1,7 @@
--  costdata2d_55k_28:
+costdata2d_55k_28:
     filename: costdata2d_55k
-    type: hdh5
+    workspaces: workspaces_55k
+    type: hdf5
     numdatasets: 55000
     xsize: 28
     ysize: 28
@@ -11,13 +12,16 @@
     epsilon: 0.1
     display: False
 
--  costdata2d_1k_28:
-    filename: costdata2d_1k
-    type: hdh5
-    pixel: 28
+costdata2d_1k_28:
+    filename: costdata2d_1k_small
+    workspaces: workspaces_1k_small
+    type: hdf5
     numdatasets: 1000
+    xsize: 28
+    ysize: 28
     maxnumobjs: 3
     minobjrad: 0.05
     maxobjrad: 0.3
     seed: 0
     epsilon: 0.1
+    display: False
