@@ -141,7 +141,7 @@ class Ellipse(Shape):
 
 
 class Segment(Shape):
-    """ A segment defined with an origin, length and orientaiton 
+    """ A segment defined with an origin, length and orientaiton
         TODO define distance"""
 
     def __init__(self,
@@ -167,7 +167,7 @@ class Segment(Shape):
 
 class Box(Shape):
     """
-        An axis aligned box (hypercube) defined by 
+        An axis aligned box (hypercube) defined by
             - origin    : its center
             - dim       : its extent
 

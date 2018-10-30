@@ -25,3 +25,17 @@ costdata2d_1k_28:
     seed: 0
     epsilon: 0.1
     display: False
+
+costdata2d_1k_demos:
+    filename: costdata2d_1k_demos
+    workspaces: workspaces_1k_demos
+    type: hdf5
+    numdatasets: 12
+    xsize: 100
+    ysize: 100
+    maxnumobjs: 5
+    minobjrad: 0.05
+    maxobjrad: 0.1
+    seed: 0
+    epsilon: 0.1
+    display: False

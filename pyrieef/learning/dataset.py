@@ -158,7 +158,7 @@ def load_workspaces_from_file(filename='workspaces_1k_small.hdf5'):
 
 
 def save_trajectories_to_file(
-        trajectories, filename='trajectories_1k_small.hdf5'):
+        trajectories, filename='trajectories_1k_demos.hdf5'):
     nb_traj = len(trajectories)
     assert nb_traj > 0
     length = trajectories[0].x().size

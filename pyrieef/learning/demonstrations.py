@@ -34,9 +34,9 @@ from utils.collision_checking import *
 
 
 MAX_ITERATIONS = 100
-ALPHA = 20.
-MARGIN = .03
-OFFSET = 1.
+ALPHA = 10.
+MARGIN = .20
+OFFSET = 0.1
 TRAJ_LENGTH = 40
 
 
@@ -64,10 +64,12 @@ def optimize(path, workspace, costmap, verbose=False):
         obstacle_scalar=1.,
         init_potential_scalar=0.,
         term_potential_scalar=10000000.,
-        acceleration_scalar=1.)
+        acceleration_scalar=10.,
+        velocity_scalar=2.)
     optimizer.create_clique_network()
+    optimizer.add_smoothness_terms(1)
     optimizer.add_smoothness_terms(2)
-    # optimizer.add_obstacle_terms()
+    optimizer.add_obstacle_terms()
     optimizer.add_obstacle_barrier()
     optimizer.add_box_limits()
     optimizer.add_attractor(trajectory)
@@ -91,8 +93,8 @@ def sample_path(workspace, graph, nb_points):
     resample = True
     half_diag = workspace.box.diag() / 2.
     while resample:
-        s_w = sample_collision_free(workspace, MARGIN)
-        t_w = sample_collision_free(workspace, MARGIN)
+        s_w = sample_collision_free(workspace, MARGIN/2)
+        t_w = sample_collision_free(workspace, MARGIN/2)
         if np.linalg.norm(s_w - t_w) < half_diag:
             continue
         if not collision_check_linear_interpolation(workspace, s_w, t_w):
@@ -150,7 +152,7 @@ def generate_demonstrations(nb_points):
     grid = np.ones((nb_points, nb_points))
     graph = CostmapToSparseGraph(grid, options.average_cost)
     graph.convert()
-    workspaces = load_workspaces_from_file(filename='workspaces_1k_small.hdf5')
+    workspaces = load_workspaces_from_file(filename='workspaces_1k_demos.hdf5')
     trajectories = [None] * len(workspaces)
     for k, workspace in enumerate(tqdm(workspaces)):
         if verbose:
@@ -170,6 +172,7 @@ def generate_demonstrations(nb_points):
 
 if __name__ == '__main__':
 
+    np.random.seed(0)
     parser = optparse.OptionParser("usage: %prog [options] arg1 arg2")
     parser.add_option('--nb_points', type="int", default=24)
     add_boolean_options(parser, ['verbose', 'show_result', 'average_cost'])

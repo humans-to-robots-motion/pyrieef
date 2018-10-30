@@ -21,6 +21,9 @@ class Network:
     def resize_batch(self, b):
         return NotImplementedError()
 
+    def resize_output(self, imgs, i):
+        return NotImplementedError()
+
     def number_of_parameters(self):
         total_parameters = 0
         for variable in tf.trainable_variables():
@@ -179,6 +182,11 @@ class ConvDeconv64(Network):
 
 class ConvDeconvResize(Network):
 
+    """
+    https://towardsdatascience.com/
+    autoencoders-introduction-and-implementation-3f40483b0a85
+    """
+
     def __init__(self):
         return
 
@@ -258,13 +266,15 @@ class ConvDeconvResize(Network):
         # Now 28x28x8
         conv6 = tf.layers.conv2d(
             inputs=upsample3, filters=16,
-            kernel_size=(3, 3), padding='same', activation=tf.nn.relu)
+            kernel_size=(3, 3),
+            padding='same', activation=tf.nn.relu)
         print(conv6.get_shape())
         # Now 28x28x16
 
         logits = tf.layers.conv2d(
             inputs=conv6, filters=1,
-            kernel_size=(3, 3), padding='same', activation=None)
+            kernel_size=(3, 3),
+            padding='same', activation=None)
         print(logits.get_shape())
         # Now 28x28x1
 

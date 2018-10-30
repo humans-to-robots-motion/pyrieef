@@ -219,6 +219,19 @@ def random_environments(opt):
     return data, workspaces
 
 
+def get_yaml_options():
+    import yaml
+    directory = dataset.learning_data_dir()
+    filename = directory + os.sep + "synthetic_data.yaml"
+    with open(filename, 'r') as stream:
+        try:
+            options_data = yaml.load(stream)
+            # print(options_data)
+        except yaml.YAMLError as exc:
+            print(exc)
+    return options_data
+
+
 class RandomEnvironmentOptions:
 
     def __init__(self, dataset_id=None):
@@ -231,6 +244,10 @@ class RandomEnvironmentOptions:
     def environment_parser(self):
 
         parser = optparse.OptionParser("usage: %prog [options] arg1 arg2")
+
+        parser.add_option('--dataset_id',
+                          default="costdata2d_1k_demos", type="str", dest='dataset_id',
+                          help='Dataset ID')
 
         parser.add_option('--numdatasets',
                           default=1000, type="int", dest='numdatasets',
@@ -275,27 +292,12 @@ class RandomEnvironmentOptions:
             (options, args) = parser.parse_args()
             return options
         else:
-            import yaml
-            directory = dataset.learning_data_dir()
-            filename = directory + os.sep + "synthetic_data.yaml"
-            with open(filename, 'r') as stream:
-                try:
-                    options = yaml.load(stream)[0]
-                except yaml.YAMLError as exc:
-                    print(exc)
-            return dict_to_object(options[self._dataset_id])
+            options = get_yaml_options()[self._dataset_id]
+            return dict_to_object(options)
 
 
 def get_dataset_id(data_id):
-    import yaml
-    directory = dataset.learning_data_dir()
-    filename = directory + os.sep + "synthetic_data.yaml"
-    with open(filename, 'r') as stream:
-        try:
-            options_data = yaml.load(stream)
-            print(options_data)
-        except yaml.YAMLError as exc:
-            print(exc)
+    options_data = get_yaml_options()
     options = dict_to_object(options_data[data_id])
     filename = options.filename + "." + options.type
     filepath = dataset.learning_data_dir() + os.sep + filename
@@ -326,18 +328,8 @@ if __name__ == '__main__':
 
     parser = RandomEnvironmentOptions()
     options = parser.get_options()
-    # if len(args) != 2:
-    #     parser.error("incorrect number of arguments")
-
-    filename = 'costdata2d_1k_small.hdf5'
-    filename_ws = 'workspaces_1k_small.hdf5'
-
-    # filename = 'costdata2d_10k.hdf5'
-    # filename_ws = 'workspaces_10k.hdf5'
-
-    # filename = 'costdata2d_55k.hdf5'
-    # filename_ws = 'workspaces_55k.hdf5'
-
-    datasets, workspaces = random_environments(options)
-    dataset.write_dictionary_to_file(datasets, filename)
-    dataset.write_dictionary_to_file(workspaces, filename_ws)
+    dataset_paramerters = dict_to_object(
+        get_yaml_options()[options.dataset_id])
+    os.remove("data/" + dataset_paramerters.filename + ".hdf5")
+    os.remove("data/" + dataset_paramerters.workspaces + ".hdf5")
+    get_dataset_id(options.dataset_id)
