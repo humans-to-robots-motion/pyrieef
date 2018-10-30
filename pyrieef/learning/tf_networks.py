@@ -175,3 +175,89 @@ class ConvDeconv64(Network):
         self._network = img
         print("total number of parameters : ", self.number_of_parameters())
         return img
+
+
+class ConvDeconvResize(Network):
+
+    def __init__(self):
+        return
+
+    def placeholder(self):
+        # return = tf.placeholder(tf.float32, (None, 28,28,1), name="input")
+        return tf.placeholder(tf.float32, (None, 28, 28, 1))
+
+    def resize_batch(self, imgs):
+        return imgs.reshape((-1, 28, 28, 1))
+
+    def resize_output(self, imgs, i):
+        return imgs[i, ..., 0]
+
+    def define(self, x_inputs):
+
+        print("---------------------------------------------")
+        print(" Define layers of auto encoder !!!")
+        print("---------------------------------------------")
+
+        # Encoder
+        conv1 = tf.layers.conv2d(
+            inputs=x_inputs, filters=16, kernel_size=(3, 3),
+            padding='same', activation=tf.nn.relu)
+        # Now 28x28x16
+        maxpool1 = tf.layers.max_pooling2d(
+            conv1, pool_size=(2, 2), strides=(2, 2),
+            padding='same')
+        # Now 14x14x16
+        conv2 = tf.layers.conv2d(
+            inputs=maxpool1, filters=8, kernel_size=(3, 3),
+            padding='same', activation=tf.nn.relu)
+        # Now 14x14x8
+        maxpool2 = tf.layers.max_pooling2d(
+            conv2, pool_size=(2, 2), strides=(2, 2),
+            padding='same')
+        # Now 7x7x8
+        conv3 = tf.layers.conv2d(
+            inputs=maxpool2, filters=8, kernel_size=(3, 3),
+            padding='same', activation=tf.nn.relu)
+        # Now 7x7x8
+        encoded = tf.layers.max_pooling2d(
+            conv3, pool_size=(2, 2), strides=(2, 2),
+            padding='same')
+        # Now 4x4x8
+
+        # Decoder
+        upsample1 = tf.image.resize_images(
+            encoded, size=(7, 7),
+            method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
+        # Now 7x7x8
+        conv4 = tf.layers.conv2d(
+            inputs=upsample1, filters=8, kernel_size=(3, 3),
+            padding='same', activation=tf.nn.relu)
+        # Now 7x7x8
+        upsample2 = tf.image.resize_images(
+            conv4, size=(14, 14),
+            method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
+        # Now 14x14x8
+        conv5 = tf.layers.conv2d(
+            inputs=upsample2, filters=8, kernel_size=(3, 3),
+            padding='same', activation=tf.nn.relu)
+        # Now 14x14x8
+        upsample3 = tf.image.resize_images(
+            conv5, size=(28, 28),
+            method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
+        # Now 28x28x8
+        conv6 = tf.layers.conv2d(
+            inputs=upsample3, filters=16,
+            kernel_size=(3, 3), padding='same', activation=tf.nn.relu)
+        # Now 28x28x16
+
+        logits = tf.layers.conv2d(
+            inputs=conv6, filters=1,
+            kernel_size=(3, 3), padding='same', activation=None)
+        # Now 28x28x1
+
+        # Pass logits through sigmoid to get reconstructed image
+        decoded = tf.nn.sigmoid(logits)
+
+        self._network = decoded
+        print("total number of parameters : ", self.number_of_parameters())
+        return decoded
