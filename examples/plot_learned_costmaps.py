@@ -44,8 +44,8 @@ tf.set_random_seed(1)
 
 # Define Network
 # network = ConvDeconv64()
-# network = ConvDeconvSmall()
-network = ConvDeconvResize()
+network = ConvDeconvSmall()
+# network = ConvDeconvResize()
 
 
 # Costmaps
