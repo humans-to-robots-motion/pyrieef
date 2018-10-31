@@ -350,9 +350,9 @@ class MotionOptimization2DCostMap:
                 trajectory.active_segment()[:] = xi
                 dist = np.linalg.norm(
                     trajectory.final_configuration() - self.q_goal)
-                print "dist[{}] : {}, objective : {}, gnorm {}".format(
+                print("dist[{}] : {}, objective : {}, gnorm {}".format(
                     i, dist, optimizer.objective(xi),
-                    np.linalg.norm(optimizer.gradient(xi)))
+                    np.linalg.norm(optimizer.gradient(xi))))
                 gradient = optimizer.gradient(xi)
                 delta = optimizer.delta(xi)
 

@@ -18,7 +18,7 @@
 #                                        Jim Mainprice on Sunday June 13 2018
 
 
-import common_imports
+from . import common_imports
 from geometry.workspace import *
 from utils.misc import *
 from math import *

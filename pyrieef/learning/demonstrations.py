@@ -18,7 +18,7 @@
 #                                        Jim Mainprice on Sunday June 13 2018
 
 
-import common_imports
+from . import common_imports
 from graph.shortest_path import *
 from learning.dataset import *
 from learning.random_environment import *

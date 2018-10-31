@@ -17,7 +17,7 @@
 #
 #                                        Jim Mainprice on Sunday June 13 2018
 
-import common_imports
+from . import common_imports
 import h5py
 import os
 from utils import *
