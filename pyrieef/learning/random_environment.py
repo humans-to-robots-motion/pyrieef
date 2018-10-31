@@ -45,7 +45,7 @@ def chomp_obstacle_cost(min_dist, epsilon):
     """
         Compute the cost function now (From CHOMP paper)
         If min_dist < 0, cost = -min_dist + epsilon/2
-        If min_dist >= 0 && min_dist < epsilon, have a different cost 
+        If min_dist >= 0 && min_dist < epsilon, have a different cost
         If min_dist >= epsilon, cost = 0
     """
     cost = 0.
@@ -96,7 +96,7 @@ def sample_circle_workspace(box,
                             random_max=False,
                             maxnumtries=100):
     """ Samples a workspace made of a maximum of
-        nobjs_max circles that do not intersect 
+        nobjs_max circles that do not intersect
         todo replace the random environment script to use this function """
     workspace = Workspace(box)
     extent = box.extent()
@@ -109,7 +109,6 @@ def sample_circle_workspace(box,
     minrad = .10 * diagonal
     maxrad = .15 * diagonal
     nobj = nobjs_max if not random_max else int(ceil(random() * nobjs_max))
-    found = False
     for numtries in range(maxnumtries):
         r = minrad + random() * (maxrad - minrad)
         c = samplerandpt(lims)
@@ -123,7 +122,6 @@ def sample_circle_workspace(box,
 
 def random_environments(opt):
 
-    ndim = 2
     lims = np.array([[0., 1.], [0., 1.]])
     # size        = torch.LongStorage({opt.xsize, opt.ysize}) # col x row
     size = np.array([opt.xsize, opt.ysize])
@@ -132,7 +130,6 @@ def random_environments(opt):
     minrad = opt.minobjrad
     maxrad = opt.maxobjrad
     epsilon = opt.epsilon
-    padding = 3
     resolution_x = 1. / opt.xsize
     resolution_y = 1. / opt.ysize
     save_workspace = True
@@ -219,19 +216,6 @@ def random_environments(opt):
     return data, workspaces
 
 
-def get_yaml_options():
-    import yaml
-    directory = dataset.learning_data_dir()
-    filename = directory + os.sep + "synthetic_data.yaml"
-    with open(filename, 'r') as stream:
-        try:
-            options_data = yaml.load(stream)
-            # print(options_data)
-        except yaml.YAMLError as exc:
-            print(exc)
-    return options_data
-
-
 class RandomEnvironmentOptions:
 
     def __init__(self, dataset_id=None):
@@ -246,42 +230,60 @@ class RandomEnvironmentOptions:
         parser = optparse.OptionParser("usage: %prog [options] arg1 arg2")
 
         parser.add_option('--dataset_id',
-                          default="costdata2d_1k_demos", type="str", dest='dataset_id',
+                          default="costdata2d_1k_demos", type="str",
+                          dest='dataset_id',
                           help='Dataset ID')
 
         parser.add_option('--numdatasets',
                           default=1000, type="int", dest='numdatasets',
                           help='Number of datasets to generate')
         parser.add_option('--savefilename',
-                          default='2dcostdata.t7', type="string", dest='savefilename',
-                          help='Filename to save results in (in local directory)')
+                          default='2dcostdata.t7', type="string",
+                          dest='savefilename',
+                          help='Filename to save results in\
+                          (in local directory)')
         parser.add_option('--savematlabfile',
-                          default=False, type="int", dest='savematlabfile',
+                          default=False, type="int",
+                          dest='savematlabfile',
                           help='Save results in .mat format')
         parser.add_option('--xsize',
-                          default=28, type="int", dest='xsize',
-                          help='Size of the x-dimension (in pixels). X values go from 0-1')
+                          default=28, type="int",
+                          dest='xsize',
+                          help='Size of the x-dimension (in pixels).\
+                           X values go from 0-1')
         parser.add_option('--ysize',
-                          default=28, type="int", dest='ysize',
-                          help='Size of the y-dimension (in pixels). Y values go from 0-1')
+                          default=28, type="int",
+                          dest='ysize',
+                          help='Size of the y-dimension (in pixels).\
+                           Y values go from 0-1')
         parser.add_option('--maxnumobjs',
-                          default=3, type="int", dest='maxnumobjs',
-                          help='Maximum number of obst. per scene (ranges from 1-this number)')
+                          default=3, type="int",
+                          dest='maxnumobjs',
+                          help='Maximum number of obst. per scene\
+                           (ranges from 1-this number)')
         parser.add_option('--minobjrad',
-                          default=0.05, type="float", dest='minobjrad',
+                          default=0.05, type="float",
+                          dest='minobjrad',
                           help='Minimum radius of any obstacle (in m)')
         parser.add_option('--maxobjrad',
-                          default=0.3, type="float", dest='maxobjrad',
+                          default=0.3, type="float",
+                          dest='maxobjrad',
                           help='Maximum radius of any obstacle (in m)')
         parser.add_option('--epsilon',
-                          default=0.1, type="float", dest='epsilon',
-                          help='Distance from obstacle at which obstacle cost zeroes out (in m)')
+                          default=0.1, type="float",
+                          dest='epsilon',
+                          help='Distance from obstacle at which obstacle\
+                           cost zeroes out (in m)')
         parser.add_option('--display',
-                          default=False, type="int", dest='display',
-                          help='If set, displays the obstacle costs/occ grids in 2D')
+                          default=False, type="int",
+                          dest='display',
+                          help='If set, displays the obstacle\
+                           costs/occ grids in 2D')
         parser.add_option('--seed',
-                          default=0, type="int", dest='seed',
-                          help='Random number seed. -ve values mean random seed')
+                          default=0, type="int",
+                          dest='seed',
+                          help='Random number seed. -ve values\
+                           mean random seed')
 
         return parser
 
@@ -292,36 +294,8 @@ class RandomEnvironmentOptions:
             (options, args) = parser.parse_args()
             return options
         else:
-            options = get_yaml_options()[self._dataset_id]
+            options = dataset.get_yaml_options()[self._dataset_id]
             return dict_to_object(options)
-
-
-def get_dataset_id(data_id):
-    options_data = get_yaml_options()
-    options = dict_to_object(options_data[data_id])
-    filename = options.filename + "." + options.type
-    filepath = dataset.learning_data_dir() + os.sep + filename
-    if os.path.exists(filepath) and os.path.isfile(filepath):
-        data = dataset.CostmapDataset(filename)
-        numtrain = data.train_inputs.shape[0]
-        numtest = data.test_inputs.shape[0]
-        numdatasets = numtrain + numtest
-        assert options.numdatasets == numdatasets
-        assert options.xsize == data.train_targets.shape[1]
-        assert options.ysize == data.train_targets.shape[2]
-        assert options.xsize == data.train_inputs.shape[1]
-        assert options.ysize == data.train_inputs.shape[2]
-        assert options.xsize == data.test_targets.shape[1]
-        assert options.ysize == data.test_targets.shape[2]
-        assert options.xsize == data.test_inputs.shape[1]
-        assert options.ysize == data.test_inputs.shape[2]
-        return data
-    else:
-        datasets, workspaces = random_environments(options)
-        dataset.write_dictionary_to_file(datasets, filename)
-        dataset.write_dictionary_to_file(
-            workspaces, options.workspaces + "." + options.type)
-        return get_dataset_id(data_id)
 
 
 if __name__ == '__main__':

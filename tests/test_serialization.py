@@ -21,6 +21,7 @@ import __init__
 from learning.dataset import *
 from utils.misc import *
 import numpy as np
+import pickle
 
 
 def check_is_close(a, b, tolerance=1e-10):
@@ -57,6 +58,26 @@ def test_hdf5_dictionary_io():
     assert object_B.first == dic_A["first"]
 
 
+class TestObject:
+    name = "blah"
+
+
+def test_pickle_io():
+    filename = 'test_file.pkl'
+    thing1 = TestObject()
+    with open(filename, 'wb') as file:
+        print(thing1.name)
+        pickle.dump(thing1, file)
+
+    with open(filename, 'rb') as file:
+        thing2 = pickle.load(file)
+        print(thing2.name)
+
+    os.remove('test_file.pkl')
+    assert thing2.name == thing1.name
+
+
 if __name__ == "__main__":
     test_hdf5_io()
     test_hdf5_dictionary_io()
+    test_pickle_io()

@@ -183,6 +183,47 @@ def load_trajectories_from_file(filename='trajectories_1k_small.hdf5'):
     return trajectories
 
 
+def get_yaml_options():
+    import yaml
+    directory = learning_data_dir()
+    filename = directory + os.sep + "synthetic_data.yaml"
+    with open(filename, 'r') as stream:
+        try:
+            options_data = yaml.load(stream)
+            # print(options_data)
+        except yaml.YAMLError as exc:
+            print(exc)
+    return options_data
+
+
+def get_dataset_id(data_id):
+    options_data = get_yaml_options()
+    options = dict_to_object(options_data[data_id])
+    filename = options.filename + "." + options.type
+    filepath = learning_data_dir() + os.sep + filename
+    if os.path.exists(filepath) and os.path.isfile(filepath):
+        data = CostmapDataset(filename)
+        numtrain = data.train_inputs.shape[0]
+        numtest = data.test_inputs.shape[0]
+        numdatasets = numtrain + numtest
+        assert options.numdatasets == numdatasets
+        assert options.xsize == data.train_targets.shape[1]
+        assert options.ysize == data.train_targets.shape[2]
+        assert options.xsize == data.train_inputs.shape[1]
+        assert options.ysize == data.train_inputs.shape[2]
+        assert options.xsize == data.test_targets.shape[1]
+        assert options.ysize == data.test_targets.shape[2]
+        assert options.xsize == data.test_inputs.shape[1]
+        assert options.ysize == data.test_inputs.shape[2]
+        return data
+    else:
+        datasets, workspaces = random_environments(options)
+        write_dictionary_to_file(datasets, filename)
+        write_dictionary_to_file(
+            workspaces, options.workspaces + "." + options.type)
+        return get_dataset_id(data_id)
+
+
 class CostmapDataset(object):
 
     def __init__(self, filename):
