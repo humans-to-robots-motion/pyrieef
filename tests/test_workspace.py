@@ -34,13 +34,13 @@ def test_box():
     for k, vertex in enumerate(verticies):
         print("vertex {} : {}".format(k, vertex))
 
-    # dist = box.dist_from_border(np.array([0.0, 1.0]))
-    # print("dist = ", dist)
-    # assert np.fabs(dist - 0.5) < 1.e-06
+    dist = box.dist_from_border(np.array([0.0, 1.0]))
+    print("dist = ", dist)
+    assert np.fabs(dist - 0.5) < 1.e-06
 
-    # dist = box.dist_from_border(np.array([1.0, 0.0]))
-    # print("dist = ", dist)
-    # assert np.fabs(dist - 0.5) < 1.e-06
+    dist = box.dist_from_border(np.array([1.0, 0.0]))
+    print("dist = ", dist)
+    assert np.fabs(dist - 0.5) < 1.e-06
 
 
 def test_inside_box():
@@ -54,6 +54,15 @@ def test_inside_box():
             p = np.random.random(box.origin.size)
             assert not box.is_inside(p + box.upper_corner())
             assert not box.is_inside(-1. * p + box.lower_corner())
+
+
+def test_segment():
+    p1 = np.random.random(2)
+    p2 = np.random.random(2)
+    l = segment_from_end_points(p1, p2)
+    p1_l, p2_l = l.end_points()
+    assert_allclose(p1, p1_l)
+    assert_allclose(p2, p2_l)
 
 
 def test_ellipse():
@@ -137,6 +146,7 @@ if __name__ == "__main__":
 
     test_box()
     test_inside_box()
+    test_segment()
     test_ellipse()
     test_sdf_derivatives()
     test_sdf_workspace()

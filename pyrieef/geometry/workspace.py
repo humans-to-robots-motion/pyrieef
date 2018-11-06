@@ -160,7 +160,7 @@ class Segment(Shape):
             [np.cos(self.orientation), np.sin(self.orientation)])
         p_1 = self.origin + p_0
         p_2 = self.origin + -1. * p_0
-        return p1, p_2
+        return p_1, p_2
 
     def sampled_points(self):
         points = []
@@ -173,6 +173,7 @@ class Segment(Shape):
     def dist_from_border(self, q):
         """
         Distance from a segment
+        TODO test.
         """
         p1, p2 = self.end_points()
         u = p2 - p1
@@ -180,6 +181,14 @@ class Segment(Shape):
         p = p1 + np.dot(u, v) * u / np.dot(u, u)
         dist = np.linalg.norm(p - q)
         return dist
+
+
+def segment_from_end_points(p1, p2):
+    p12 = p1 - p2
+    return Segment(
+        origin=(p1 + p2) / 2.,
+        orientation=np.arctan2(p12[1], p12[0]),
+        length=np.linalg.norm(p12))
 
 
 class Box(Shape):
@@ -243,8 +252,15 @@ class Box(Shape):
         return verticies
 
     def dist_from_border(self, x):
-        """ TODO use the segment class """
-        return None
+        """ TODO test """
+        v = self.verticies()
+        distances = [None] * 4
+        distances[0] = segment_from_end_points(v[0], v[1]).dist_from_border(x)
+        distances[1] = segment_from_end_points(v[1], v[2]).dist_from_border(x)
+        distances[2] = segment_from_end_points(v[2], v[3]).dist_from_border(x)
+        distances[3] = segment_from_end_points(v[3], v[0]).dist_from_border(x)
+        sign = -1. if self.is_inside(x) else 1.
+        return sign * min(distances)
 
     def sample_line(self, p_1, p_2):
         points = []
