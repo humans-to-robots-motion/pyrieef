@@ -142,7 +142,9 @@ class Ellipse(Shape):
 
 class Segment(Shape):
     """ A segment defined with an origin, length and orientaiton
-        TODO define distance"""
+        TODO :
+            - define distance
+            - test distance"""
 
     def __init__(self,
                  origin=np.array([0., 0.]),
@@ -153,16 +155,31 @@ class Segment(Shape):
         self.orientation = orientation
         self.length = length
 
-    def sampled_points(self):
-        points = []
-        p_0 = 0.5 * self.length * np.array([
-            np.cos(self.orientation), np.sin(self.orientation)])
+    def end_points(self):
+        p_0 = .5 * self.length * np.array(
+            [np.cos(self.orientation), np.sin(self.orientation)])
         p_1 = self.origin + p_0
         p_2 = self.origin + -1. * p_0
+        return p1, p_2
+
+    def sampled_points(self):
+        points = []
+        p1, p2 = self.end_points()
         for alpha in np.linspace(0., 1., self.nb_points):
             # Linear interpolation
             points.append((1. - alpha) * p_1 + alpha * p_2)
         return points
+
+    def dist_from_border(self, q):
+        """
+        Distance from a segment
+        """
+        p1, p2 = self.end_points()
+        u = p2 - p1
+        v = q - p1
+        p = p1 + np.dot(u, v) * u / np.dot(u, u)
+        dist = np.linalg.norm(p - q)
+        return dist
 
 
 class Box(Shape):
@@ -174,11 +191,13 @@ class Box(Shape):
         TODO 1) define distance
              2) class should work for 2D and 3D boxes
              3) test this function
+             4) make callable using stack
     """
 
     def __init__(self,
                  origin=np.array([0., 0.]),
                  dim=np.array([1., 1.])):
+        Shape.__init__(self)
         self.origin = origin
         self.dim = dim
 
@@ -194,29 +213,54 @@ class Box(Shape):
     def is_inside(self, x):
         """ works (tested) for arbitrary dimensions, 2d and 3d,
             might not work if called on meshgrid data """
-        assert x.size == self.origin.size
-        for x_i, corner_i in zip(x, self.lower_corner()):
-            if x_i < corner_i:
-                return False
-        for x_i, corner_i in zip(x, self.upper_corner()):
-            if x_i > corner_i:
-                return False
+        # assert x.size == self.origin.size
+
+        corner = self.lower_corner()
+        if x[0] < corner[0]:
+            return False
+        if x[1] < corner[1]:
+            return False
+
+        corner = self.upper_corner()
+        if x[0] > corner[0]:
+            return False
+        if x[1] > corner[1]:
+            return False
+
         return True
 
-    def vertices(self):
+    def verticies(self):
         """ TODO test this function """
-        verticies = [self.origin.copy()] * 4
-        verticies[0][0] += .5 * self.dim[0]
-        verticies[0][1] -= .5 * self.dim[1]
-        verticies[1][0] -= .5 * self.dim[0]
-        verticies[1][1] += .5 * self.dim[1]
-        verticies[2] -= .5 * self.dim
-        verticies[3] += .5 * self.dim
+        verticies = [None] * 4
+        verticies[0] = self.lower_corner()
+        verticies[1] = np.zeros(2)
+        verticies[1][0] = self.origin[0] + .5 * self.dim[0]
+        verticies[1][1] = self.origin[1] - .5 * self.dim[1]
+        verticies[2] = self.upper_corner()
+        verticies[3] = np.zeros(2)
+        verticies[3][0] = self.origin[0] - .5 * self.dim[0]
+        verticies[3][1] = self.origin[1] + .5 * self.dim[1]
         return verticies
 
     def dist_from_border(self, x):
-        distances = [np.linalg.norm(x - vertex) for vertex in self.verticies()]
-        return min(distances) if not self.is_inside(x) else -min(distances)
+        """ TODO use the segment class """
+        return None
+
+    def sample_line(self, p_1, p_2):
+        points = []
+        for alpha in np.linspace(0., 1., self.nb_points / 4):
+            # Linear interpolation
+            points.append((1. - alpha) * p_1 + alpha * p_2)
+        return points
+
+    def sampled_points(self):
+        points = []
+        verticies = self.verticies()
+        points.extend(self.sample_line(verticies[0], verticies[1]))
+        points.extend(self.sample_line(verticies[1], verticies[2]))
+        points.extend(self.sample_line(verticies[2], verticies[3]))
+        points.extend(self.sample_line(verticies[3], verticies[0]))
+        return points
 
 
 class SignedDistance2DMap(DifferentiableMap):
@@ -435,11 +479,10 @@ def sample_circles(nb_circles):
 
 
 def sample_workspace(nb_circles, radius_parameter=.15):
-    """ Samples a workspace randomly composed of nb_circles 
-        the radius parameter specifies the 
+    """ Samples a workspace randomly composed of nb_circles
+        the radius parameter specifies the
         max fraction of workspace diagonal used for a circle radius. """
     workspace = Workspace()
-    extent = workspace.box.extent()
     max_radius = radius_parameter * workspace.box.diag()
     min_radius = .5 * radius_parameter * workspace.box.diag()
     workspace.obstacles = [None] * nb_circles

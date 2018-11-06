@@ -25,6 +25,37 @@ from geometry.workspace import *
 from itertools import product
 from numpy.testing import assert_allclose
 
+
+def test_box():
+
+    box = Box()
+
+    verticies = box.verticies()
+    for k, vertex in enumerate(verticies):
+        print("vertex {} : {}".format(k, vertex))
+
+    # dist = box.dist_from_border(np.array([0.0, 1.0]))
+    # print("dist = ", dist)
+    # assert np.fabs(dist - 0.5) < 1.e-06
+
+    # dist = box.dist_from_border(np.array([1.0, 0.0]))
+    # print("dist = ", dist)
+    # assert np.fabs(dist - 0.5) < 1.e-06
+
+
+def test_inside_box():
+    for n in [2, 3]:
+        box = EnvBox(
+            origin=np.random.rand(n),
+            dim=np.random.rand(n) + .5 * np.ones(n))
+        for i in range(50):
+            p = box.sample_uniform()
+            assert box.is_inside(p)
+            p = np.random.random(box.origin.size)
+            assert not box.is_inside(p + box.upper_corner())
+            assert not box.is_inside(-1. * p + box.lower_corner())
+
+
 def test_ellipse():
 
     ellipse = Ellipse()
@@ -102,23 +133,13 @@ def test_workspace_to_occupancy_map():
         assert_allclose(occ[i, j], v)
 
 
-def test_inside_box():
-    for n in [2, 3]:
-        box = EnvBox(
-            origin=np.random.rand(n),
-            dim=np.random.rand(n) + .5 * np.ones(n))
-        for i in range(50):
-            p = box.sample_uniform()
-            assert box.is_inside(p)
-            p = np.random.random(box.origin.size)
-            assert not box.is_inside(p + box.upper_corner())
-            assert not box.is_inside(-1. * p + box.lower_corner())
-
 if __name__ == "__main__":
+
+    test_box()
+    test_inside_box()
     test_ellipse()
     test_sdf_derivatives()
     test_sdf_workspace()
     test_meshgrid()
     test_sdf_grid()
     test_workspace_to_occupancy_map()
-    test_inside_box()
