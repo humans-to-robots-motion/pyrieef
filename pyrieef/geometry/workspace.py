@@ -252,10 +252,9 @@ class Box(Shape):
         single = x.shape == (2,) or x.shape == (3,)
         shape = 1 if single else (x.shape[1], x.shape[2])
         outside = np.full(shape, True)
-        outside = np.where(x[0] < l_corner[0], False, outside)
-        outside = np.where(x[1] < l_corner[1], False, outside)
-        outside = np.where(x[0] > u_corner[0], False, outside)
-        outside = np.where(x[1] > u_corner[1], False, outside)
+        for k in range(x.shape[0]):
+            outside = np.where(x[k] < l_corner[k], False, outside)
+            outside = np.where(x[k] > u_corner[k], False, outside)
         return outside
 
     def verticies(self):
