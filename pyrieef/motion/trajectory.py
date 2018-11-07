@@ -262,7 +262,7 @@ class Trajectory:
         Note there is T active configuration in the trajectory
         indices
                 0 and T + 1
-            are not supposed to be active.
+            are supposed to be inactive.
         """
 
     def __init__(self, T=0, n=2, q_init=None, x=None):

@@ -130,8 +130,8 @@ class WorkspaceDrawer(WorkspaceRender):
 
     def draw_ws_background(self, phi, nb_points=100):
         X, Y = self._workspace.box.stacked_meshgrid(nb_points)
-        # Z = phi(np.stack([X, Y])).T
-        Z = two_dimension_function_evaluation(X, Y, phi).T
+        Z = phi(np.stack([X, Y])).T
+        # Z = two_dimension_function_evaluation(X, Y, phi).T
         self.draw_ws_img(Z)
 
     def draw_ws_img(self, Z):
