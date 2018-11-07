@@ -58,10 +58,10 @@ class Shape:
 
 class Circle(Shape):
 
-    def __init__(self, c=np.array([0., 0.]), r=0.2):
+    def __init__(self, origin=np.array([0., 0.]), radius=0.2):
         Shape.__init__(self)
-        self.origin = c
-        self.radius = r
+        self.origin = origin
+        self.radius = radius
 
     def dist_from_border(self, x):
         """
@@ -156,18 +156,18 @@ class Segment(Shape):
         self.length = length
 
     def end_points(self):
-        p_0 = .5 * self.length * np.array(
+        p0 = .5 * self.length * np.array(
             [np.cos(self.orientation), np.sin(self.orientation)])
-        p_1 = self.origin + p_0
-        p_2 = self.origin + -1. * p_0
-        return p_1, p_2
+        p1 = self.origin + p0
+        p2 = self.origin + -1. * p0
+        return p1, p2
 
     def sampled_points(self):
         points = []
         p1, p2 = self.end_points()
         for alpha in np.linspace(0., 1., self.nb_points):
             # Linear interpolation
-            points.append((1. - alpha) * p_1 + alpha * p_2)
+            points.append((1. - alpha) * p1 + alpha * p2)
         return points
 
     def dist_from_border(self, q):
@@ -176,9 +176,19 @@ class Segment(Shape):
         TODO test.
         """
         p1, p2 = self.end_points()
+
         u = p2 - p1
-        v = q - p1
-        p = p1 + np.dot(u, v) * u / np.dot(u, u)
+        v = np.zeros(q.shape)
+        v[0] = q[0] - p1[0]
+        v[1] = q[1] - p1[1]
+        d = np.dot(u, v) / np.dot(u, u)
+        if d < 0.:
+            p = p1
+        elif d > 1.:
+            p = p2
+        else:
+            p = p1 + d * u
+
         dist = np.linalg.norm(p - q)
         return dist
 
@@ -271,11 +281,11 @@ class Box(Shape):
 
     def sampled_points(self):
         points = []
-        verticies = self.verticies()
-        points.extend(self.sample_line(verticies[0], verticies[1]))
-        points.extend(self.sample_line(verticies[1], verticies[2]))
-        points.extend(self.sample_line(verticies[2], verticies[3]))
-        points.extend(self.sample_line(verticies[3], verticies[0]))
+        v = self.verticies()
+        points.extend(self.sample_line(v[0], v[1]))
+        points.extend(self.sample_line(v[1], v[2]))
+        points.extend(self.sample_line(v[2], v[3]))
+        points.extend(self.sample_line(v[3], v[0]))
         return points
 
 
@@ -350,13 +360,14 @@ def occupancy_map(nb_points, workspace):
 
 
 class EnvBox(Box):
-    """ Specializes a box to defined an environment 
+    """
+    Specializes a box to defined an environment
 
-        Parameters
-        ----------
-        origin: is in the center of the box
-        dim: size of the box
-        """
+    Parameters
+    ----------
+    origin: is in the center of the box
+    dim: size of the box
+    """
 
     def __init__(self,
                  origin=np.array([0., 0.]),

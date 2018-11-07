@@ -26,15 +26,6 @@ from mpl_toolkits.mplot3d import Axes3D
 from pyrieef.geometry.differentiable_geometry import *
 
 
-class ExpF(DifferentiableMap):
-
-    def output_dimension(self): return 1
-
-    def input_dimension(self): return 2
-
-    def forward(self, p):
-        assert p.size == 2
-        return np.exp(-(2 * p[0])**2 - (p[1] / 2)**2)
 
 # Regularly-spaced, coarse grid
 dx, dy = 0.4, 0.4
@@ -55,7 +46,7 @@ Z2 = interp_spline(x2, y2)
 g2_x = interp_spline(x2, y2, dx=1)  # Gradient x
 g2_y = interp_spline(x2, y2, dy=1)  # Gradient y
 
-f = ExpF()
+f = ExpTestFunction()
 g1_x = np.zeros((x2.size, y2.size))
 g1_y = np.zeros((x2.size, y2.size))
 z1 = np.zeros((x2.size, y2.size))

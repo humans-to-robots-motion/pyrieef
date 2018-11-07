@@ -21,6 +21,7 @@ import numpy as np
 from .differentiable_geometry import *
 from scipy.interpolate import RectBivariateSpline
 from scipy import ndimage
+from itertools import product
 
 
 def edt(image):
@@ -129,3 +130,23 @@ def costmap_from_matrix(extent, matrix):
     assert extent.x() == extent.y()
     resolution = extent.x() / matrix.shape[0]
     return RegressedPixelGridSpline(matrix, resolution, extent)
+
+
+def two_dimension_function_evaluation(X, Y, phi):
+    """
+    Evaluates a function at X Y test points given by meshgrid
+
+        x = y = np.linspace(min, max, n)
+        X, Y = np.meshgrid(x, y)
+
+    Parameters
+    ----------
+        X : numpy array (n, n)
+        Y : numpy array (n, n)
+        phi : function
+    """
+    assert X.shape[0] == X.shape[1] == Y.shape[0] == Y.shape[1]
+    Z = np.zeros(X.shape)
+    for i, j in product(range(X.shape[0]), range(X.shape[0])):
+        Z[i, j] = phi(np.array([X[i, j], Y[i, j]]))
+    return Z

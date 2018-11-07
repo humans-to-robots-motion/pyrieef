@@ -441,6 +441,19 @@ class ZeroMap(DifferentiableMap):
         return np.matrix(np.zeros((self._n, self._n)))
 
 
+class ExpTestFunction(DifferentiableMap):
+    """ Test function that can be evaluated on a grid """
+
+    def output_dimension(self):
+        return 1
+
+    def input_dimension(self):
+        return 2
+
+    def forward(self, p):
+        return np.exp(-(2 * p[0])**2 - (p[1] / 2)**2)
+
+
 def finite_difference_jacobian(f, q):
     """ Takes an object f that has a forward method returning
     a numpy array when querried. """

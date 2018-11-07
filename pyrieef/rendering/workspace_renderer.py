@@ -36,6 +36,7 @@ try:
     from . import heightmap as hm
 except ImportError as e:
     print(e)
+from itertools import product
 
 # Red, Green, Blue
 COLORS = [(139, 0, 0),  (0, 100, 0), (0, 0, 139)]
@@ -128,8 +129,9 @@ class WorkspaceDrawer(WorkspaceRender):
             self._ax.plot(X, Y, color=colorst[i], linewidth=2.0)
 
     def draw_ws_background(self, phi, nb_points=100):
-        X, Y = self._workspace.box.meshgrid(nb_points)
-        Z = phi(np.stack([X, Y])).T
+        X, Y = self._workspace.box.stacked_meshgrid(nb_points)
+        # Z = phi(np.stack([X, Y])).T
+        Z = two_dimension_function_evaluation(X, Y, phi).T
         self.draw_ws_img(Z)
 
     def draw_ws_img(self, Z):
@@ -238,7 +240,7 @@ class WorkspaceOpenGl(WorkspaceRender):
                 # print(("o.origin {}, o.radius {}".format(
                 #     o.origin, o.radius)))
                 circ.add_attr(t)
-                circ.set_color(*COLORS[i%3])
+                circ.set_color(*COLORS[i % 3])
                 self.gl.add_geom(circ)
 
     def show(self):
@@ -256,7 +258,7 @@ class WorkspaceHeightmap(WorkspaceRender):
         self.width = 30
         self.height = self.width
         self.load_background = True
-        self._window = window = pyglet.window.Window(
+        self._window = pyglet.window.Window(
             width=int(self._scale * 800),
             height=int(self._scale * 600),
             caption='Heightmap', resizable=True)

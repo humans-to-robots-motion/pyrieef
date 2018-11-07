@@ -64,6 +64,14 @@ def test_pixelmap_meshgrid():
         p_w2 = pixel_map.grid_to_world(p_g1)
         assert_allclose(p_w1, p_w2)
 
+    print("Test two_dimensional_function_eval")
+    f = ExpTestFunction()
+    x = y = np.linspace(-1., 1., 100)
+    X, Y = np.meshgrid(x, y)
+    Z1 = two_dimension_function_evaluation(X, Y, f)
+    Z2 = f(np.stack([X, Y]))
+    assert_allclose(Z1, Z2)
+
 
 def test_regressed_grid():
 
@@ -109,6 +117,7 @@ def test_regressed_grid():
     assert check_is_close(Z2, z1, 1e-10)
     assert check_is_close(g2_x, g1_x, 1e-10)
     assert check_is_close(g2_y, g1_y, 1e-10)
+
 
 if __name__ == "__main__":
     test_pixelmap_random()
