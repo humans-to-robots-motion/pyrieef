@@ -245,8 +245,17 @@ class Box(Shape):
         return np.linalg.norm(self.dim)
 
     def is_inside(self, x):
-        """ works (tested) for arbitrary dimensions, 2d and 3d,
-            might not work if called on meshgrid data """
+        """
+        Returns false if any of the component of the vector
+        is smaller or bigger than the lower and top corner
+        of the box respectively
+
+        Parameters
+        ----------
+        x : numpy array with
+            arbitrary dimensions, 2d and 3d
+            or meshgrid data shape = (2 or 3, n, n)
+        """
         l_corner = self.lower_corner()
         u_corner = self.upper_corner()
         single = x.shape == (2,) or x.shape == (3,)
