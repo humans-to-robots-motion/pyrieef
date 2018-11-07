@@ -248,45 +248,40 @@ class Box(Shape):
     def is_inside(self, x):
         """ works (tested) for arbitrary dimensions, 2d and 3d,
             might not work if called on meshgrid data """
-        # assert x.size == self.origin.size
-
-        corner = self.lower_corner()
-        if x[0] < corner[0]:
-            return False
-        if x[1] < corner[1]:
-            return False
-
-        corner = self.upper_corner()
-        if x[0] > corner[0]:
-            return False
-        if x[1] > corner[1]:
-            return False
-
-        return True
+        l_corner = self.lower_corner()
+        u_corner = self.upper_corner()
+        shape = 1 if x.shape == (2,) else (x.shape[1], x.shape[2])
+        outside = np.full(shape, True)
+        outside = np.where(x[0] < l_corner[0], False, outside)
+        outside = np.where(x[1] < l_corner[1], False, outside)
+        outside = np.where(x[0] > u_corner[0], False, outside)
+        outside = np.where(x[1] > u_corner[1], False, outside)
+        return outside
 
     def verticies(self):
-        """ TODO test this function """
-        verticies = [None] * 4
-        verticies[0] = self.lower_corner()
-        verticies[1] = np.zeros(2)
-        verticies[1][0] = self.origin[0] + .5 * self.dim[0]
-        verticies[1][1] = self.origin[1] - .5 * self.dim[1]
-        verticies[2] = self.upper_corner()
-        verticies[3] = np.zeros(2)
-        verticies[3][0] = self.origin[0] - .5 * self.dim[0]
-        verticies[3][1] = self.origin[1] + .5 * self.dim[1]
-        return verticies
+        """ TODO test """
+        v = [None] * 4
+        v[0] = self.lower_corner()
+        v[1] = np.zeros(2)
+        v[1][0] = self.origin[0] + .5 * self.dim[0]
+        v[1][1] = self.origin[1] - .5 * self.dim[1]
+        v[2] = self.upper_corner()
+        v[3] = np.zeros(2)
+        v[3][0] = self.origin[0] - .5 * self.dim[0]
+        v[3][1] = self.origin[1] + .5 * self.dim[1]
+        return v
 
     def dist_from_border(self, x):
         """ TODO test """
         v = self.verticies()
-        distances = [None] * 4
-        distances[0] = segment_from_end_points(v[0], v[1]).dist_from_border(x)
-        distances[1] = segment_from_end_points(v[1], v[2]).dist_from_border(x)
-        distances[2] = segment_from_end_points(v[2], v[3]).dist_from_border(x)
-        distances[3] = segment_from_end_points(v[3], v[0]).dist_from_border(x)
-        sign = -1. if self.is_inside(x) else 1.
-        return sign * min(distances)
+        d = [None] * 4
+        d[0] = segment_from_end_points(v[0], v[1]).dist_from_border(x)
+        d[1] = segment_from_end_points(v[1], v[2]).dist_from_border(x)
+        d[2] = segment_from_end_points(v[2], v[3]).dist_from_border(x)
+        d[3] = segment_from_end_points(v[3], v[0]).dist_from_border(x)
+        sign = np.where(self.is_inside(x), -1., 1.)
+        minimum = np.min(np.array(d), axis=0)
+        return sign * minimum
 
     def sample_line(self, p_1, p_2):
         points = []

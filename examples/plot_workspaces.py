@@ -23,10 +23,10 @@ from pyrieef.rendering.workspace_renderer import WorkspaceDrawer
 
 env = EnvBox(dim=np.array([2., 2.]))
 box = Box(origin=np.array([-.2, -.2]))
-segment = Segment(origin=np.array([.4, .1]), orientation=0.2)
+segment = Segment(origin=np.array([.4, -.1]), orientation=0.2)
 circle = Circle(origin=np.array([.5, .5]), radius=0.2)
 workspace = Workspace(env)
-# workspace.obstacles.append(box)
+workspace.obstacles.append(box)
 workspace.obstacles.append(segment)
 workspace.obstacles.append(circle)
 viewer = WorkspaceDrawer(workspace, wait_for_keyboard=True)
