@@ -251,11 +251,12 @@ class Box(Shape):
         u_corner = self.upper_corner()
         single = x.shape == (2,) or x.shape == (3,)
         shape = 1 if single else (x.shape[1], x.shape[2])
-        outside = np.full(shape, True)
+        inside = np.full(shape, True)
         for k in range(x.shape[0]):
-            outside = np.where(x[k] < l_corner[k], False, outside)
-            outside = np.where(x[k] > u_corner[k], False, outside)
-        return outside
+            inside = np.where(np.logical_or(
+                x[k] < l_corner[k],
+                x[k] > u_corner[k]), False, inside)
+        return inside
 
     def verticies(self):
         """ TODO test """
