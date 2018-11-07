@@ -249,7 +249,8 @@ class Box(Shape):
             might not work if called on meshgrid data """
         l_corner = self.lower_corner()
         u_corner = self.upper_corner()
-        shape = 1 if x.shape == (2,) else (x.shape[1], x.shape[2])
+        single = x.shape == (2,) or x.shape == (3,)
+        shape = 1 if single else (x.shape[1], x.shape[2])
         outside = np.full(shape, True)
         outside = np.where(x[0] < l_corner[0], False, outside)
         outside = np.where(x[1] < l_corner[1], False, outside)
