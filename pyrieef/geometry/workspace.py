@@ -172,8 +172,7 @@ class Segment(Shape):
 
     def dist_from_border(self, q):
         """
-        Distance from a segment
-        TODO test.
+        TODO test
         """
         p1, p2 = self.end_points()
         u = p2 - p1
