@@ -39,14 +39,23 @@ class Shape:
         self.nb_points = 50
 
     @abstractmethod
+    def closest_point(self, x):
+        raise NotImplementedError()
+
+    @abstractmethod
     def dist_from_border(self, x):
         raise NotImplementedError()
 
-    @abstractmethod
-    def dist_gradient(self, x):
-        raise NotImplementedError()
+    def is_inside(self, x):
+        return False
 
-    @abstractmethod
+    def dist_gradient(self, x):
+        """ Warning: not parraleized but should work from 3D
+            This works for shapes with no volumes such as segments"""
+        sign = -1. if self.is_inside(x) else 1.
+        x_center = x - self.closest_point(x)
+        return sign * x_center / np.linalg.norm(x_center)
+
     def dist_hessian(self, x):
         raise NotImplementedError()
 
@@ -75,6 +84,15 @@ class Circle(Shape):
             x : numpy array
         """
         return np.linalg.norm((x.T - self.origin).T, axis=0) - self.radius
+
+    def is_inside(self, x):
+        x_center = (x.T - self.origin).T
+        return np.linalg.norm(x_center, axis=0) < self.radius
+
+    def closest_point(self, x):
+        x_center = (x.T - self.origin).T
+        p_in_circle = self.radius * x_center / np.linalg.norm(x_center)
+        return p_in_circle + self.origin
 
     def dist_gradient(self, x):
         """ Warning: not parraleized but should work from 3D """
@@ -169,22 +187,30 @@ class Segment(Shape):
             points.append((1. - alpha) * p1 + alpha * p2)
         return points
 
+    def closest_point(self, x):
+        p1, p2 = self.end_points()
+        u = p2 - p1
+        v = x - p1
+        d = np.dot(u, v) / np.dot(u, u)
+        if d < 0.:
+            p = p1
+        elif d > 1.:
+            p = p2
+        else:
+            p = p1 + d * u
+        return p
+
     def dist_from_border(self, q):
         """
         TODO test
         """
-        p1, p2 = self.end_points()
-        u = p2 - p1
-        v = (q.T - p1).T
         if q.shape == (2,):
-            d = np.dot(u, v) / np.dot(u, u)
-            if d < 0.:
-                p = p1
-            elif d > 1.:
-                p = p2
-            else:
-                p = p1 + d * u
+            p = self.closest_point(q)
+            return np.linalg.norm(p - q)
         else:
+            p1, p2 = self.end_points()
+            u = p2 - p1
+            v = (q.T - p1).T
             d = np.tensordot(u, v, axes=1) / np.dot(u, u)
             shape = q.shape
             p = np.full(shape, np.inf)
@@ -195,7 +221,7 @@ class Segment(Shape):
                 p[k] = np.where(is_l_side, p1[k], p[k])
                 p[k] = np.where(is_r_side, p2[k], p[k])
                 p[k] = np.where(is_intersection, p1[k] + d * u[k], p[k])
-        return np.linalg.norm(p - q, axis=0)
+            return np.linalg.norm(p - q, axis=0)
 
 
 def segment_from_end_points(p1, p2):
@@ -270,14 +296,31 @@ class Box(Shape):
         v[3][1] = self.origin[1] + .5 * self.dim[1]
         return v
 
+    def segments(self):
+        v = self.verticies()
+        s = [None] * 4
+        s[0] = segment_from_end_points(v[0], v[1])
+        s[1] = segment_from_end_points(v[1], v[2])
+        s[2] = segment_from_end_points(v[2], v[3])
+        s[3] = segment_from_end_points(v[3], v[0])
+        return s
+
+    def closest_point(self, x):
+        min_dist = np.inf
+        closest_point = np.zeros(x.shape)
+        for segment in self.segments():
+            p = segment.closest_point(x)
+            d = np.linalg.norm(x - p)
+            if min_dist > d:
+                min_dist = d
+                closest_point = p.copy()
+        return closest_point
+
     def dist_from_border(self, x):
         """ TODO test """
-        v = self.verticies()
         d = [None] * 4
-        d[0] = segment_from_end_points(v[0], v[1]).dist_from_border(x)
-        d[1] = segment_from_end_points(v[1], v[2]).dist_from_border(x)
-        d[2] = segment_from_end_points(v[2], v[3]).dist_from_border(x)
-        d[3] = segment_from_end_points(v[3], v[0]).dist_from_border(x)
+        for i, segment in enumerate(self.segments()):
+            d[i] = segment.dist_from_border(x)
         sign = np.where(self.is_inside(x), -1., 1.)
         minimum = np.min(np.array(d), axis=0)
         return sign * minimum

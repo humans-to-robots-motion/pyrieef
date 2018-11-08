@@ -132,6 +132,7 @@ class MotionOptimization2DCostMap:
         p2 = np.array([-.1, .15])
         workspace.obstacles.append(Circle(p1, .1))
         workspace.obstacles.append(Circle(p2, .1))
+        # workspace.obstacles.append(Box(p2, .1))
         self.signed_distance_field = SignedDistanceWorkspaceMap(workspace)
         self.workspace = workspace
         return workspace

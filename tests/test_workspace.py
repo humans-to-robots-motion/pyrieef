@@ -26,6 +26,49 @@ from itertools import product
 from numpy.testing import assert_allclose
 
 
+def test_circle():
+    circle = Circle()
+    sdf = SignedDistance2DMap(circle)
+
+    print("Check Circle SDF (J implementation) : ")
+    assert check_jacobian_against_finite_difference(sdf)
+
+    print("Check Circle SDF (H implementation) : ")
+    assert check_hessian_against_finite_difference(sdf)
+
+    x = np.random.random(2)
+
+    # Test gradient outside circle
+    circle = Circle(radius=.2)
+    p1 = super(Circle, circle).dist_gradient(x)
+    p2 = circle.dist_gradient(x)
+    assert_allclose(p1, p2)
+
+    # Test gradient inside circle
+    circle = Circle(radius=2.)
+    p1 = super(Circle, circle).dist_gradient(x)
+    p2 = circle.dist_gradient(x)
+    assert_allclose(p1, p2)
+
+
+def test_segment():
+    p1 = np.random.random(2)
+    p2 = np.random.random(2)
+    l = segment_from_end_points(p1, p2)
+    p1_l, p2_l = l.end_points()
+    assert_allclose(p1, p1_l)
+    assert_allclose(p2, p2_l)
+
+    segment = Segment(orientation=.0)
+    sdf = SignedDistance2DMap(segment)
+
+    print("Check Segment SDF (J implementation) : ")
+    assert check_jacobian_against_finite_difference(sdf)
+
+    # print("Check Segment SDF (H implementation) : ")
+    # assert check_hessian_against_finite_difference(sdf)
+
+
 def test_box():
 
     box = Box()
@@ -42,6 +85,27 @@ def test_box():
     print("dist = ", dist)
     assert np.fabs(dist - 0.5) < 1.e-06
 
+    box = Box(
+        origin=np.array([.5, .5]),
+        dim=np.array([1., 1.])
+    )
+    sdf = SignedDistance2DMap(box)
+
+    print("Check Box SDF (J implementation) : ")
+    assert check_jacobian_against_finite_difference(sdf)
+
+    # print("Check Box SDF (H implementation) : ")
+    # assert check_hessian_against_finite_difference(sdf)
+
+    box = Box(
+        origin=np.array([-.5, .5]),
+        dim=np.array([.5, .5])
+    )
+    sdf = SignedDistance2DMap(box)
+
+    print("Check Box SDF (J implementation) : ")
+    assert check_jacobian_against_finite_difference(sdf)
+
 
 def test_inside_box():
     for n in [2, 3]:  # TODO make it work for 3D
@@ -54,15 +118,6 @@ def test_inside_box():
             p = np.random.random(box.origin.size)
             assert not box.is_inside(p + box.upper_corner())
             assert not box.is_inside(-1. * p + box.lower_corner())
-
-
-def test_segment():
-    p1 = np.random.random(2)
-    p2 = np.random.random(2)
-    l = segment_from_end_points(p1, p2)
-    p1_l, p2_l = l.end_points()
-    assert_allclose(p1, p1_l)
-    assert_allclose(p2, p2_l)
 
 
 def test_ellipse():
@@ -144,9 +199,10 @@ def test_workspace_to_occupancy_map():
 
 if __name__ == "__main__":
 
+    test_circle()
+    test_segment()
     test_box()
     test_inside_box()
-    test_segment()
     test_ellipse()
     test_sdf_derivatives()
     test_sdf_workspace()
