@@ -26,6 +26,7 @@ import math
 from .pixel_map import *
 from abc import abstractmethod
 from .differentiable_geometry import *
+from scipy.spatial.distance import cdist
 
 
 class Shape:
@@ -70,11 +71,10 @@ class Circle(Shape):
             TODO make this generic (3D) and parallelizable... Tough.
         """
         x_center = np.zeros(x.shape)
-        x_center[0] = x[0] - self.origin[0]
-        x_center[1] = x[1] - self.origin[1]
+        for k in range(x_center.shape[0]):
+            x_center[k] = x[k] - self.origin[k]
         # Oddly the norm of numpy is slower than the standard library here...
-        # d = np.linalg.norm(x_center)
-        d = np.sqrt(x_center[0]**2 + x_center[1]**2)
+        d = np.linalg.norm(x_center, axis=0)
         return d - self.radius
 
     def dist_gradient(self, x):
