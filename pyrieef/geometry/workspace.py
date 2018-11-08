@@ -21,12 +21,10 @@ import numpy as np
 # import matplotlib.pyplot as plt
 # import matplotlib as mpl
 # from matplotlib.pyplot import cm
-import sys
 import math
 from .pixel_map import *
 from abc import abstractmethod
 from .differentiable_geometry import *
-from scipy.spatial.distance import cdist
 
 
 class Shape:
@@ -66,32 +64,33 @@ class Circle(Shape):
 
     def dist_from_border(self, x):
         """
-            Signed distance
+        Returns the signed distance (SD) to a circle shape;
+        negative inside and positive outside.
 
-            TODO make this generic (3D) and parallelizable... Tough.
+        This function is paralleized, meanning that if called on
+        an array (2 or 3, n, n) it will return a matrix of SDField.
+
+        Parameters
+        ----------
+            x : numpy array
         """
-        x_center = np.zeros(x.shape)
-        for k in range(x_center.shape[0]):
-            x_center[k] = x[k] - self.origin[k]
-        # Oddly the norm of numpy is slower than the standard library here...
-        d = np.linalg.norm(x_center, axis=0)
-        return d - self.radius
+        return np.linalg.norm((x.T - self.origin).T, axis=0) - self.radius
 
     def dist_gradient(self, x):
-        x_center = np.zeros(x.shape)
-        x_center[0] = x[0] - self.origin[0]
-        x_center[1] = x[1] - self.origin[1]
-        d = np.sqrt(x_center[0]**2 + x_center[1]**2)
+        """ Warning: not parraleized but should work from 3D """
+        x_center = (x.T - self.origin).T
+        d = np.linalg.norm(x_center, axis=0)
         return x_center / d
 
     def dist_hessian(self, x):
-        x_center = np.zeros(x.shape)
-        x_center[0] = x[0] - self.origin[0]
-        x_center[1] = x[1] - self.origin[1]
-        d_inv = 1. / np.sqrt(x_center[0]**2 + x_center[1]**2)
+        """ Warning: not parraleized but should work from 3D """
+        x_center = (x.T - self.origin).T
+        d = np.linalg.norm(x_center, axis=0)
+        d_inv = 1. / d
         return d_inv * np.eye(x.size) - d_inv**3 * np.outer(x_center, x_center)
 
     def sampled_points(self):
+        """ TODO make this generic (3D) and parallelizable... Tough."""
         points = []
         for theta in np.linspace(0, 2 * math.pi, self.nb_points):
             x = self.origin[0] + self.radius * np.cos(theta)
