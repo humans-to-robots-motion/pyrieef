@@ -48,7 +48,7 @@ objective = TrajectoryOptimizationViewer(
         T=trajectory.T(),
         q_init=trajectory.initial_configuration(),
         q_goal=trajectory.final_configuration()),
-    draw=False,
+    draw=True,
     draw_gradient=True)
 
 # ----------------------------------------------------------------------------
