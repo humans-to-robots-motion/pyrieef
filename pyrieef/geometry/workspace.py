@@ -175,16 +175,9 @@ class Segment(Shape):
         """
         p1, p2 = self.end_points()
         u = p2 - p1
-
-        v = np.zeros(q.shape)
-        v[0] = q[0] - p1[0]
-        v[1] = q[1] - p1[1]
-
-        d = u[0] * v[0] + u[1] * v[1]
-        d /= u[0] * u[0] + u[1] * u[1]
-
+        v = (q.T - p1).T
         if q.shape == (2,):
-
+            d = np.dot(u, v) / np.dot(u, u)
             if d < 0.:
                 p = p1
             elif d > 1.:
@@ -192,6 +185,7 @@ class Segment(Shape):
             else:
                 p = p1 + d * u
         else:
+            d = np.tensordot(u, v, axes=1) / np.dot(u, u)
             shape = q.shape
             p = np.full(shape, np.inf)
             is_l_side = d < 0.
@@ -201,10 +195,7 @@ class Segment(Shape):
                 p[k] = np.where(is_l_side, p1[k], p[k])
                 p[k] = np.where(is_r_side, p2[k], p[k])
                 p[k] = np.where(is_intersection, p1[k] + d * u[k], p[k])
-
-        x = p - q
-        dist = np.sqrt(x[0]**2 + x[1]**2)
-        return dist
+        return np.linalg.norm(p - q, axis=0)
 
 
 def segment_from_end_points(p1, p2):
