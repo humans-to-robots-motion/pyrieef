@@ -242,6 +242,10 @@ class Segment(Shape):
         return points
 
     def closest_point(self, x):
+        """
+        Compute the closest point by projecting to the infite line
+        and then checking if the point lines on the segment.
+        """
         p1, p2 = self.end_points()
         u = p2 - p1
         v = x - p1
