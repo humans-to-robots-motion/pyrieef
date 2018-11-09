@@ -39,16 +39,19 @@ def test_circle():
     x = np.random.random(2)
 
     # Test gradient outside circle
+    print("test circle 1")
     circle = Circle(radius=.2)
-    p1 = super(Circle, circle).dist_gradient(x)
-    p2 = circle.dist_gradient(x)
-    assert_allclose(p1, p2)
+
+    g1 = Shape.dist_gradient(circle, x)
+    g2 = circle.dist_gradient(x)
+    assert_allclose(g1, g2)
 
     # Test gradient inside circle
+    print("test circle 2")
     circle = Circle(radius=2.)
-    p1 = super(Circle, circle).dist_gradient(x)
-    p2 = circle.dist_gradient(x)
-    assert_allclose(p1, p2)
+    g1 = Shape.dist_gradient(circle, x)
+    g2 = circle.dist_gradient(x)
+    assert_allclose(g1, g2)
 
 
 def test_segment():
@@ -200,12 +203,12 @@ def test_workspace_to_occupancy_map():
 if __name__ == "__main__":
 
     test_circle()
-    test_segment()
-    test_box()
-    test_inside_box()
-    test_ellipse()
-    test_sdf_derivatives()
-    test_sdf_workspace()
-    test_meshgrid()
-    test_sdf_grid()
-    test_workspace_to_occupancy_map()
+    # test_segment()
+    # test_box()
+    # test_inside_box()
+    # test_ellipse()
+    # test_sdf_derivatives()
+    # test_sdf_workspace()
+    # test_meshgrid()
+    # test_sdf_grid()
+    # test_workspace_to_occupancy_map()

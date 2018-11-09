@@ -29,10 +29,12 @@ from .differentiable_geometry import *
 
 class Shape:
     """
-        This class of Shape represent two dimensional Shapes that can
-        be represented as analytical or other type of functions.
-        The implementations should return a set of points on the
-        perimeter of the Shapes.
+    Shape represents workspace objects in 2D or 3D.
+
+    The contour, distance and gradient and hessian of the distance
+    function are represented as analytical or other type of functions.
+    The implementations should return a set of points on the
+    contour, to allow easy drawing.
     """
 
     def __init__(self):
@@ -40,28 +42,83 @@ class Shape:
 
     @abstractmethod
     def closest_point(self, x):
+        """
+        Returns the closest point from x on the contour.
+
+        Parameters
+        ----------
+            x : numpy array
+        """
         raise NotImplementedError()
 
     @abstractmethod
     def dist_from_border(self, x):
+        """
+        Returns the sign distance at x.
+
+        Parameters
+        ----------
+            x : numpy array
+        """
         raise NotImplementedError()
 
     def is_inside(self, x):
+        """
+        Returns true if x is inside the shape
+        """
         return False
 
     def dist_gradient(self, x):
-        """ Warning: not parraleized but should work from 3D
-            This works for shapes with no volumes such as segments"""
+        """
+        Returns the gradient of the distance function.
+
+        it is simply a normalized vector pointing outwards from the center.
+        Note that it is equivalent to normalized vector pointing to the
+        closest point to the surface, flipped when inside the shape.
+
+        Warning: not parraleized but should work from 3D
+        This works for shapes with no volumes such as segments
+
+        Parameters
+        ----------
+            x : numpy array
+        """
+        print("base class")
         sign = -1. if self.is_inside(x) else 1.
         x_center = x - self.closest_point(x)
         return sign * x_center / np.linalg.norm(x_center)
 
     def dist_hessian(self, x):
+        """
+        Returns the hessian of the distance function.
+
+        Parameters
+        ----------
+            x : numpy array
+        """
         raise NotImplementedError()
 
     @abstractmethod
     def sampled_points(self):
         raise NotImplementedError()
+
+
+def point_distance_hessian(x, origin):
+    """
+    Returns the hessian of the distance function to a point
+
+    Note: that it balances two sumands
+        1) euclidean metric : identity
+        2)  pullback metric : the outer product of gradient
+
+    Parameters
+    ----------
+        x : numpy array
+        origin : numpy array
+    """
+    x_center = (x.T - origin).T
+    d_inv = 1. / np.linalg.norm(x_center, axis=0)
+    return d_inv * np.eye(x.size) - d_inv**3 * np.outer(x_center, x_center)
 
 
 class Circle(Shape):
@@ -96,16 +153,13 @@ class Circle(Shape):
 
     def dist_gradient(self, x):
         """ Warning: not parraleized but should work from 3D """
+        print("derived class")
         x_center = (x.T - self.origin).T
-        d = np.linalg.norm(x_center, axis=0)
-        return x_center / d
+        return x_center / np.linalg.norm(x_center, axis=0)
 
     def dist_hessian(self, x):
         """ Warning: not parraleized but should work from 3D """
-        x_center = (x.T - self.origin).T
-        d = np.linalg.norm(x_center, axis=0)
-        d_inv = 1. / d
-        return d_inv * np.eye(x.size) - d_inv**3 * np.outer(x_center, x_center)
+        return point_distance_hessian(x, self.origin)
 
     def sampled_points(self):
         """ TODO make this generic (3D) and parallelizable... Tough."""
@@ -222,6 +276,28 @@ class Segment(Shape):
                 p[k] = np.where(is_r_side, p2[k], p[k])
                 p[k] = np.where(is_intersection, p1[k] + d * u[k], p[k])
             return np.linalg.norm(p - q, axis=0)
+
+    def dist_hessian(self, x):
+        """ Warning: not parraleized but should work from 3D """
+        p1, p2 = self.end_points()
+        u = p2 - p1
+        v = x - p1
+        d = np.dot(u, v) / np.dot(u, u)
+        if d < 0.:      # close to p1, sphereical hessian
+            p = p1
+            x_center = (x.T - self.origin).T
+            d_inv = 1. / np.linalg.norm(x_center, axis=0)
+            return d_inv * np.eye(x.size) - d_inv**3 * np.outer(x_center, x_center)
+
+        elif d > 1.:    # close to p1, sphereical hessian
+            p = p2
+        else:           # close to segment, zero
+            p = p1 + d * u
+        return p
+
+        x_center = (x.T - self.origin).T
+        d_inv = 1. / np.linalg.norm(x_center, axis=0)
+        return d_inv * np.eye(x.size) - d_inv**3 * np.outer(x_center, x_center)
 
 
 def segment_from_end_points(p1, p2):
