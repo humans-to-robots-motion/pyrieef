@@ -278,26 +278,10 @@ class Segment(Shape):
             return np.linalg.norm(p - q, axis=0)
 
     def dist_hessian(self, x):
-        """ Warning: not parraleized but should work from 3D """
-        p1, p2 = self.end_points()
-        u = p2 - p1
-        v = x - p1
-        d = np.dot(u, v) / np.dot(u, u)
-        if d < 0.:      # close to p1, sphereical hessian
-            p = p1
-            x_center = (x.T - self.origin).T
-            d_inv = 1. / np.linalg.norm(x_center, axis=0)
-            return d_inv * np.eye(x.size) - d_inv**3 * np.outer(x_center, x_center)
-
-        elif d > 1.:    # close to p1, sphereical hessian
-            p = p2
-        else:           # close to segment, zero
-            p = p1 + d * u
-        return p
-
-        x_center = (x.T - self.origin).T
-        d_inv = 1. / np.linalg.norm(x_center, axis=0)
-        return d_inv * np.eye(x.size) - d_inv**3 * np.outer(x_center, x_center)
+        """ Warning: not parraleized but should work from 3D
+            TODO implement !!!!
+        """
+        raise NotImplementedError()
 
 
 def segment_from_end_points(p1, p2):
