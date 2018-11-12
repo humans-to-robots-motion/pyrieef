@@ -57,19 +57,24 @@ def test_circle():
 def test_segment():
     p1 = np.random.random(2)
     p2 = np.random.random(2)
-    l = segment_from_end_points(p1, p2)
-    p1_l, p2_l = l.end_points()
+    line = segment_from_end_points(p1, p2)
+    p1_l, p2_l = line.end_points()
     assert_allclose(p1, p1_l)
     assert_allclose(p2, p2_l)
 
-    segment = Segment(orientation=.0)
-    sdf = SignedDistance2DMap(segment)
-
-    print("Check Segment SDF (J implementation) : ")
-    assert check_jacobian_against_finite_difference(sdf)
-
-    # print("Check Segment SDF (H implementation) : ")
-    # assert check_hessian_against_finite_difference(sdf)
+    segments = []
+    segments.append(Segment(origin=np.array(
+        [-3., 0]), length=1., orientation=0.))
+    segments.append(Segment(origin=np.array(
+        [-3., 0]), length=1., orientation=1.57))
+    segments.append(Segment(origin=np.array(
+        [-3., 0]), length=1., orientation=3.14))
+    for segment in segments:
+        sdf = SignedDistance2DMap(segment)
+        print("Check Segment SDF (J implementation) : ")
+        assert check_jacobian_against_finite_difference(sdf)
+        print("Check Segment SDF (H implementation) : ")
+        assert check_hessian_against_finite_difference(sdf)
 
 
 def test_box():
@@ -88,26 +93,15 @@ def test_box():
     print("dist = ", dist)
     assert np.fabs(dist - 0.5) < 1.e-06
 
-    box = Box(
-        origin=np.array([.5, .5]),
-        dim=np.array([1., 1.])
-    )
-    sdf = SignedDistance2DMap(box)
-
-    print("Check Box SDF (J implementation) : ")
-    assert check_jacobian_against_finite_difference(sdf)
-
-    # print("Check Box SDF (H implementation) : ")
-    # assert check_hessian_against_finite_difference(sdf)
-
-    box = Box(
-        origin=np.array([-.5, .5]),
-        dim=np.array([.5, .5])
-    )
-    sdf = SignedDistance2DMap(box)
-
-    print("Check Box SDF (J implementation) : ")
-    assert check_jacobian_against_finite_difference(sdf)
+    boxes = []
+    boxes.append(Box(origin=np.array([.5, .5]), dim=np.array([1., 1.])))
+    boxes.append(Box(origin=np.array([-.5, .5]), dim=np.array([.5, .5])))
+    for box in boxes:
+        sdf = SignedDistance2DMap(box)
+        print("Check Box SDF (J implementation) : ")
+        assert check_jacobian_against_finite_difference(sdf)
+        print("Check Box SDF (H implementation) : ")
+        assert check_hessian_against_finite_difference(sdf)
 
 
 def test_inside_box():
@@ -202,8 +196,8 @@ def test_workspace_to_occupancy_map():
 
 if __name__ == "__main__":
 
-    test_circle()
-    # test_segment()
+    # test_circle()
+    test_segment()
     # test_box()
     # test_inside_box()
     # test_ellipse()

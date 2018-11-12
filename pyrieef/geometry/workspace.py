@@ -249,22 +249,20 @@ class Segment(Shape):
         Compute the closest point by projecting to the infite line
         and then checking if the point lines on the segment.
         """
+        assert x.shape == self.origin.shape
         p1, p2 = self.end_points()
         u = p2 - p1
         v = x - p1
         d = np.dot(u, v) / np.dot(u, u)
-        if d < 0.:
+        if d <= 0.:
             p = p1
-        elif d > 1.:
+        elif d >= 1.:
             p = p2
         else:
             p = p1 + d * u
         return p
 
     def dist_from_border(self, q):
-        """
-        TODO test
-        """
         if q.shape == self.origin.shape:
             p = self.closest_point(q)
             return np.linalg.norm(p - q)
@@ -285,20 +283,24 @@ class Segment(Shape):
             return np.linalg.norm(p - q, axis=0)
 
     def dist_hessian(self, x):
-        """ Warning: not parraleized but should work from 3D
-            TODO implement !!!!
-        """
         p1, p2 = self.end_points()
         u = p2 - p1
         v = x - p1
         d = np.dot(u, v) / np.dot(u, u)
-        if d < 0.:
+        if d <= 0.:
+            # 1 - closer to p1
             return point_distance_hessian(x, p1)
-        elif d > 1.:
+        elif d >= 1.:
+            # 2 - closer to p2
             return point_distance_hessian(x, p2)
         else:
-            p = p1 + d * u
-            return p
+            # 3 - closer to the side
+            # Warning: only holds for 2D segments for now
+            # in the 3D case we need to implement the Hessian of the distance
+            # to a cylinder, which has to do with the projection of the
+            # spherical distance to a plane
+            assert x.size == 2
+            return np.zeros((x.size, x.size))
 
 
 def segment_from_end_points(p1, p2):
@@ -382,19 +384,28 @@ class Box(Shape):
         s[3] = segment_from_end_points(v[3], v[0])
         return s
 
-    def closest_point(self, x):
+    def closest_segment(self, x):
         min_dist = np.inf
         closest_point = np.zeros(x.shape)
+        closest_segment = None
         for segment in self.segments():
             p = segment.closest_point(x)
             d = np.linalg.norm(x - p)
             if min_dist > d:
                 min_dist = d
                 closest_point = p.copy()
+                closest_segment = segment
+        return closest_segment, closest_point
+
+    def closest_point(self, x):
+        closest_segment, closest_point = self.closest_segment(x)
         return closest_point
 
+    def dist_hessian(self, x):
+        closest_segment, closest_point = self.closest_segment(x)
+        return closest_segment.dist_hessian(x)
+
     def dist_from_border(self, x):
-        """ TODO test """
         d = [None] * 4
         for i, segment in enumerate(self.segments()):
             d[i] = segment.dist_from_border(x)
