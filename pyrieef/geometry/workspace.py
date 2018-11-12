@@ -156,7 +156,6 @@ class Circle(Shape):
 
     def dist_gradient(self, x):
         """ Warning: not parraleized but should work from 3D """
-        print("derived class")
         x_center = (x.T - self.origin).T
         return x_center / np.linalg.norm(x_center, axis=0)
 
@@ -398,12 +397,10 @@ class Box(Shape):
         return closest_segment, closest_point
 
     def closest_point(self, x):
-        closest_segment, closest_point = self.closest_segment(x)
-        return closest_point
+        return self.closest_segment(x)[1]
 
     def dist_hessian(self, x):
-        closest_segment, closest_point = self.closest_segment(x)
-        return closest_segment.dist_hessian(x)
+        return self.closest_segment(x)[0].dist_hessian(x)
 
     def dist_from_border(self, x):
         d = [None] * 4
@@ -411,7 +408,8 @@ class Box(Shape):
             d[i] = segment.dist_from_border(x)
         sign = np.where(self.is_inside(x), -1., 1.)
         minimum = np.min(np.array(d), axis=0)
-        return sign * minimum
+        d = sign * minimum
+        return np.asscalar(d) if d.size == 1 else d
 
     def sample_line(self, p_1, p_2):
         points = []
@@ -658,6 +656,29 @@ def sample_workspace(nb_circles, radius_parameter=.15):
         center = workspace.box.sample_uniform()
         radius = (max_radius - min_radius) * np.random.rand() + min_radius
         workspace.obstacles[i] = Circle(center, radius)
+    return workspace
+
+
+def sample_box_workspaces(
+        nb_boxes,
+        height=.20,
+        width=.20):
+    """ Samples a workspace randomly composed of nb_boxes
+        the height and width parameters specify
+        the max fraction of workspace diagonal used for a box. """
+    workspace = Workspace()
+    diagonal = workspace.box.diag()
+    max_h = diagonal * height
+    min_h = diagonal * height * .5
+    max_w = diagonal * width
+    min_w = diagonal * width * .5
+    workspace.obstacles = [None] * nb_boxes
+    for i in range(nb_boxes):
+        origin = workspace.box.sample_uniform()
+        h = (max_h - min_h) * np.random.rand() + min_h
+        w = (max_w - min_w) * np.random.rand() + min_w
+        dimensions = np.array([w, h])
+        workspace.obstacles[i] = Box(origin, dimensions)
     return workspace
 
 

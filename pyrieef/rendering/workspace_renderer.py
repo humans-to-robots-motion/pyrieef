@@ -231,17 +231,19 @@ class WorkspaceOpenGl(WorkspaceRender):
         self.gl.add_geom(image)
 
     def draw_ws_obstacles(self):
+        ws_o = np.array([self._extent.x_min, self._extent.y_min])
         for i, o in enumerate(self._workspace.obstacles):
             if isinstance(o, Circle):
                 circ = make_circle(self._scale * o.radius, 30, False)
-                origin = o.origin - np.array(
-                    [self._extent.x_min, self._extent.y_min])
-                t = Transform(translation=self._scale * origin)
-                # print(("o.origin {}, o.radius {}".format(
-                #     o.origin, o.radius)))
-                circ.add_attr(t)
+                center = self._scale * (o.origin - ws_o)
+                circ.add_attr(Transform(translation=center))
                 circ.set_color(*COLORS[i % 3])
                 self.gl.add_geom(circ)
+            if isinstance(o, Box):
+                vertices = [self._scale * (v - ws_o) for v in o.verticies()]
+                box = PolyLine(vertices, True)
+                box.set_color(*COLORS[i % 3])
+                self.gl.add_geom(box)
 
     def show(self):
         time.sleep(0.05)
