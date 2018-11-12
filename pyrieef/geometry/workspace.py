@@ -72,9 +72,13 @@ class Shape:
         """
         Returns the gradient of the distance function.
 
-        it is simply a normalized vector pointing outwards from the center.
-        Note that it is equivalent to normalized vector pointing to the
-        closest point to the surface, flipped when inside the shape.
+        Note that for the first order, the signed distance function
+        of any shape is fully expressed by the closet point to the border.
+        The gradient is simply the normalized vecor pointing
+        towards or away from that point depending on whether
+        we are outside or inside of the shape.
+        This does not hold for higher order quatities
+        (i.e. the Hessian of the potential field).
 
         Warning: not parraleized but should work from 3D
         This works for shapes with no volumes such as segments
@@ -83,9 +87,8 @@ class Shape:
         ----------
             x : numpy array
         """
-        print("base class")
-        sign = -1. if self.is_inside(x) else 1.
         x_center = x - self.closest_point(x)
+        sign = -1. if self.is_inside(x) else 1.
         return sign * x_center / np.linalg.norm(x_center)
 
     def dist_hessian(self, x):
@@ -262,7 +265,7 @@ class Segment(Shape):
         """
         TODO test
         """
-        if q.shape == (2,):
+        if q.shape == self.origin.shape:
             p = self.closest_point(q)
             return np.linalg.norm(p - q)
         else:
@@ -285,7 +288,17 @@ class Segment(Shape):
         """ Warning: not parraleized but should work from 3D
             TODO implement !!!!
         """
-        raise NotImplementedError()
+        p1, p2 = self.end_points()
+        u = p2 - p1
+        v = x - p1
+        d = np.dot(u, v) / np.dot(u, u)
+        if d < 0.:
+            return point_distance_hessian(x, p1)
+        elif d > 1.:
+            return point_distance_hessian(x, p2)
+        else:
+            p = p1 + d * u
+            return p
 
 
 def segment_from_end_points(p1, p2):
