@@ -27,6 +27,11 @@ from abc import abstractmethod
 from .differentiable_geometry import *
 
 
+def vector_norm(x):
+    return np.linalg.norm(x, axis=0)
+    # return np.sqrt(x[0] ** 2 + x[1] ** 2)
+
+
 class Shape:
     """
     Shape represents workspace objects in 2D or 3D.
@@ -89,7 +94,7 @@ class Shape:
         """
         x_center = x - self.closest_point(x)
         sign = -1. if self.is_inside(x) else 1.
-        return sign * x_center / np.linalg.norm(x_center)
+        return sign * x_center / vector_norm(x_center)
 
     def dist_hessian(self, x):
         """
@@ -120,7 +125,7 @@ def point_distance_hessian(x, origin):
         origin : numpy array
     """
     x_center = (x.T - origin).T
-    d_inv = 1. / np.linalg.norm(x_center, axis=0)
+    d_inv = 1. / vector_norm(x_center)
     return d_inv * np.eye(x.size) - d_inv**3 * np.outer(x_center, x_center)
 
 
@@ -143,21 +148,20 @@ class Circle(Shape):
         ----------
             x : numpy array
         """
-        return np.linalg.norm((x.T - self.origin).T, axis=0) - self.radius
+        return vector_norm((x.T - self.origin).T) - self.radius
 
     def is_inside(self, x):
-        x_center = (x.T - self.origin).T
-        return np.linalg.norm(x_center, axis=0) < self.radius
+        return vector_norm((x.T - self.origin).T) < self.radius
 
     def closest_point(self, x):
         x_center = (x.T - self.origin).T
-        p_in_circle = self.radius * x_center / np.linalg.norm(x_center)
+        p_in_circle = self.radius * x_center / vector_norm(x_center)
         return p_in_circle + self.origin
 
     def dist_gradient(self, x):
         """ Warning: not parraleized but should work from 3D """
         x_center = (x.T - self.origin).T
-        return x_center / np.linalg.norm(x_center, axis=0)
+        return x_center / vector_norm(x_center)
 
     def dist_hessian(self, x):
         """ Warning: not parraleized but should work from 3D """
@@ -264,7 +268,7 @@ class Segment(Shape):
     def dist_from_border(self, q):
         if q.shape == self.origin.shape:
             p = self.closest_point(q)
-            return np.linalg.norm(p - q)
+            return vector_norm(p - q)
         else:
             p1, p2 = self.end_points()
             u = p2 - p1
@@ -279,7 +283,7 @@ class Segment(Shape):
                 p[k] = np.where(is_l_side, p1[k], p[k])
                 p[k] = np.where(is_r_side, p2[k], p[k])
                 p[k] = np.where(is_intersection, p1[k] + d * u[k], p[k])
-            return np.linalg.norm(p - q, axis=0)
+            return vector_norm(p - q)
 
     def dist_hessian(self, x):
         p1, p2 = self.end_points()

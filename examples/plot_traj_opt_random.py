@@ -49,7 +49,7 @@ def optimize_path(objective, workspace, path):
         objective.viewer.draw_ws_obstacles()
 
     algorithms.newton_optimize_trajectory(
-        objective, path, verbose=VERBOSE, maxiter=10)
+        objective, path, verbose=VERBOSE, maxiter=100)
     return path
 
 
@@ -93,8 +93,8 @@ graph = CostmapToSparseGraph(grid, average_cost=False)
 graph.convert()
 
 np.random.seed(0)
-workspaces = [sample_workspace(nb_circles=5) for i in range(100)]
-# workspaces = [sample_box_workspaces(5) for i in range(100)]
+# workspaces = [sample_workspace(nb_circles=5) for i in range(100)]
+workspaces = [sample_box_workspaces(5) for i in range(100)]
 for k, workspace in enumerate(tqdm(workspaces)):
     path = graph_search_path(graph, workspace, nb_points)
     if collision_check_trajectory(workspace, path):
