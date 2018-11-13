@@ -42,7 +42,7 @@ MAX_ITERATIONS = 100
 ALPHA = 10.
 MARGIN = .20
 OFFSET = 0.1
-TRAJ_LENGTH = 40
+TRAJ_LENGTH = 20
 DEFAULT_WS_FILE = 'workspaces_1k_small.hdf5'
 
 
@@ -162,9 +162,14 @@ def generate_one_demonstration(nb_points, demo_id):
     graph.convert()
     workspaces = load_workspaces_from_file(filename=DEFAULT_WS_FILE)
     print(("Compute demo ", demo_id))
-    return compute_demonstration(
-        workspaces[demo_id], graph, nb_points=nb_points,
-        show_result=False, average_cost=False, verbose=True)
+    try:
+        trajectory = compute_demonstration(
+            workspaces[demo_id], graph, nb_points=nb_points,
+            show_result=False, average_cost=False, verbose=True)
+    except ValueError as e:
+        trajectory = None
+        print("Warning : ", e)
+    return trajectory
 
 
 def generate_demonstrations(nb_points):
@@ -177,14 +182,18 @@ def generate_demonstrations(nb_points):
         if verbose:
             print(("Compute demo ", k))
         while trajectories[k] is None:
-            trajectories[k] = compute_demonstration(
-                workspace,
-                graph,
-                nb_points=nb_points,
-                # show_result=show_result,
-                show_result=(show_demo_id == k or options.show_result),
-                average_cost=options.average_cost,
-                verbose=verbose)
+            try:
+                trajectories[k] = compute_demonstration(
+                    workspace,
+                    graph,
+                    nb_points=nb_points,
+                    # show_result=show_result,
+                    show_result=(show_demo_id == k or options.show_result),
+                    average_cost=options.average_cost,
+                    verbose=verbose)
+            except ValueError as e:
+                trajectories[k] = None
+                print("Warning : ", e)
         if show_demo_id == k and not options.show_result:
             break
     return trajectories

@@ -243,7 +243,7 @@ class TrajectoryObjectiveFunction(DifferentiableMap):
 
     def forward(self, x):
         x_full = self.full_vector(x)
-        return self._function_network(x_full)
+        return min(1e100, self._function_network(x_full))
 
     def jacobian(self, x):
         x_full = self.full_vector(x)

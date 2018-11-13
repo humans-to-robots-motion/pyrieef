@@ -167,8 +167,8 @@ class BoundBarrier(DifferentiableMap):
         self._margin = margin
 
         # Warning: this does not work with the line search
-        # self._inf = float("inf")
-        self._inf = 1e100
+        self._inf = float("inf")
+        # self._inf = 1e105
 
     def output_dimension(self):
         return 1
