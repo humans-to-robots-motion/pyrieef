@@ -173,6 +173,8 @@ class Pullback(Compose):
         x = self._g(q)
         J_g = self._g.jacobian(q)
         H_f = self._f.hessian(x)
+        # print("H_f :", H_f.shape)
+        # print("J_g :", J_g.shape)
         return J_g.T * H_f * J_g
 
 

@@ -130,8 +130,10 @@ def compute_demonstration(
 
     optimized_trajectory = optimize(
         interpolated_traj, workspace, None, verbose)
-    if collision_check_trajectory(workspace, optimized_trajectory):
+    collision = collision_check_trajectory(workspace, optimized_trajectory)
+    if collision:
         print("Warning: has collision !!!")
+        return None
 
     result = [None] * TRAJ_LENGTH
     for i in range(len(result)):
@@ -153,6 +155,17 @@ def compute_demonstration(
     return optimized_trajectory
 
 
+def generate_one_demonstration(nb_points, demo_id):
+    grid = np.ones((nb_points, nb_points))
+    graph = CostmapToSparseGraph(grid, False)
+    graph.convert()
+    workspaces = load_workspaces_from_file(filename='workspaces_1k_small.hdf5')
+    print(("Compute demo ", demo_id))
+    return compute_demonstration(
+        workspaces[demo_id], graph, nb_points=nb_points,
+        show_result=False, average_cost=False, verbose=True)
+
+
 def generate_demonstrations(nb_points):
     grid = np.ones((nb_points, nb_points))
     graph = CostmapToSparseGraph(grid, options.average_cost)
@@ -162,14 +175,15 @@ def generate_demonstrations(nb_points):
     for k, workspace in enumerate(tqdm(workspaces)):
         if verbose:
             print(("Compute demo ", k))
-        trajectories[k] = compute_demonstration(
-            workspace,
-            graph,
-            nb_points=nb_points,
-            # show_result=show_result,
-            show_result=(show_demo_id == k or options.show_result),
-            average_cost=options.average_cost,
-            verbose=verbose)
+        while trajectories[k] is None:
+            trajectories[k] = compute_demonstration(
+                workspace,
+                graph,
+                nb_points=nb_points,
+                # show_result=show_result,
+                show_result=(show_demo_id == k or options.show_result),
+                average_cost=options.average_cost,
+                verbose=verbose)
         if show_demo_id == k and not options.show_result:
             break
     return trajectories

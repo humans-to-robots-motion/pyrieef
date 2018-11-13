@@ -337,6 +337,7 @@ def remove_file_if_exists(file):
 
 
 if __name__ == '__main__':
+    np.random.seed(0)
     parser = RandomEnvironmentOptions()
     options = parser.get_options()
     dataset_paramerters = dict_to_object(

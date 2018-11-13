@@ -166,6 +166,10 @@ class BoundBarrier(DifferentiableMap):
         self._alpha = alpha
         self._margin = margin
 
+        # Warning: this does not work with the line search
+        # self._inf = float("inf")
+        self._inf = 1e100
+
     def output_dimension(self):
         return 1
 
@@ -179,17 +183,19 @@ class BoundBarrier(DifferentiableMap):
             u_dist = self._v_upper[i] - x_i
             if x.shape == (self.input_dimension(),):
                 if l_dist < self._margin or u_dist < self._margin:
-                    return float("inf")
+                    return self._inf
 
             # Log barrier f(x_i) = -log(d_u) + -log(d_l)
             value += -self._alpha * np.log(l_dist)
             value += -self._alpha * np.log(u_dist)
 
+        value = min(self._inf, value)
+
         if not x.shape == (self.input_dimension(),):
             l_limit = l_dist < self._margin
             u_limit = u_dist < self._margin
-            l_dist = np.where(l_limit, float("inf"), l_dist)
-            u_dist = np.where(u_limit, float("inf"), u_dist)
+            l_dist = np.where(l_limit, self._inf, l_dist)
+            u_dist = np.where(u_limit, self._inf, u_dist)
         return value
 
     def jacobian(self, x):
