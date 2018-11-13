@@ -18,7 +18,12 @@
 #                                        Jim Mainprice on Sunday June 13 2018
 
 
-from . import common_imports
+import sys
+print(sys.version_info)
+if sys.version_info >= (3, 0):
+    from .common_imports import *
+else:
+    import common_imports
 from geometry.workspace import *
 from utils.misc import *
 from math import *
@@ -216,6 +221,34 @@ def random_environments(opt):
     return data, workspaces
 
 
+def get_dataset_id(data_id):
+    options_data = dataset.get_yaml_options()
+    options = dict_to_object(options_data[data_id])
+    filename = options.filename + "." + options.type
+    filepath = dataset.learning_data_dir() + os.sep + filename
+    if os.path.exists(filepath) and os.path.isfile(filepath):
+        data = dataset.CostmapDataset(filename)
+        numtrain = data.train_inputs.shape[0]
+        numtest = data.test_inputs.shape[0]
+        numdatasets = numtrain + numtest
+        assert options.numdatasets == numdatasets
+        assert options.xsize == data.train_targets.shape[1]
+        assert options.ysize == data.train_targets.shape[2]
+        assert options.xsize == data.train_inputs.shape[1]
+        assert options.ysize == data.train_inputs.shape[2]
+        assert options.xsize == data.test_targets.shape[1]
+        assert options.ysize == data.test_targets.shape[2]
+        assert options.xsize == data.test_inputs.shape[1]
+        assert options.ysize == data.test_inputs.shape[2]
+        return data
+    else:
+        datasets, workspaces = random_environments(options)
+        dataset.write_dictionary_to_file(datasets, filename)
+        dataset.write_dictionary_to_file(
+            workspaces, options.workspaces + "." + options.type)
+        return get_dataset_id(data_id)
+
+
 class RandomEnvironmentOptions:
 
     def __init__(self, dataset_id=None):
@@ -230,7 +263,7 @@ class RandomEnvironmentOptions:
         parser = optparse.OptionParser("usage: %prog [options] arg1 arg2")
 
         parser.add_option('--dataset_id',
-                          default="costdata2d_1k_demos", type="str",
+                          default="costdata2d_1k_28", type="str",
                           dest='dataset_id',
                           help='Dataset ID')
 
@@ -298,12 +331,16 @@ class RandomEnvironmentOptions:
             return dict_to_object(options)
 
 
-if __name__ == '__main__':
+def remove_file_if_exists(file):
+    if os.path.exists(file):
+        os.remove(file)
 
+
+if __name__ == '__main__':
     parser = RandomEnvironmentOptions()
     options = parser.get_options()
     dataset_paramerters = dict_to_object(
-        get_yaml_options()[options.dataset_id])
-    os.remove("data/" + dataset_paramerters.filename + ".hdf5")
-    os.remove("data/" + dataset_paramerters.workspaces + ".hdf5")
+        dataset.get_yaml_options()[options.dataset_id])
+    remove_file_if_exists("data/" + dataset_paramerters.filename + ".hdf5")
+    remove_file_if_exists("data/" + dataset_paramerters.workspaces + ".hdf5")
     get_dataset_id(options.dataset_id)

@@ -19,7 +19,7 @@
 
 import opengl as gl
 from skimage import data
-from skimage.transform import resize, downscale_local_mean,  rescale
+from skimage.transform import rescale  # resize, downscale_local_mean
 from skimage import img_as_ubyte
 import warnings
 import time

@@ -20,7 +20,6 @@
 # from __future__ import print_function
 from .__init__ import *
 from geometry.differentiable_geometry import *
-from abc import ABCMeta, abstractproperty
 
 
 class FiniteDifferencesVelocity(AffineMap):
@@ -34,9 +33,9 @@ class FiniteDifferencesVelocity(AffineMap):
 
     def _initialize_matrix(self, dim, dt):
         """ Velocity = [ x_{t+1} - x_{t} ] / dt """
-        I = np.eye(dim)
-        self._a[0:dim, 0:dim] = -I
-        self._a[0:dim, dim:(2 * dim)] = I
+        identity = np.eye(dim)
+        self._a[0:dim, 0:dim] = -identity
+        self._a[0:dim, dim:(2 * dim)] = identity
         self._a /= dt
 
 
@@ -51,10 +50,10 @@ class FiniteDifferencesAcceleration(AffineMap):
 
     def _initialize_matrix(self, dim, dt):
         """ Acceleration = [ x_{t+1} + x_{t-1} - 2 * x_{t} ] / dt^2 """
-        I = np.eye(dim)
-        self._a[0:dim, 0:dim] = I
-        self._a[0:dim, dim:(2 * dim)] = -2 * I
-        self._a[0:dim, (2 * dim):(3 * dim)] = I
+        identity = np.eye(dim)
+        self._a[0:dim, 0:dim] = identity
+        self._a[0:dim, dim:(2 * dim)] = -2 * identity
+        self._a[0:dim, (2 * dim):(3 * dim)] = identity
         self._a /= (dt * dt)
 
 
@@ -76,7 +75,6 @@ class SquaredNormDerivative(DifferentiableMap):
         return self._sq_norm(self._derivative(clique))
 
     def jacobian(self, clique):
-        d = self._derivative(clique)
         return self._derivative(clique) * self._derivative.a()
 
     def hessian(self, clique):
@@ -190,7 +188,7 @@ class BoundBarrier(DifferentiableMap):
         if not x.shape == (self.input_dimension(),):
             l_limit = l_dist < self._margin
             u_limit = u_dist < self._margin
-            l_dist = np.where(u_limit, float("inf"), l_dist)
+            l_dist = np.where(l_limit, float("inf"), l_dist)
             u_dist = np.where(u_limit, float("inf"), u_dist)
         return value
 

@@ -18,7 +18,12 @@
 #                                        Jim Mainprice on Sunday June 13 2018
 
 
-from . import common_imports
+import sys
+print(sys.version_info)
+if sys.version_info >= (3, 0):
+    from .common_imports import *
+else:
+    import common_imports
 from graph.shortest_path import *
 from learning.dataset import *
 from learning.random_environment import *
@@ -93,8 +98,8 @@ def sample_path(workspace, graph, nb_points):
     resample = True
     half_diag = workspace.box.diag() / 2.
     while resample:
-        s_w = sample_collision_free(workspace, MARGIN/2)
-        t_w = sample_collision_free(workspace, MARGIN/2)
+        s_w = sample_collision_free(workspace, MARGIN / 2)
+        t_w = sample_collision_free(workspace, MARGIN / 2)
         if np.linalg.norm(s_w - t_w) < half_diag:
             continue
         if not collision_check_linear_interpolation(workspace, s_w, t_w):
@@ -152,7 +157,7 @@ def generate_demonstrations(nb_points):
     grid = np.ones((nb_points, nb_points))
     graph = CostmapToSparseGraph(grid, options.average_cost)
     graph.convert()
-    workspaces = load_workspaces_from_file(filename='workspaces_1k_demos.hdf5')
+    workspaces = load_workspaces_from_file(filename='workspaces_1k_small.hdf5')
     trajectories = [None] * len(workspaces)
     for k, workspace in enumerate(tqdm(workspaces)):
         if verbose:

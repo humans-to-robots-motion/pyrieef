@@ -17,19 +17,13 @@
 #
 #                                        Jim Mainprice on Sunday June 13 2018
 
-import os
-
-
-
 import pyglet
 from pyglet import *
 from pyglet.gl import *
-
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 cmap = plt.get_cmap('viridis')
 # cmap = plt.get_cmap('inferno')
-
 import numpy as np
 
 
