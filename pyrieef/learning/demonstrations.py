@@ -43,6 +43,7 @@ ALPHA = 10.
 MARGIN = .20
 OFFSET = 0.1
 TRAJ_LENGTH = 40
+DEFAULT_WS_FILE = 'workspaces_1k_small.hdf5'
 
 
 def obsatcle_potential(workspace):
@@ -159,7 +160,7 @@ def generate_one_demonstration(nb_points, demo_id):
     grid = np.ones((nb_points, nb_points))
     graph = CostmapToSparseGraph(grid, False)
     graph.convert()
-    workspaces = load_workspaces_from_file(filename='workspaces_1k_small.hdf5')
+    workspaces = load_workspaces_from_file(filename=DEFAULT_WS_FILE)
     print(("Compute demo ", demo_id))
     return compute_demonstration(
         workspaces[demo_id], graph, nb_points=nb_points,
@@ -170,7 +171,7 @@ def generate_demonstrations(nb_points):
     grid = np.ones((nb_points, nb_points))
     graph = CostmapToSparseGraph(grid, options.average_cost)
     graph.convert()
-    workspaces = load_workspaces_from_file(filename='workspaces_1k_small.hdf5')
+    workspaces = load_workspaces_from_file(filename=DEFAULT_WS_FILE)
     trajectories = [None] * len(workspaces)
     for k, workspace in enumerate(tqdm(workspaces)):
         if verbose:
