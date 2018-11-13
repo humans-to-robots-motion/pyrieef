@@ -98,7 +98,8 @@ def sample_path(workspace, graph, nb_points, no_linear_interpolation):
     pixel_map = workspace.pixel_map(nb_points)
     resample = True
     half_diag = workspace.box.diag() / 2.
-    while resample:
+    path = None
+    for _ in range(100):
         s_w = sample_collision_free(workspace, MARGIN / 2)
         t_w = sample_collision_free(workspace, MARGIN / 2)
         if no_linear_interpolation:
@@ -121,6 +122,8 @@ def compute_demonstration(
         show_result, average_cost, verbose, no_linear_interpolation):
     pixel_map = workspace.pixel_map(nb_points)
     path = sample_path(workspace, graph, nb_points, no_linear_interpolation)
+    if path is None:
+        return None
     traj = [None] * len(path)
     trajectory = ContinuousTrajectory(len(path) - 1, 2)
     for i, p in enumerate(path):
@@ -165,13 +168,21 @@ def generate_one_demonstration(nb_points, demo_id):
     workspaces = load_workspaces_from_file(
         filename="workspaces_" + DEFAULT_WS_FILE)
     print(("Compute demo ", demo_id))
-    try:
-        trajectory = compute_demonstration(
-            workspaces[demo_id], graph, nb_points=nb_points,
-            show_result=False, average_cost=False, verbose=True)
-    except ValueError as e:
-        trajectory = None
-        print("Warning : ", e)
+
+    hard = True
+    trajectory = None
+    while trajectory is None:
+        if hard == False:
+            print("try easy")
+        try:
+            trajectory = compute_demonstration(
+                workspaces[demo_id], graph, nb_points=nb_points,
+                show_result=False, average_cost=False, verbose=True,
+                no_linear_interpolation=hard)
+        except ValueError as e:
+            trajectory = None
+            print("Warning : ", e)
+        hard = False
     return trajectory
 
 
@@ -188,6 +199,7 @@ def generate_demonstrations(nb_points):
         nb_tries = 0
         while trajectories[k] is None:
             nb_tries += 1
+            hard=nb_tries < 20
             try:
                 trajectories[k] = compute_demonstration(
                     workspace,
@@ -197,7 +209,7 @@ def generate_demonstrations(nb_points):
                     show_result=(show_demo_id == k or options.show_result),
                     average_cost=options.average_cost,
                     verbose=verbose,
-                    no_linear_interpolation=nb_tries < 20)
+                    no_linear_interpolation=hard)
             except ValueError as e:
                 trajectories[k] = None
                 if verbose:
