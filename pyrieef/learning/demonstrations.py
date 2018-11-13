@@ -134,7 +134,7 @@ def compute_demonstration(
     optimized_trajectory = optimize(
         interpolated_traj, workspace, None, verbose)
     collision = collision_check_trajectory(workspace, optimized_trajectory)
-    if collision:
+    if collision and verbose:
         print("Warning: has collision !!!")
         return None
 
