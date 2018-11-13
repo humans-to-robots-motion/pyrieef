@@ -160,6 +160,7 @@ def draw_all_workspaces(basename, scale, multicol=True):
         viewer.show_once()
         time.sleep(t_sleep)
 
+
 if __name__ == '__main__':
 
     parser = optparse.OptionParser("usage: %prog [options]")
@@ -169,7 +170,7 @@ if __name__ == '__main__':
          'trajectories',     # displays the trajectories
          'costmaps',         # displays the costmaps
          ])
-    parser.add_option('--basename', type='string', default='1k_demos.hdf5')
+    parser.add_option('--basename', type='string', default='1k_small.hdf5')
     parser.add_option('--scale', type='float', default=1.5)
     options, args = parser.parse_args()
 

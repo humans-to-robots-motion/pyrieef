@@ -43,7 +43,7 @@ ALPHA = 10.
 MARGIN = .20
 OFFSET = 0.1
 TRAJ_LENGTH = 20
-DEFAULT_WS_FILE = 'workspaces_1k_small.hdf5'
+DEFAULT_WS_FILE = '1k_small.hdf5'
 
 
 def obsatcle_potential(workspace):
@@ -90,7 +90,7 @@ def optimize(path, workspace, costmap, verbose=False):
     return trajectory
 
 
-def sample_path(workspace, graph, nb_points):
+def sample_path(workspace, graph, nb_points, no_linear_interpolation):
     """ finds a path that does not collide with enviroment
     but that is significantly difficult to perform """
     meshgrid = workspace.box.stacked_meshgrid(nb_points)
@@ -103,8 +103,9 @@ def sample_path(workspace, graph, nb_points):
         t_w = sample_collision_free(workspace, MARGIN / 2)
         if np.linalg.norm(s_w - t_w) < half_diag:
             continue
-        if not collision_check_linear_interpolation(workspace, s_w, t_w):
-            continue
+        if no_linear_interpolation:
+            if not collision_check_linear_interpolation(workspace, s_w, t_w):
+                continue
         resample = False
         s = pixel_map.world_to_grid(s_w)
         t = pixel_map.world_to_grid(t_w)
@@ -116,9 +117,10 @@ def sample_path(workspace, graph, nb_points):
 
 
 def compute_demonstration(
-        workspace, graph, nb_points, show_result, average_cost, verbose):
+        workspace, graph, nb_points,
+        show_result, average_cost, verbose, no_linear_interpolation):
     pixel_map = workspace.pixel_map(nb_points)
-    path = sample_path(workspace, graph, nb_points)
+    path = sample_path(workspace, graph, nb_points, no_linear_interpolation)
     traj = [None] * len(path)
     trajectory = ContinuousTrajectory(len(path) - 1, 2)
     for i, p in enumerate(path):
@@ -160,7 +162,8 @@ def generate_one_demonstration(nb_points, demo_id):
     grid = np.ones((nb_points, nb_points))
     graph = CostmapToSparseGraph(grid, False)
     graph.convert()
-    workspaces = load_workspaces_from_file(filename=DEFAULT_WS_FILE)
+    workspaces = load_workspaces_from_file(
+        filename="workspaces_" + DEFAULT_WS_FILE)
     print(("Compute demo ", demo_id))
     try:
         trajectory = compute_demonstration(
@@ -176,12 +179,15 @@ def generate_demonstrations(nb_points):
     grid = np.ones((nb_points, nb_points))
     graph = CostmapToSparseGraph(grid, options.average_cost)
     graph.convert()
-    workspaces = load_workspaces_from_file(filename=DEFAULT_WS_FILE)
+    workspaces = load_workspaces_from_file(
+        filename="workspaces_" + DEFAULT_WS_FILE)
     trajectories = [None] * len(workspaces)
     for k, workspace in enumerate(tqdm(workspaces)):
         if verbose:
             print(("Compute demo ", k))
+        nb_tries = 0
         while trajectories[k] is None:
+            nb_tries += 1
             try:
                 trajectories[k] = compute_demonstration(
                     workspace,
@@ -190,10 +196,12 @@ def generate_demonstrations(nb_points):
                     # show_result=show_result,
                     show_result=(show_demo_id == k or options.show_result),
                     average_cost=options.average_cost,
-                    verbose=verbose)
+                    verbose=verbose,
+                    no_linear_interpolation=nb_tries < 20)
             except ValueError as e:
                 trajectories[k] = None
-                print("Warning : ", e)
+                if verbose:
+                    print("Warning : ", e)
         if show_demo_id == k and not options.show_result:
             break
     return trajectories
@@ -210,6 +218,7 @@ if __name__ == '__main__':
     show_demo_id = -1
     nb_points = options.nb_points
     print((" -- options : ", options))
-    np.random.seed(1)
     trajectories = generate_demonstrations(nb_points)
-    save_trajectories_to_file(trajectories)
+    save_trajectories_to_file(
+        trajectories,
+        filename='trajectories_' + DEFAULT_WS_FILE)
