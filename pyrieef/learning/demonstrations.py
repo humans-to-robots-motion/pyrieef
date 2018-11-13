@@ -101,9 +101,9 @@ def sample_path(workspace, graph, nb_points, no_linear_interpolation):
     while resample:
         s_w = sample_collision_free(workspace, MARGIN / 2)
         t_w = sample_collision_free(workspace, MARGIN / 2)
-        if np.linalg.norm(s_w - t_w) < half_diag:
-            continue
         if no_linear_interpolation:
+            if np.linalg.norm(s_w - t_w) < half_diag:
+                continue
             if not collision_check_linear_interpolation(workspace, s_w, t_w):
                 continue
         resample = False
