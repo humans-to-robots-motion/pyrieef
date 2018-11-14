@@ -70,8 +70,8 @@ def optimize(path, workspace, costmap, verbose=False):
         obstacle_scalar=1.,
         init_potential_scalar=0.,
         term_potential_scalar=10000000.,
-        acceleration_scalar=10.,
-        velocity_scalar=2.)
+        acceleration_scalar=30.,
+        velocity_scalar=5.)
     optimizer.create_clique_network()
     optimizer.add_smoothness_terms(1)
     optimizer.add_smoothness_terms(2)

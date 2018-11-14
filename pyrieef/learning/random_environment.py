@@ -42,7 +42,7 @@ def samplerandpt(lims):
     """
     pt = np.array(lims.shape[0] * [0.])
     for j in range(pt.size):
-        pt[j] = lims[j][0] + random() * (lims[j][1] - lims[j][0])
+        pt[j] = lims[j][0] + np.random.random() * (lims[j][1] - lims[j][0])
     return pt
 
 
@@ -177,7 +177,7 @@ def random_environments(opt):
         # nobj = int(ceil(random() * maxnobjs))
         nobj = maxnobjs
         while True:
-            r = minrad + random() * (maxrad - minrad)
+            r = minrad + np.random.random() * (maxrad - minrad)
             c = samplerandpt(lims)
             # If this object is reasonably far away from other objects
             [min_dist, obstacle_id] = workspace.min_dist(c)
@@ -337,7 +337,6 @@ def remove_file_if_exists(file):
 
 
 if __name__ == '__main__':
-    np.random.seed(0)
     parser = RandomEnvironmentOptions()
     options = parser.get_options()
     dataset_paramerters = dict_to_object(

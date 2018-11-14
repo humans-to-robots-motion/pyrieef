@@ -54,8 +54,8 @@ class MotionOptimization2DCostMap:
         self._term_velocity_scalar = 100000.
         # self._init_potential_scalar = 0.0
         # self._term_potential_scalar = 0.0
-        self._velocity_scalar = 1.
-        self._acceleration_scalar = 10.
+        self._velocity_scalar = 5.
+        self._acceleration_scalar = 20.
         self._attractor_stdev = .1
 
         # We only need the signed distance field
@@ -371,6 +371,8 @@ class MotionOptimization2DCostMap:
             delta = res.jac
             dist = np.linalg.norm(
                 trajectory.final_configuration() - self.q_goal)
+            if self.verbose:
+                print(("gradient norm : ", np.linalg.norm(res.jac)))
         else:
             raise ValueError
 
