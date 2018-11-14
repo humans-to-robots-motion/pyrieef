@@ -52,8 +52,6 @@ class MotionOptimization2DCostMap:
         self._init_potential_scalar = 0.
         self._term_potential_scalar = 10000000.
         self._term_velocity_scalar = 100000.
-        # self._init_potential_scalar = 0.0
-        # self._term_potential_scalar = 0.0
         self._velocity_scalar = 5.
         self._acceleration_scalar = 20.
         self._attractor_stdev = .1
@@ -206,11 +204,12 @@ class MotionOptimization2DCostMap:
 
     def add_init_and_terminal_terms(self):
 
-        initial_potential = Pullback(
-            SquaredNorm(self.q_init),
-            self.function_network.left_most_of_clique_map())
-        self.function_network.register_function_for_clique(
-            0, Scale(initial_potential, self._init_potential_scalar))
+        if self._init_potential_scalar > 0.:
+            initial_potential = Pullback(
+                SquaredNorm(self.q_init),
+                self.function_network.left_most_of_clique_map())
+            self.function_network.register_function_for_clique(
+                0, Scale(initial_potential, self._init_potential_scalar))
 
         terminal_potential = Pullback(
             SquaredNorm(self.q_goal),
