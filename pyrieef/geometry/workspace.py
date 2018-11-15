@@ -432,6 +432,27 @@ class Box(Shape):
         return points
 
 
+class AxisAlignedBox(Box):
+    """
+        An axis aligned box (hypercube) defined by
+            - origin    : its center
+            - dim       : its extent
+    """
+
+    def __init__(self,
+                 origin=np.array([0., 0.]),
+                 dim=np.array([1., 1.])):
+        Box.__init__(self)
+        self.origin = origin
+        self.dim = dim
+
+    def dist_jacobian(self, x):
+        raise NotImplementedError
+
+    def dist_hessian(self, x):
+        raise NotImplementedError
+
+
 class SignedDistance2DMap(DifferentiableMap):
     """
         This class of wraps the shape class in a differentiable map
