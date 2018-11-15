@@ -59,7 +59,7 @@ def graph_search_path(graph, workspace, nb_points):
                 and perform graph search on a grid (nb_points x nb_points)
             2) convert path to world coordinates
             3) interpolate path continuously """
-    path = demonstrations.sample_path(workspace, graph, nb_points)
+    path = demonstrations.sample_path(workspace, graph, nb_points, True)
 
     # convert to world coordinates
     path_world = ContinuousTrajectory(len(path) - 1, 2)

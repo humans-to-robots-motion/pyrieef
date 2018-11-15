@@ -21,4 +21,4 @@ import common_imports
 from learning.demonstrations import *
 
 np.random.seed(0)
-generate_one_demonstration(nb_points=24, demo_id=7)
+trajectory = generate_one_demonstration(nb_points=24, demo_id=20)

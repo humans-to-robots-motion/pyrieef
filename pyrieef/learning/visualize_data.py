@@ -158,7 +158,7 @@ def draw_all_workspaces(basename, scale, multicol=True):
                         viewer.draw_ws_point(q_t + q_t_1, color="k", shape='o')
 
         viewer.show_once()
-        time.sleep(t_sleep)
+        # time.sleep(t_sleep)
 
 
 if __name__ == '__main__':
@@ -171,7 +171,7 @@ if __name__ == '__main__':
          'costmaps',         # displays the costmaps
          ])
     parser.add_option('--basename', type='string', default='1k_small.hdf5')
-    parser.add_option('--scale', type='float', default=1.5)
+    parser.add_option('--scale', type='float', default=1.3)
     options, args = parser.parse_args()
 
     if options.costmaps:

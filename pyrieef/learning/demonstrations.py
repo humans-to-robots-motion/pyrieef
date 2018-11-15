@@ -39,6 +39,7 @@ from utils.collision_checking import *
 
 
 MAX_ITERATIONS = 100
+MAX_GRADIENT_NORM = 10000.
 ALPHA = 10.
 MARGIN = .20
 OFFSET = 0.1
@@ -85,6 +86,8 @@ def optimize(path, workspace, costmap, verbose=False):
     [dist, traj, gradient, deltas] = optimizer.optimize(
         trajectory.configuration(0), MAX_ITERATIONS, trajectory,
         optimizer="newton")
+    if np.linalg.norm(deltas) > MAX_GRADIENT_NORM:
+        return None
     if verbose:
         print(("time : {}".format(time.time() - t_start)))
     return trajectory
@@ -136,6 +139,9 @@ def compute_demonstration(
 
     optimized_trajectory = optimize(
         interpolated_traj, workspace, None, verbose)
+    if optimized_trajectory is None:
+        print("Warning: gradient too big !!!")
+        return None
     collision = collision_check_trajectory(workspace, optimized_trajectory)
     if collision and verbose:
         print("Warning: has collision !!!")
@@ -199,7 +205,7 @@ def generate_demonstrations(nb_points):
         nb_tries = 0
         while trajectories[k] is None:
             nb_tries += 1
-            hard=nb_tries < 20
+            hard = nb_tries < 20
             try:
                 trajectories[k] = compute_demonstration(
                     workspace,
