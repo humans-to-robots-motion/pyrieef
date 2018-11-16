@@ -117,6 +117,24 @@ def test_inside_box():
             assert not box.is_inside(-1. * p + box.lower_corner())
 
 
+def test_axis_aligned_box():
+    dimensions = np.array([.5, .5])
+    box1 = AxisAlignedBox(dim=dimensions)
+    box2 = Box(dim=dimensions)
+    points = EnvBox().meshgrid_points(10)
+    for p in points:
+        sdf1 = box1.dist_from_border(p)
+        sdf2 = box2.dist_from_border(p)
+        assert np.fabs(sdf1 - sdf2) < 1.e-06
+
+    # print np.array(array_2).T
+    # assert_allclose(array_1, array_2)
+
+    # sdf1 = box1.dist_from_border(grid)
+    # sdf2 = box2.dist_from_border(grid)
+    # assert_allclose(sdf1, sdf2)
+
+
 def test_ellipse():
 
     ellipse = Ellipse()
@@ -197,8 +215,9 @@ def test_workspace_to_occupancy_map():
 if __name__ == "__main__":
 
     # test_circle()
-    test_segment()
+    # test_segment()
     # test_box()
+    test_axis_aligned_box()
     # test_inside_box()
     # test_ellipse()
     # test_sdf_derivatives()

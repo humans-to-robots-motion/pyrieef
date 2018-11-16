@@ -348,6 +348,8 @@ class Box(Shape):
         is smaller or bigger than the lower and top corner
         of the box respectively
 
+        Warning : This is only valid for AxisAligned Box
+
         Parameters
         ----------
         x : numpy array with
@@ -442,15 +444,59 @@ class AxisAlignedBox(Box):
     def __init__(self,
                  origin=np.array([0., 0.]),
                  dim=np.array([1., 1.])):
-        Box.__init__(self)
-        self.origin = origin
-        self.dim = dim
+        Box.__init__(self, origin, dim)
+        """
+        In all zones (1) the hessian of the signed distance
+        field is zero((n, n)) and gradient (0, 1) or (1, 0)
 
-    def dist_jacobian(self, x):
-        raise NotImplementedError
+                   v4 | (1) | v1
+                   ___|_____|___
+                  (1) | (1) | (1)
+                   ___|_____|___
+                   v3 | (1) | v2
+        """
+        self.half_dim = 0.5 * self.dim
+        self._v1 = np.array([self.half_dim[0], self.half_dim[1]])
+        self._v2 = np.array([self.half_dim[0], -self.half_dim[1]])
+        self._v3 = np.array([-self.half_dim[0], -self.half_dim[1]])
+        self._v4 = np.array([-self.half_dim[0], self.half_dim[1]])
+        self._verticies = [self._v1, self._v2, self._v3, self._v4]
 
-    def dist_hessian(self, x):
-        raise NotImplementedError
+    def dist_from_border(self, x):
+        x_center = (x.T - self.origin).T
+
+        # TOP
+        if x_center[1] > self._v1[1]:
+            if x_center[0] < self._v4[0]:
+                d = vector_norm(x_center - self._v4)
+            elif x_center[0] > self._v1[0]:
+                d = vector_norm(x_center - self._v1)
+            else:
+                d = x_center[1] - self._v1[1]
+        # BOTTOM
+        elif x_center[1] < self._v2[1]:
+            if x_center[0] < self._v3[0]:
+                d = vector_norm(x_center - self._v3)
+            elif x_center[0] > self._v2[0]:
+                d = vector_norm(x_center - self._v2)
+            else:
+                d = self._v1[1] - x_center[1]
+        # MIDDLE
+        else:
+            if x_center[0] < self._v3[0]:
+                d = self._v3[0] - x_center[0]
+            elif x_center[0] > self._v2[0]:
+                d = x_center[0] - self._v2[0]
+            else:
+                d = -min(self.half_dim - np.absolute(x_center))
+        # single = x.shape == (2,) or x.shape == (3,)
+        # shape = 1 if single else (x.shape[1], x.shape[2])
+        # inside = np.full(shape, True)
+        # for k in range(x.shape[0]):
+        #     inside = np.where(np.logical_or(
+        #         x[k] < l_corner[k],
+        #         x[k] > u_corner[k]), False, inside)
+        return d
 
 
 class SignedDistance2DMap(DifferentiableMap):
@@ -573,6 +619,11 @@ class EnvBox(Box):
     def stacked_meshgrid(self, nb_points=100):
         X, Y = self.meshgrid(nb_points)
         return np.stack([X, Y])
+
+    def meshgrid_points(self, nb_points=100):
+        """ TODO check what reshape is really doing """
+        grid = EnvBox().stacked_meshgrid(nb_points)
+        return grid.reshape(nb_points * nb_points, self.origin.size)
 
     def sample_uniform(self):
         """ Sample uniformly point in extend"""
