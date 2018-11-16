@@ -111,6 +111,19 @@ class Shape:
         raise NotImplementedError()
 
 
+def point_distance_gradient(x, origin):
+    """
+    Returns the gradient of the distance function to a point
+
+    Parameters
+    ----------
+        x : numpy array
+        origin : numpy array
+    """
+    x_center = (x.T - origin).T
+    return x_center / vector_norm(x_center)
+
+
 def point_distance_hessian(x, origin):
     """
     Returns the hessian of the distance function to a point
@@ -160,8 +173,7 @@ class Circle(Shape):
 
     def dist_gradient(self, x):
         """ Warning: not parraleized but should work from 3D """
-        x_center = (x.T - self.origin).T
-        return x_center / vector_norm(x_center)
+        return point_distance_gradient(x, self.origin)
 
     def dist_hessian(self, x):
         """ Warning: not parraleized but should work from 3D """
@@ -449,54 +461,128 @@ class AxisAlignedBox(Box):
         In all zones (1) the hessian of the signed distance
         field is zero((n, n)) and gradient (0, 1) or (1, 0)
 
-                   v4 | (1) | v1
+                   v1 | (1) | v2
                    ___|_____|___
                   (1) | (1) | (1)
                    ___|_____|___
-                   v3 | (1) | v2
+                   v4 | (1) | v3
+
+        ZONES:
+                   1  |  5  |  2
+                   ___|_____|___
+                   8  |  9  |  6
+                   ___|_____|___
+                   4  |  7  |  3
         """
         self.half_dim = 0.5 * self.dim
-        self._v1 = np.array([self.half_dim[0], self.half_dim[1]])
-        self._v2 = np.array([self.half_dim[0], -self.half_dim[1]])
-        self._v3 = np.array([-self.half_dim[0], -self.half_dim[1]])
-        self._v4 = np.array([-self.half_dim[0], self.half_dim[1]])
+        self._v1 = np.array([-self.half_dim[0], self.half_dim[1]])
+        self._v2 = np.array([self.half_dim[0], self.half_dim[1]])
+        self._v3 = np.array([self.half_dim[0], -self.half_dim[1]])
+        self._v4 = np.array([-self.half_dim[0], -self.half_dim[1]])
         self._verticies = [self._v1, self._v2, self._v3, self._v4]
+
+        self._switcher_distance = {
+            1: lambda x: vector_norm(x - self._v1),
+            2: lambda x: vector_norm(x - self._v2),
+            3: lambda x: vector_norm(x - self._v3),
+            4: lambda x: vector_norm(x - self._v4),
+            5: lambda x: x[1] - self._v1[1],
+            6: lambda x: x[0] - self._v3[0],
+            7: lambda x: self._v1[1] - x[1],
+            8: lambda x: self._v1[0] - x[0],
+            9: lambda x: -min(self.half_dim - np.absolute(x))
+        }
+
+        self._switcher_gradient = {
+            1: lambda x: point_distance_gradient(x, self._v1),
+            2: lambda x: point_distance_gradient(x, self._v2),
+            3: lambda x: point_distance_gradient(x, self._v3),
+            4: lambda x: point_distance_gradient(x, self._v4),
+            5: lambda x: np.array([0, 1]),
+            6: lambda x: np.array([1, 0]),
+            7: lambda x: np.array([0, -1]),
+            8: lambda x: np.array([-1, 0]),
+            9: lambda x: self._inside_gradient(x)
+        }
+
+        self._switcher_hessian = {
+            1: lambda x: point_distance_hessian(x, self._v1),
+            2: lambda x: point_distance_hessian(x, self._v2),
+            3: lambda x: point_distance_hessian(x, self._v3),
+            4: lambda x: point_distance_hessian(x, self._v4),
+            5: lambda x: np.zeros((self.origin.size, self.origin.size)),
+            6: lambda x: np.zeros((self.origin.size, self.origin.size)),
+            7: lambda x: np.zeros((self.origin.size, self.origin.size)),
+            8: lambda x: np.zeros((self.origin.size, self.origin.size)),
+            9: lambda x: np.zeros((self.origin.size, self.origin.size))
+        }
+
+    def find_zone(self, x_center):
+        """
+                   1  |  5  |  2
+                   ___|_____|___
+                   8  |  9  |  6
+                   ___|_____|___
+                   4  |  7  |  3
+        """
+        # ----------------------------------------
+        # TOP ------------------------------------
+        if x_center[1] > self._v1[1]:
+
+            if x_center[0] < self._v1[0]:
+                return 1
+            elif x_center[0] > self._v2[0]:
+                return 2
+            else:
+                return 5
+        # ----------------------------------------
+        # BOTTOM ---------------------------------
+        elif x_center[1] < self._v3[1]:
+
+            if x_center[0] < self._v4[0]:
+                return 4
+            elif x_center[0] > self._v3[0]:
+                return 3
+            else:
+                return 7
+        # ----------------------------------------
+        # MIDDLE ---------------------------------
+        else:
+            if x_center[0] < self._v1[0]:
+                return 8
+            elif x_center[0] > self._v2[0]:
+                return 6
+            else:
+                return 9
+
+    def is_inside(self, x):
+        x_center = (x.T - self.origin).T
+        return self.find_zone(x_center) == 9
+
+    def _inside_gradient(self, x):
+        d1 = np.fabs(self.half_dim[0] - x[0])
+        d2 = np.fabs(self.half_dim[1] - x[1])
+        d3 = np.fabs(-self.half_dim[0] - x[0])
+        d4 = np.fabs(-self.half_dim[1] - x[1])
+        switcher = {
+            0: np.array([1, 0]),
+            1: np.array([0, 1]),
+            2: np.array([-1, 0]),
+            3: np.array([0, -1])}
+        idx = np.argmin([d1, d2, d3, d4])
+        return switcher[idx]
 
     def dist_from_border(self, x):
         x_center = (x.T - self.origin).T
+        return self._switcher_distance.get(self.find_zone(x_center))(x_center)
 
-        # TOP
-        if x_center[1] > self._v1[1]:
-            if x_center[0] < self._v4[0]:
-                d = vector_norm(x_center - self._v4)
-            elif x_center[0] > self._v1[0]:
-                d = vector_norm(x_center - self._v1)
-            else:
-                d = x_center[1] - self._v1[1]
-        # BOTTOM
-        elif x_center[1] < self._v2[1]:
-            if x_center[0] < self._v3[0]:
-                d = vector_norm(x_center - self._v3)
-            elif x_center[0] > self._v2[0]:
-                d = vector_norm(x_center - self._v2)
-            else:
-                d = self._v1[1] - x_center[1]
-        # MIDDLE
-        else:
-            if x_center[0] < self._v3[0]:
-                d = self._v3[0] - x_center[0]
-            elif x_center[0] > self._v2[0]:
-                d = x_center[0] - self._v2[0]
-            else:
-                d = -min(self.half_dim - np.absolute(x_center))
-        # single = x.shape == (2,) or x.shape == (3,)
-        # shape = 1 if single else (x.shape[1], x.shape[2])
-        # inside = np.full(shape, True)
-        # for k in range(x.shape[0]):
-        #     inside = np.where(np.logical_or(
-        #         x[k] < l_corner[k],
-        #         x[k] > u_corner[k]), False, inside)
-        return d
+    def dist_gradient(self, x):
+        x_center = (x.T - self.origin).T
+        return self._switcher_gradient.get(self.find_zone(x_center))(x_center)
+
+    def dist_hessian(self, x):
+        x_center = (x.T - self.origin).T
+        return self._switcher_hessian.get(self.find_zone(x_center))(x_center)
 
 
 class SignedDistance2DMap(DifferentiableMap):

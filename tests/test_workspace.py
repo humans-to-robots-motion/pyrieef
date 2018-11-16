@@ -118,18 +118,43 @@ def test_inside_box():
 
 
 def test_axis_aligned_box():
+    environment = EnvBox()
+    points = environment.meshgrid_points(13)
     dimensions = np.array([.5, .5])
+
     box1 = AxisAlignedBox(dim=dimensions)
     box2 = Box(dim=dimensions)
-    points = EnvBox().meshgrid_points(10)
+
+    f1 = SignedDistance2DMap(box2)
+    for _ in range(100):
+        p = environment.sample_uniform()
+        J = f1.jacobian(p)
+        J_diff = finite_difference_jacobian(f1, p)
+        assert check_is_close(J, J_diff, 1e-4)
+
+    f2 = SignedDistance2DMap(box1)
+    for _ in range(100):
+        p = environment.sample_uniform()
+
+        J1 = f1.jacobian(p)
+        J2 = f2.jacobian(p)
+        assert check_is_close(J1, J2, 1e-4)
+
+        J = f2.jacobian(p)
+        J_diff = finite_difference_jacobian(f2, p)
+        assert check_is_close(J, J_diff, 1e-4)
+
+        H1 = box1.dist_hessian(p)
+        H2 = box2.dist_hessian(p)
+        assert_allclose(H1, H2)
+
     for p in points:
         sdf1 = box1.dist_from_border(p)
         sdf2 = box2.dist_from_border(p)
         assert np.fabs(sdf1 - sdf2) < 1.e-06
 
-    # print np.array(array_2).T
-    # assert_allclose(array_1, array_2)
-
+    # TODO make code parallelizable
+    # grid = EnvBox().stacked_meshgrid()
     # sdf1 = box1.dist_from_border(grid)
     # sdf2 = box2.dist_from_border(grid)
     # assert_allclose(sdf1, sdf2)

@@ -58,7 +58,7 @@ def test_demonstrations():
         trajectories[k] = demos.compute_demonstration(
             sample_workspace(nb_circles=3), converter, nb_points=nb_points,
             show_result=False, average_cost=average_cost, verbose=True,
-            no_linear_interpolation=False)
+            no_linear_interpolation=True)
         # TODO fix this test, it takes too long for now.
         if trajectories[k] is not None:
             assert trajectories[k].n() == 2
