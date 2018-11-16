@@ -178,7 +178,7 @@ def generate_one_demonstration(nb_points, demo_id):
     hard = True
     trajectory = None
     while trajectory is None:
-        if hard == False:
+        if not hard:
             print("try easy")
         try:
             trajectory = compute_demonstration(

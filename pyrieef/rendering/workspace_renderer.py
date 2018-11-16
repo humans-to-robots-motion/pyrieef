@@ -322,9 +322,10 @@ class WorkspaceHeightmap(WorkspaceRender):
 
     def draw_ws_obstacles(self):
         for o in self._workspace.obstacles:
-            p = o.origin + o.radius * np.array([0, 1])
-            z = self.normalize_height(self._height_function(p) + 20)
-            self.draw_ws_circle(o.radius, o.origin, height=z)
+            if isinstance(o, Circle):
+                p = o.origin + o.radius * np.array([0, 1])
+                z = self.normalize_height(self._height_function(p) + 20)
+                self.draw_ws_circle(o.radius, o.origin, height=z)
 
     def reset_objects(self):
         self._height_map.objects = []

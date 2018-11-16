@@ -33,7 +33,7 @@ from pyrieef.utils.collision_checking import *
 
 DRAW = True
 DRAW_3D = False
-VERBOSE = False
+VERBOSE = True
 demonstrations.TRAJ_LENGTH = 20
 
 

@@ -424,7 +424,7 @@ class Box(Shape):
         d = [None] * 4
         for i, segment in enumerate(self.segments()):
             d[i] = segment.dist_from_border(x)
-        sign = np.where(self.is_inside(x), -1., 1.)
+        sign = np.where(Box.is_inside(self, x), -1., 1.)
         minimum = np.min(np.array(d), axis=0)
         d = sign * minimum
         return np.asscalar(d) if d.size == 1 else d
@@ -573,6 +573,10 @@ class AxisAlignedBox(Box):
         return switcher[idx]
 
     def dist_from_border(self, x):
+        single = x.shape == (2,) or x.shape == (3,)
+        if not single:
+            # For now we can not use meshgrid for this class
+            return Box.dist_from_border(self, x)
         x_center = (x.T - self.origin).T
         return self._switcher_distance.get(self.find_zone(x_center))(x_center)
 
@@ -840,7 +844,7 @@ def sample_box_workspaces(
         h = (max_h - min_h) * np.random.rand() + min_h
         w = (max_w - min_w) * np.random.rand() + min_w
         dimensions = np.array([w, h])
-        workspace.obstacles[i] = Box(origin, dimensions)
+        workspace.obstacles[i] = AxisAlignedBox(origin, dimensions)
     return workspace
 
 
