@@ -61,6 +61,7 @@ class WorkspaceRender:
         self.workspace_id = 0
 
     def set_workspace(self, workspace):
+        assert workspace is not None
         self._workspace = workspace
         self._extent = self._workspace.box.extent()
 

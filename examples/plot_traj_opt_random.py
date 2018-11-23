@@ -34,7 +34,7 @@ from pyrieef.utils.collision_checking import *
 DRAW = True
 DRAW_3D = False
 VERBOSE = True
-demonstrations.TRAJ_LENGTH = 20
+demonstrations.TRAJ_LENGTH = 100
 
 
 def optimize_path(objective, workspace, path):

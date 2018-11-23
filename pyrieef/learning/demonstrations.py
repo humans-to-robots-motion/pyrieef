@@ -27,6 +27,7 @@ else:
 from graph.shortest_path import *
 from learning.dataset import *
 from learning.random_environment import *
+from learning.random_paths import *
 from utils.misc import *
 from geometry.workspace import *
 from motion.cost_terms import *
@@ -93,33 +94,6 @@ def optimize(path, workspace, costmap, verbose=False):
     return trajectory
 
 
-def sample_path(workspace, graph, nb_points, no_linear_interpolation):
-    """ finds a path that does not collide with enviroment
-    but that is significantly difficult to perform """
-    meshgrid = workspace.box.stacked_meshgrid(nb_points)
-    costgrid = obsatcle_potential(workspace)(meshgrid).T
-    pixel_map = workspace.pixel_map(nb_points)
-    resample = True
-    half_diag = workspace.box.diag() / 2.
-    path = None
-    for _ in range(100):
-        s_w = sample_collision_free(workspace, MARGIN / 2)
-        t_w = sample_collision_free(workspace, MARGIN / 2)
-        if no_linear_interpolation:
-            if np.linalg.norm(s_w - t_w) < half_diag:
-                continue
-            if not collision_check_linear_interpolation(workspace, s_w, t_w):
-                continue
-        resample = False
-        s = pixel_map.world_to_grid(s_w)
-        t = pixel_map.world_to_grid(t_w)
-        try:
-            path = graph.dijkstra_on_map(costgrid, s[0], s[1], t[0], t[1])
-        except:
-            resample = True
-    return path
-
-
 def compute_demonstration(
         workspace, graph, nb_points,
         show_result, average_cost, verbose, no_linear_interpolation):
@@ -150,19 +124,6 @@ def compute_demonstration(
     result = [None] * TRAJ_LENGTH
     for i in range(len(result)):
         result[i] = optimized_trajectory.configuration(i)
-
-    if show_result:
-        import rendering.workspace_renderer as render
-        viewer = render.WorkspaceDrawer(workspace, wait_for_keyboard=True)
-        viewer.draw_ws_background(phi, nb_points)
-        viewer.draw_ws_obstacles()
-        viewer.draw_ws_line(interpolated_traj, color="r")
-        viewer.draw_ws_line(traj, color="b")
-        viewer.draw_ws_line(result, color="g")
-        viewer.draw_ws_point(s_w)
-        viewer.draw_ws_point(t_w)
-        viewer.show_once()
-        time.sleep(.4)
 
     return optimized_trajectory
 

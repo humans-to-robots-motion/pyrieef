@@ -19,6 +19,7 @@
 
 import __init__
 from learning.random_environment import *
+from learning.random_paths import *
 import learning.demonstrations as demos
 from graph.shortest_path import *
 from geometry.workspace import sample_workspace
