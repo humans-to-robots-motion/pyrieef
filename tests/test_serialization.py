@@ -96,11 +96,12 @@ def test_paths_io():
     filename = "tmp_paths_{}.hdf5".format(str(time.time()).split('.')[0])
     print("save to tmp file : {}".format(filename))
     save_paths_to_file(paths, filename)
-    assert os.path.isfile(learning_data_dir() + os.sep + filename)
     saved_paths = load_paths_from_file(filename)
+    saved_paths_file = learning_data_dir() + os.sep + filename
+    assert os.path.isfile(saved_paths_file)
+    os.remove(saved_paths_file)
     for i, k in product(list(range(nb_env)), list(range(nb_paths))):
         assert_allclose(paths[i][k], saved_paths[i][k])
-    os.remove(learning_data_dir() + os.sep + filename)
 
 
 if __name__ == "__main__":
