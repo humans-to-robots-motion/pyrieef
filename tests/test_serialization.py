@@ -21,7 +21,10 @@ import __init__
 from learning.dataset import *
 from utils.misc import *
 import numpy as np
+from numpy.testing import assert_allclose
 import pickle
+import random
+import time
 
 
 def check_is_close(a, b, tolerance=1e-10):
@@ -77,7 +80,31 @@ def test_pickle_io():
     assert thing2.name == thing1.name
 
 
+def test_paths_io():
+
+    print("Test paths IO !")
+    nb_env = 20
+    nb_paths = 10
+
+    paths = []
+    for _ in range(nb_env):
+        paths.append([])
+        for _ in range(nb_paths):
+            length = random.randint(10, 20)
+            paths[-1].append(np.random.randint(50, size=(length, 2)))
+
+    filename = "tmp_paths_{}.hdf5".format(str(time.time()).split('.')[0])
+    print("save to tmp file : {}".format(filename))
+    save_paths_to_file(paths, filename)
+    assert os.path.isfile(learning_data_dir() + os.sep + filename)
+    saved_paths = load_paths_from_file(filename)
+    for i, k in product(list(range(nb_env)), list(range(nb_paths))):
+        assert_allclose(paths[i][k], saved_paths[i][k])
+    os.remove(learning_data_dir() + os.sep + filename)
+
+
 if __name__ == "__main__":
     test_hdf5_io()
     test_hdf5_dictionary_io()
     test_pickle_io()
+    test_paths_io()

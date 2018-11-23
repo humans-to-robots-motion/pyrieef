@@ -184,12 +184,12 @@ def load_paths_from_file(filename='paths_1k_demos.hdf5'):
     paths = []
     with h5py.File(learning_data_dir() + os.sep + filename, 'r') as f:
         for environment in f:
-            print(("f[d] : " + str(environment)))
+            # print(("f[d] : " + str(environment)))
             paths.append([])
             for path in f[environment]:
                 p = f[environment][path][:]
                 paths[-1].append(p)
-                print("path : " + str(path))
+                # print("path : " + str(path))
                 # print(" --- : " + str(p.T))
     return paths
 
