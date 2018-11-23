@@ -162,6 +162,38 @@ def load_workspaces_from_file(filename='workspaces_1k_small.hdf5'):
     return workspaces
 
 
+def save_paths_to_file(paths, filename='paths_1k_demos.hdf5'):
+    directory = learning_data_dir()
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    f = h5py.File(directory + os.sep + filename, 'w')
+    for i, environment in enumerate(paths):
+        grp = f.create_group(pad_zeros('environment_', i, len(paths)))
+        for k, path in enumerate(environment):
+            grp.create_dataset(
+                pad_zeros('path_', k, len(environment)),
+                data=np.array(path))
+
+
+def load_paths_from_file(filename='paths_1k_demos.hdf5'):
+    np.set_printoptions(
+        suppress=True,
+        linewidth=200, precision=0,
+        formatter={'float_kind': '{:8.0f}'.format})
+
+    paths = []
+    with h5py.File(learning_data_dir() + os.sep + filename, 'r') as f:
+        for environment in f:
+            print(("f[d] : " + str(environment)))
+            paths.append([])
+            for path in f[environment]:
+                p = f[environment][path][:]
+                paths[-1].append(p)
+                print("path : " + str(path))
+                # print(" --- : " + str(p.T))
+    return paths
+
+
 def save_trajectories_to_file(
         trajectories, filename='trajectories_1k_demos.hdf5'):
     nb_traj = len(trajectories)

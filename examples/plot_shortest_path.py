@@ -27,7 +27,7 @@ import pyrieef.rendering.workspace_renderer as render
 from utils import timer
 import time
 
-show_result = True
+show_result = False
 radius = .1
 nb_points = 24
 average_cost = False
@@ -55,13 +55,15 @@ for i in range(100):
     # print "querry : ({}, {}) ({},{})".format(s[0], s[1], t[0], t[1])
     # path = converter.shortest_path(predecessors, s[0], s[1], t[0], t[1])
     # path = converter.dijkstra(graph, s[0], s[1], t[0], t[1])
-    path = converter.dijkstra_on_map(costmap, s[0], s[1], t[0], t[1])
-
-    trajectory = [None] * len(path)
-    for i, p in enumerate(path):
-        trajectory[i] = pixel_map.grid_to_world(np.array(p))
+    try:
+        path = converter.dijkstra_on_map(costmap, s[0], s[1], t[0], t[1])
+    except:
+        continue
 
     if show_result:
+        trajectory = [None] * len(path)
+        for i, p in enumerate(path):
+            trajectory[i] = pixel_map.grid_to_world(np.array(p))
         viewer = render.WorkspaceDrawer(workspace, wait_for_keyboard=True)
         viewer.draw_ws_background(phi, nb_points)
         viewer.draw_ws_obstacles()

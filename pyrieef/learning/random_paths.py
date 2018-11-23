@@ -40,7 +40,6 @@ from utils.collision_checking import *
 
 PATHS_PER_ENVIROMENT = 10
 AVERAGE_COST = True
-POINTS = 24
 DRAW = False
 VERBOSE = False
 ALPHA = 10.
@@ -55,18 +54,14 @@ def obsatcle_potential(workspace):
     return CostGridPotential2D(sdf, ALPHA, MARGIN, OFFSET)
 
 
-def cost_grid(workspace):
+def cost_grid(workspace, nb_points):
     return obsatcle_potential(workspace)(
-        workspace.box.stacked_meshgrid(POINTS)).T
+        workspace.box.stacked_meshgrid(nb_points)).T
 
 
-def grid_to_world_path(workspace, path):
-    """ grid to world path """
-    pixel_map = workspace.pixel_map(POINTS)
-    path_w = [None] * len(path)
-    for i, p in enumerate(path):
-        path_w[i] = pixel_map.grid_to_world(np.array(p))
-    return path
+def grid_to_world_path(workspace, path, nb_points):
+    grid = workspace.pixel_map(nb_points)
+    return [grid.grid_to_world(np.array(p)) for p in path]
 
 
 def sample_path(
@@ -76,10 +71,11 @@ def sample_path(
         no_linear_interpolation):
     """ finds a path that does not collide with enviroment
     but that is significantly difficult to perform """
-    cost = cost_grid(workspace)
+    cost = cost_grid(workspace, nb_points)
     pixel_map = workspace.pixel_map(nb_points)
     half_diag = workspace.box.diag() / 2.
     path = None
+    resample = False
     for _ in range(100):
         s_w = sample_collision_free(workspace, MARGIN / 2)
         t_w = sample_collision_free(workspace, MARGIN / 2)
@@ -94,7 +90,9 @@ def sample_path(
             path = graph.dijkstra_on_map(cost, s[0], s[1], t[0], t[1])
         except:
             print("Warning : error in dijkstra")
-
+            resample = True
+        if not resample:
+            break
     return path
 
 
@@ -133,13 +131,15 @@ def generate_paths(nb_points):
             viewer.set_workspace(workspace)
             viewer.draw_ws_background(obsatcle_potential(workspace), nb_points)
             viewer.draw_ws_obstacles()
-            for path in paths[k]:
-                viewer.draw_ws_line(path, color="r")
+            for idx, path in enumerate(paths[k]):
+                world_path = grid_to_world_path(workspace, path, nb_points)
+                # viewer.draw_ws_line(world_path, color_id=idx)
+                viewer.draw_ws_line_fill(world_path, color_id=idx)
                 viewer.draw_ws_point(path[0])
                 viewer.draw_ws_point(path[-1])
             viewer.show_once()
             time.sleep(.4)
-    return trajectories
+    return paths
 
 
 if __name__ == '__main__':
@@ -155,4 +155,5 @@ if __name__ == '__main__':
     nb_points = options.nb_points
     print((" -- options : ", options))
     paths = generate_paths(nb_points)
-    save_trajectories_to_file(paths, filename='paths_' + DEFAULT_WS_FILE)
+    save_paths_to_file(paths, filename='paths_' + DEFAULT_WS_FILE)
+    load_paths_from_file(filename='paths_' + DEFAULT_WS_FILE)

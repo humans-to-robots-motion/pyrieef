@@ -159,13 +159,18 @@ class WorkspaceDrawer(WorkspaceRender):
         #     ax.plot_surface(X, Y, Z, cmap=color_style,
         #                     linewidth=0, antialiased=False)
 
-    def draw_ws_line(self, line, color='r'):
-        [self._ax.plot(point[0], point[1], color + 'o') for point in line]
+    def draw_ws_line(self, line, color='r', color_id=None):
+        if color_id is not None:
+            color = cm.rainbow(float(color_id % 100) / 20.)
+        [self._ax.plot(point[0], point[1], c=color) for point in line]
 
-    def draw_ws_line_fill(self, line, color='r', linewidth=2.0):
+    def draw_ws_line_fill(self, line, color='r', color_id=None, linewidth=2.0):
+        if color_id is not None:
+            color = cm.rainbow(float(color_id % 100) / 20.)
         line_x = [point[0] for point in line]
         line_y = [point[1] for point in line]
-        self._ax.plot(line_x, line_y, color, linewidth)
+        self._ax.plot(line_x, line_y, linewidth=linewidth,
+                      marker='o', linestyle="-", c=color)
 
     def draw_ws_point(self, point, color='b', shape='x'):
         self._ax.plot(point[0], point[1], color + shape)

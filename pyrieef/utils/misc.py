@@ -21,6 +21,7 @@
 import sys
 import os
 from time import sleep
+import math
 
 
 def dict_to_object(d):
@@ -56,3 +57,8 @@ def show_progress(idx, idx_max):
 def make_directory(directory):
     if not os.path.exists(directory):
         os.makedirs(directory)
+
+
+def pad_zeros(string, number, maximum):
+    zeros = math.ceil(math.log10(maximum))
+    return string + '{:0{width}}'.format(number, width=str(int(zeros)))

@@ -16,7 +16,7 @@ costdata2d_1k_28:
     filename: costdata2d_1k_small
     workspaces: workspaces_1k_small
     type: hdf5
-    numdatasets: 24
+    numdatasets: 1000
     xsize: 28
     ysize: 28
     maxnumobjs: 3
