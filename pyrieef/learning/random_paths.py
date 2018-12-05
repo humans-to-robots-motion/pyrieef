@@ -42,16 +42,19 @@ PATHS_PER_ENVIROMENT = 10
 AVERAGE_COST = True
 DRAW = False
 VERBOSE = False
-ALPHA = 10.
+ALPHA = 3.
 MARGIN = .20
-OFFSET = 0.1
+OFFSET = 0.001
 TRAJ_LENGTH = 20
 DEFAULT_WS_FILE = '1k_small.hdf5'
 
 
 def obsatcle_potential(workspace):
     sdf = SignedDistanceWorkspaceMap(workspace)
-    return CostGridPotential2D(sdf, ALPHA, MARGIN, OFFSET)
+    functions = [
+        CostGridPotential2D(sdf, ALPHA, MARGIN, OFFSET),
+        Compose(LogBarrierFunction(), sdf)]
+    return SumOfTerms(functions)
 
 
 def cost_grid(workspace, nb_points):
