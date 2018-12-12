@@ -419,6 +419,41 @@ class ContinuousTrajectory(Trajectory):
         return (1. - alpha) * q_1 + alpha * q_2
 
 
+class ConstantAccelerationTrajectory(ContinuousTrajectory):
+    """ Implements a trajectory that can be continously interpolated """
+
+    def __init__(self, T=0, n=2, dt=0.1, q_init=None, x=None):
+        Trajectory.__init__(self, T=T, n=n, q_init=q_init, x=x)
+        self._dt = 0.1
+
+    def velocity_at_parameter(self, s):
+        """ The trajectory is indexed by s \in [0, 1] """
+        d_param = s * self.length()
+        q_prev = self.configuration(0)
+        dist = 0.
+        for i in range(1, self._T + 1):
+            q_curr = self.configuration(i)
+            d = np.linalg.norm(q_curr - q_prev)
+            if d_param <= (d + dist):
+                alpha = min(d_param / d, 1.)
+                v_1 = self.velocity(i - 1, self._dt)
+                v_2 = self.velocity(i, self._dt)
+                assert alpha >= 0 and alpha <= 1., "alpha : {}".format(alpha)
+                return (1. - alpha) * v_1 + alpha * v_2
+            dist += d
+            q_prev = q_curr
+        return None
+
+
+    @staticmethod
+    def interpolate(q_1, q_2, d_param, dist):
+        """ interpolate between configurations """
+        # assert d_param / dist <= 1.
+        alpha = min(d_param / dist, 1.)
+        assert alpha >= 0 and alpha <= 1., "alpha : {}".format(alpha)
+        return (1. - alpha) * q_1 + alpha * q_2
+
+
 def linear_interpolation_trajectory(q_init, q_goal, T):
     assert q_init.size == q_goal.size
     trajectory = Trajectory(T, q_init.size)

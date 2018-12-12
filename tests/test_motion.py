@@ -200,6 +200,21 @@ def test_continuous_trajectory():
         assert_allclose(q_1, q_2)
 
 
+def test_constant_acceleration_trajectory():
+    dt = 0.1
+    T = 7
+    n = 2
+    q_init = np.random.random(n)
+    q_goal = np.random.random(n)
+    trajectory_1 = linear_interpolation_trajectory(q_init, q_goal, T)
+    trajectory_2 = ConstantAccelerationTrajectory(T, n, dt)
+    trajectory_2.set(linear_interpolation_trajectory(q_init, q_goal, T).x())
+    for k, s in enumerate(np.linspace(0., 1., trajectory_1.T() + 1)):
+        q_1 = trajectory_2.velocity_at_parameter(s)
+        q_2 = trajectory_1.velocity(k, dt)
+        assert_allclose(q_1, q_2)
+
+
 def test_center_of_clique():
     config_dim = 2
     nb_way_points = 10
@@ -529,22 +544,23 @@ def test_trajectory_following():
 
 
 if __name__ == "__main__":
-    test_finite_differences()
-    test_integration()
-    test_cliques()
-    test_trajectory()
-    test_continuous_trajectory()
-    test_squared_norm_derivatives()
-    test_log_barrier()
-    test_bound_barrier()
-    test_obstacle_potential()
-    test_motion_optimimization_2d()
-    test_motion_optimimization_smoothness_metric()
-    test_center_of_clique()
-    test_linear_interpolation()
-    test_linear_interpolation_velocity()
-    test_linear_interpolation_optimal_potential()
-    test_smoothness_metric()
-    test_trajectory_objective()
-    test_optimize()
-    test_trajectory_following()
+    # test_finite_differences()
+    # test_integration()
+    # test_cliques()
+    # test_trajectory()
+    # test_continuous_trajectory()
+    test_constant_acceleration_trajectory()
+    # test_squared_norm_derivatives()
+    # test_log_barrier()
+    # test_bound_barrier()
+    # test_obstacle_potential()
+    # test_motion_optimimization_2d()
+    # test_motion_optimimization_smoothness_metric()
+    # test_center_of_clique()
+    # test_linear_interpolation()
+    # test_linear_interpolation_velocity()
+    # test_linear_interpolation_optimal_potential()
+    # test_smoothness_metric()
+    # test_trajectory_objective()
+    # test_optimize()
+    # test_trajectory_following()
