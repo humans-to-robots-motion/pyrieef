@@ -424,15 +424,17 @@ class ConstantAccelerationTrajectory(ContinuousTrajectory):
 
     def __init__(self, T=0, n=2, dt=0.1, q_init=None, x=None):
         Trajectory.__init__(self, T=T, n=n, q_init=q_init, x=x)
-        self._dt = 0.1
+        self._dt = float(dt)
 
     def config_at_time(self, t):
         """ Get the id of the segment and then interpolate
             using quadric interpolation """
         alpha_t = t / self._dt
         s_id = int(alpha_t)
+        if s_id == 0:
+            return self.configuration(0)
         s_t = alpha_t - float(s_id)
-        return self._config_along_segment(s_id, s_t)
+        return self._config_along_segment(s_id, s_t * self._dt)
 
     def _config_along_segment(self, i, t):
         """ Implements a quadric interpolation """

@@ -40,16 +40,28 @@ trajectory = linear_interpolation_trajectory(
 # -----------------------------------------------------------------------------
 # The Objective function is wrapped in the optimization viewer object
 # which draws the trajectory as it is being optimized
+objective_traj = MotionOptimization2DCostMap(
+    box=EnvBox(
+        origin=np.array([0, 0]),
+        dim=np.array([1., 1.])),
+    T=trajectory.T(),
+    q_init=trajectory.initial_configuration(),
+    q_goal=trajectory.final_configuration())
+objective_traj.set_scalars(
+    obstacle_scalar=1.,
+    init_potential_scalar=0.,
+    term_potential_scalar=10000000.,
+    acceleration_scalar=2.)
+objective_traj.create_clique_network()
+objective_traj.add_final_velocity_terms()
+objective_traj.add_smoothness_terms(2)
+objective_traj.add_obstacle_terms()
+objective_traj.add_box_limits()
+objective_traj.add_init_and_terminal_terms()
+objective_traj.create_objective()
+
 objective = TrajectoryOptimizationViewer(
-    MotionOptimization2DCostMap(
-        box=EnvBox(
-            origin=np.array([0, 0]),
-            dim=np.array([1., 1.])),
-        T=trajectory.T(),
-        q_init=trajectory.initial_configuration(),
-        q_goal=trajectory.final_configuration()),
-    draw=True,
-    draw_gradient=True)
+    objective_traj, draw=True, draw_gradient=True)
 
 # ----------------------------------------------------------------------------
 # Runs a Newton optimization algorithm on the objective
