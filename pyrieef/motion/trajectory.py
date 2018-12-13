@@ -426,32 +426,23 @@ class ConstantAccelerationTrajectory(ContinuousTrajectory):
         Trajectory.__init__(self, T=T, n=n, q_init=q_init, x=x)
         self._dt = 0.1
 
-    def velocity_at_parameter(self, s):
-        """ The trajectory is indexed by s \in [0, 1] """
-        d_param = s * self.length()
-        q_prev = self.configuration(0)
-        dist = 0.
-        for i in range(1, self._T + 1):
-            q_curr = self.configuration(i)
-            d = np.linalg.norm(q_curr - q_prev)
-            if d_param <= (d + dist):
-                alpha = min(d_param / d, 1.)
-                v_1 = self.velocity(i - 1, self._dt)
-                v_2 = self.velocity(i, self._dt)
-                assert alpha >= 0 and alpha <= 1., "alpha : {}".format(alpha)
-                return (1. - alpha) * v_1 + alpha * v_2
-            dist += d
-            q_prev = q_curr
-        return None
+    def config_at_time(self, t):
+        """ Get the id of the segment and then interpolate
+            using quadric interpolation """
+        alpha_t = t / self._dt
+        s_id = int(alpha_t)
+        s_t = alpha_t - float(s_id)
+        return self._config_along_segment(s_id, s_t)
 
-
-    @staticmethod
-    def interpolate(q_1, q_2, d_param, dist):
-        """ interpolate between configurations """
-        # assert d_param / dist <= 1.
-        alpha = min(d_param / dist, 1.)
-        assert alpha >= 0 and alpha <= 1., "alpha : {}".format(alpha)
-        return (1. - alpha) * q_1 + alpha * q_2
+    def _config_along_segment(self, i, t):
+        """ Implements a quadric interpolation """
+        assert i > 0
+        assert t >= 0 and t <= self._dt
+        q_t = self.configuration(i - 1)
+        v_t = self.velocity(i, self._dt)
+        a_t = self.acceleration(i, self._dt)
+        t_0 = t + self._dt
+        return q_t + v_t * t_0 + .5 * a_t * t_0 * (t_0 - self._dt)
 
 
 def linear_interpolation_trajectory(q_init, q_goal, T):
