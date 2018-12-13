@@ -48,9 +48,8 @@ for t in time_index_2:
 plt.figure()
 plt.subplot(311)
 # Warning the accleration for the last config is ill defined.
-# Note that for the first segment the interpolation is
-# not defined.
-plt.plot(time_index_2[:-1], interpolated_accelerations[:-1])
+# Note that for the first segment the interpolation is not defined.
+plt.plot(time_index_2[1:-1], interpolated_accelerations[1:-1])
 plt.legend(['Acceleration'])
 
 plt.subplot(312)

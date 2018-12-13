@@ -431,19 +431,21 @@ class ConstantAccelerationTrajectory(ContinuousTrajectory):
             using quadric interpolation """
         alpha_t = t / self._dt
         s_id = int(alpha_t)
-        if s_id == 0:
-            return self.configuration(0)
         s_t = alpha_t - float(s_id)
         return self._config_along_segment(s_id, s_t * self._dt)
 
-    def _config_along_segment(self, i, t):
+    def _config_along_segment(self, s_id, t):
         """ Implements a quadric interpolation """
-        assert i > 0
         assert t >= 0 and t <= self._dt
+        if s_id == 0:
+            i = 1
+            t_0 = t
+        else:
+            i = s_id
+            t_0 = t + self._dt
         q_t = self.configuration(i - 1)
         v_t = self.velocity(i, self._dt)
         a_t = self.acceleration(i, self._dt)
-        t_0 = t + self._dt
         return q_t + v_t * t_0 + .5 * a_t * t_0 * (t_0 - self._dt)
 
 
