@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python
 
 # Copyright (c) 2018, University of Stuttgart
@@ -22,25 +23,24 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 from pyrieef.motion.objective import ConstantAccelerationTrajectory
+from scipy.interpolate import interp1d
 
 T = 10
 dt = 1.
 epsilon = 1e-6
-trajectory = ConstantAccelerationTrajectory(T, 1, dt)
-time_index_1 = np.linspace(0., T * dt, T + 1)
-time_index_2 = np.linspace(0., T * dt, 1000)
 
-for i, t in enumerate(time_index_1):
-    trajectory.configuration(i)[:] = np.sin(t)
+time_index_1 = np.linspace(0., T * dt, T + 1)
+time_index_2 = np.linspace(epsilon, T * dt - epsilon, 1000)
+
+f = interp1d(time_index_1, np.sin(time_index_1), kind='cubic')
 
 interpolated_configurations = []
 interpolated_velocities = []
 interpolated_accelerations = []
 for t in time_index_2:
-    detla = epsilon if t > 0 else 0.
-    q0 = trajectory.config_at_time(t - detla)
-    q1 = trajectory.config_at_time(t)
-    q2 = trajectory.config_at_time(t + epsilon)
+    q0 = f(t - epsilon)
+    q1 = f(t)
+    q2 = f(t + epsilon)
     interpolated_configurations.append(q1)
     interpolated_velocities.append((q2 - q1) / epsilon)
     interpolated_accelerations.append((q2 - 2 * q1 + q0) / (epsilon ** 2))
@@ -57,9 +57,9 @@ plt.plot(time_index_2, interpolated_velocities)
 plt.legend(['Velocity'])
 
 plt.subplot(313)
-plt.plot(time_index_1, trajectory.list_configurations())
-plt.plot(time_index_1, trajectory.list_configurations(), '*')
 plt.plot(time_index_2, interpolated_configurations)
+plt.plot(time_index_1, np.sin(time_index_1), 'o')
+plt.plot(time_index_1, np.sin(time_index_1), '--')
 plt.legend(['Position'])
 
 
