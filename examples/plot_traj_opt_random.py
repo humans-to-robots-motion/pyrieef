@@ -31,7 +31,7 @@ from pyrieef.graph.shortest_path import *
 from pyrieef.motion.trajectory import *
 from pyrieef.utils.collision_checking import *
 
-DRAW = False
+DRAW = True
 DRAW_3D = False
 VERBOSE = True
 demonstrations.TRAJ_LENGTH = 20
