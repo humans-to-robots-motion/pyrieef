@@ -6,3 +6,4 @@ scikit-image
 h5py
 pytest
 tensorflow
+tqdm
