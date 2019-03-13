@@ -27,14 +27,17 @@ class TrajectoryOptimizationViewer:
     """ Wrapper around a Trajectory objective function
         tha can draw the inner optimization quantities """
 
-    def __init__(self, objective, draw=True, draw_gradient=True,
-                 use_3d_viewer=False):
+    def __init__(self, objective,
+                 draw=True,
+                 draw_gradient=True,
+                 use_3d=False,
+                 use_gl=True):
         self.objective = objective
         self.viewer = None
         self._draw_gradient = False
         self._draw_hessian = False
-        self._use_gl = False
-        self._use_3d_viewer = use_3d_viewer
+        self._use_3d = use_3d
+        self._use_gl = use_gl
         if draw:
             self._draw_gradient = draw_gradient
             self._draw_hessian = draw_gradient
@@ -42,7 +45,7 @@ class TrajectoryOptimizationViewer:
 
     def init_viewer(self):
         from . import workspace_renderer as renderer
-        if not self._use_3d_viewer:
+        if not self._use_3d:
             if self._use_gl:
                 self.viewer = renderer.WorkspaceOpenGl(
                     self.objective.workspace)
@@ -87,7 +90,7 @@ class TrajectoryOptimizationViewer:
 
         if self.viewer is None:
             self.init_viewer()
-        if self._use_3d_viewer:
+        if self._use_3d:
             self.viewer.reset_spheres()
         else:
             if not self._use_gl:
@@ -101,7 +104,7 @@ class TrajectoryOptimizationViewer:
             q = trajectory.configuration(k)
             color = (0, 0, 1) if k == 0 else (0, 1, 0)
             color = (1, 0, 0) if k == trajectory.T() else color
-            if not self._use_3d_viewer:
+            if not self._use_3d:
                 self.viewer.draw_ws_circle(.01, q, color)
             else:
                 cost = self.objective.obstacle_potential(q)
