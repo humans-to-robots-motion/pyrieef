@@ -93,14 +93,26 @@ class WorkspaceDrawer(WorkspaceRender):
                  rows=1, cols=1, scale=1.):
         WorkspaceRender.__init__(self, workspace)
         plt.rcParams.update({'font.size': int(scale * 5)})
+        self._continuously_drawing = True
+        if self._continuously_drawing:
+            plt.ion()   # continuously plot
         self._plot3d = False
         self._wait_for_keyboard = wait_for_keyboard
         self.size = scale * np.array([7, 6.5])
+        self._fig = None
+        self._ax = None
+        self._colorbar = None
         self.init(rows, cols)
 
     def init(self, rows, cols):
         assert rows > 0 and cols > 0
-        self._fig, self._axes = plt.subplots(rows, cols, figsize=self.size)
+        if self._fig is None:
+            self._fig = plt.figure(figsize=self.size)
+        if self._ax is not None:
+            self._ax.clear()
+        self._axes = self._fig.add_subplot(rows, cols, 1)
+        if self._colorbar is not None:
+            self._colorbar.remove()
         if rows > 1 or cols > 1:
             for ax in self._axes.flatten():
                 ax.axis('equal')
@@ -129,6 +141,14 @@ class WorkspaceDrawer(WorkspaceRender):
             Y = np.array(points)[:, 1]
             self._ax.plot(X, Y, color=colorst[i], linewidth=2.0)
 
+    def draw_ws_circle(self, radius, origin, color=(0, 1, 0)):
+        o = Circle(origin=origin, radius=radius)
+        self._ax.plot(o.origin[0], o.origin[1], 'kx')
+        points = o.sampled_points()
+        X = np.array(points)[:, 0]
+        Y = np.array(points)[:, 1]
+        self._ax.plot(X, Y, color=color, linewidth=2.0)
+
     def draw_ws_background(self, phi, nb_points=100):
         X, Y = self._workspace.box.stacked_meshgrid(nb_points)
         Z = phi(np.stack([X, Y])).T
@@ -151,7 +171,7 @@ class WorkspaceDrawer(WorkspaceRender):
             # vmax=100,
             cmap=color_style)
         if self._axes is None:
-            self._fig.colorbar(im, fraction=0.05, pad=0.02)
+            self._colorbar = self._fig.colorbar(im, fraction=0.05, pad=0.02)
         # cs = plt.contour(X, Y, Z, 16, cmap=color_style)
         # if self._plot3d:
         #     fig = plt.figure()
@@ -176,7 +196,12 @@ class WorkspaceDrawer(WorkspaceRender):
         self._ax.plot(point[0], point[1], color + shape)
 
     def show(self):
-        plt.show()
+        if self._continuously_drawing:
+            plt.draw()
+            plt.pause(0.01)
+            self._fig.canvas.flush_events()
+        else:
+            plt.show()
 
     def show_once(self, t_sleep=0.0001):
         plt.show(block=False)

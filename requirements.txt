@@ -1,9 +1,10 @@
 numpy>=1.12.0
 scipy
 six
+h5py
+tqdm
+pyyaml
+pytest
 pyglet
 scikit-image
-h5py
-pytest
 tensorflow
-tqdm

@@ -42,7 +42,7 @@ def optimize_path(objective, workspace, path):
     obstacle_cost = demonstrations.obsatcle_potential(workspace)
     objective.objective.set_problem(workspace, path, obstacle_cost)
     if DRAW:
-        objective.reset_objective(objective.objective)
+        objective.reset_objective()
         objective.viewer.save_images = True
         objective.viewer.workspace_id += 1
         objective.viewer.image_id = 0

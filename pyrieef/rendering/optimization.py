@@ -33,6 +33,7 @@ class TrajectoryOptimizationViewer:
         self.viewer = None
         self._draw_gradient = False
         self._draw_hessian = False
+        self._use_gl = False
         self._use_3d_viewer = use_3d_viewer
         if draw:
             self._draw_gradient = draw_gradient
@@ -42,14 +43,19 @@ class TrajectoryOptimizationViewer:
     def init_viewer(self):
         from . import workspace_renderer as renderer
         if not self._use_3d_viewer:
-            self.viewer = renderer.WorkspaceOpenGl(self.objective.workspace)
+            if self._use_gl:
+                self.viewer = renderer.WorkspaceOpenGl(
+                    self.objective.workspace)
+            else:
+                self.viewer = renderer.WorkspaceDrawer(
+                    self.objective.workspace)
         else:
             self.viewer = renderer.WorkspaceHeightmap(self.objective.workspace)
             self._draw_gradient = False
             self._draw_hessian = False
-        self.reset_objective(self.objective)
+        self.reset_objective()
 
-    def reset_objective(self, objective):
+    def reset_objective(self):
         self.viewer.set_workspace(self.objective.workspace)
         self.viewer.draw_ws_background(self.objective.obstacle_potential)
         self.viewer.reset_objects()
@@ -83,6 +89,12 @@ class TrajectoryOptimizationViewer:
             self.init_viewer()
         if self._use_3d_viewer:
             self.viewer.reset_spheres()
+        else:
+            if not self._use_gl:
+                self.viewer.init(1, 1)
+                self.viewer.draw_ws_background(
+                    self.objective.obstacle_potential)
+                self.viewer.draw_ws_obstacles()
 
         q_init = self.objective.q_init
         for k in range(self.objective.T + 1):

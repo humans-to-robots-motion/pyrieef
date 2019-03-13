@@ -76,6 +76,7 @@ class Viewer(object):
 
     def __init__(self, width, height, display=None):
         display = get_display(display)
+        print("display (2) : ", display)
 
         self.width = width
         self.height = height
