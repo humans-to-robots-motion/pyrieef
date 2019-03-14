@@ -25,7 +25,7 @@ from pyrieef.motion.cost_terms import *
 
 np.random.seed(1)
 
-workspace = sample_workspace(nb_circles=4)
+workspace = sample_circle_workspaces(nb_circles=4)
 viewer = WorkspaceHeightmap(workspace)
 cost = SimplePotential2D(SignedDistanceWorkspaceMap(workspace))
 # extent = workspace.box.extent()

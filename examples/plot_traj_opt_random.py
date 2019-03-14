@@ -33,6 +33,7 @@ from pyrieef.utils.collision_checking import *
 
 DRAW_MODE = "matplotlib"  # None, pyglet2d, pyglet3d or matplotlib
 VERBOSE = True
+BOXES = False
 demonstrations.TRAJ_LENGTH = 20
 
 
@@ -48,7 +49,7 @@ def optimize_path(objective, workspace, path):
         objective.viewer.draw_ws_obstacles()
 
     algorithms.newton_optimize_trajectory(
-        objective, path, verbose=VERBOSE, maxiter=100)
+        objective, path, verbose=VERBOSE, maxiter=20)
     return path
 
 
@@ -86,7 +87,7 @@ motion_objective = MotionOptimization2DCostMap(
 objective = TrajectoryOptimizationViewer(
     motion_objective,
     draw=DRAW_MODE is not None,
-    draw_gradient=True,
+    draw_gradient=False,
     use_3d=DRAW_MODE == "pyglet3d",
     use_gl=DRAW_MODE == "pyglet2d")
 
@@ -96,9 +97,8 @@ graph = CostmapToSparseGraph(grid, average_cost=False)
 graph.convert()
 
 np.random.seed(0)
-workspaces = [sample_workspace(nb_circles=5) for i in range(100)]
-# workspaces = [sample_box_workspaces(5) for i in range(100)]
-for k, workspace in enumerate(tqdm(workspaces)):
+sampling = sample_box_workspaces if BOXES else sample_circle_workspaces
+for k, workspace in enumerate(tqdm([sampling(5) for i in range(100)])):
     path = graph_search_path(graph, workspace, nb_points)
     if collision_check_trajectory(workspace, path):
         continue

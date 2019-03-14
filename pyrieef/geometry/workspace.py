@@ -810,7 +810,7 @@ def sample_circles(nb_circles):
     return list(zip(centers, radii))
 
 
-def sample_workspace(nb_circles, radius_parameter=.15):
+def sample_circle_workspaces(nb_circles, radius_parameter=.15):
     """ Samples a workspace randomly composed of nb_circles
         the radius parameter specifies the
         max fraction of workspace diagonal used for a circle radius. """

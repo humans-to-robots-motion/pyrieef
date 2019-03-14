@@ -111,8 +111,6 @@ class WorkspaceDrawer(WorkspaceRender):
         if self._ax is not None:
             self._ax.clear()
         self._axes = self._fig.add_subplot(rows, cols, 1)
-        if self._colorbar is not None:
-            self._colorbar.remove()
         if rows > 1 or cols > 1:
             for ax in self._axes.flatten():
                 ax.axis('equal')
@@ -151,33 +149,25 @@ class WorkspaceDrawer(WorkspaceRender):
 
     def draw_ws_background(self, phi, nb_points=100):
         X, Y = self._workspace.box.stacked_meshgrid(nb_points)
-        Z = phi(np.stack([X, Y])).T
-        # Z = two_dimension_function_evaluation(X, Y, phi).T
-        self.draw_ws_img(Z)
+        self.draw_ws_img(phi(np.stack([X, Y])).T, "bilinear")
 
-    def draw_ws_img(self, Z):
+    def draw_ws_img(self, Z, interpolate="nearest"):
         """
         Examples of coloring are : [viridis, hot, bone, magma]
             see page :
             https://matplotlib.org/examples/color/colormaps_reference.html
         """
-        color_style = plt.cm.viridis
+        color_style = plt.cm.magma
         im = self._ax.imshow(
             Z.T,
             extent=self._workspace.box.box_extent(),
             origin='lower',
-            interpolation='nearest',
-            # vmin=0,
-            # vmax=100,
+            interpolation=interpolate,
             cmap=color_style)
         if self._axes is None:
+            if self._colorbar is not None:
+                self._colorbar.remove()
             self._colorbar = self._fig.colorbar(im, fraction=0.05, pad=0.02)
-        # cs = plt.contour(X, Y, Z, 16, cmap=color_style)
-        # if self._plot3d:
-        #     fig = plt.figure()
-        #     ax = fig.add_subplot(111, projection='3d')
-        #     ax.plot_surface(X, Y, Z, cmap=color_style,
-        #                     linewidth=0, antialiased=False)
 
     def draw_ws_line(self, line, color='r', color_id=None):
         if color_id is not None:
@@ -198,7 +188,7 @@ class WorkspaceDrawer(WorkspaceRender):
     def show(self):
         if self._continuously_drawing:
             plt.draw()
-            plt.pause(0.01)
+            plt.pause(0.001)
             self._fig.canvas.flush_events()
         else:
             plt.show()

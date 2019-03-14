@@ -68,7 +68,7 @@ def motion_optimimization(workspace, costmap=None):
 
 
 def plot_costmaps():
-    workspace = sample_workspace(nb_circles=4)
+    workspace = sample_circle_workspaces(nb_circles=4)
     grid_sparse = workspace.box.stacked_meshgrid(24)
     grid_dense = workspace.box.stacked_meshgrid(100)
     extent = workspace.box.box_extent()

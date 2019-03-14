@@ -22,7 +22,7 @@ from learning.random_environment import *
 from learning.random_paths import *
 import learning.demonstrations as demos
 from graph.shortest_path import *
-from geometry.workspace import sample_workspace
+from geometry.workspace import sample_circle_workspaces
 import time
 import sys
 
@@ -57,7 +57,8 @@ def test_demonstrations():
     demos.MAX_ITERATIONS = 2
     for k in range(nb_demonstrations):
         trajectories[k] = demos.compute_demonstration(
-            sample_workspace(nb_circles=3), converter, nb_points=nb_points,
+            sample_circle_workspaces(nb_circles=3),
+            converter, nb_points=nb_points,
             show_result=False, average_cost=average_cost, verbose=True,
             no_linear_interpolation=True)
         # TODO fix this test, it takes too long for now.
