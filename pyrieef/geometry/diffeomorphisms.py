@@ -350,7 +350,7 @@ def InterpolationGeodescis(obj, x_1, x_2):
     return [np.array(line), np.array(line_inter)]
 
 
-def NaturalGradientGeodescis(obj, x_1, x_2):
+def NaturalGradientGeodescis(obj, x_1, x_2, attractor=True):
     x_init = np.matrix(x_1).T
     x_goal = np.matrix(x_2).T
     x_tmp = x_init
@@ -363,9 +363,10 @@ def NaturalGradientGeodescis(obj, x_1, x_2):
         # Implement the attractor derivative here directly
         # suposes that it's of the form |phi(q) - phi(q_goal)|^2
         # hence the addition of the J^T
+        B = J.T if attractor else np.eye(2)
         ridge = 0.
-        d_x = np.linalg.inv(g + ridge * np.eye(2)) * J.T * (
-            x_goal - x_tmp)
+        d_x = np.linalg.inv(
+            g + ridge * np.eye(2)) * B * (x_goal - x_tmp)
         x_new = x_tmp + eta * normalize(d_x)
         line.append(np.array([x_new.item(0), x_new.item(1)]))
         if np.linalg.norm(x_new - x_goal) <= eta:

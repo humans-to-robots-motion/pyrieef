@@ -90,10 +90,10 @@ class WorkspaceDrawer(WorkspaceRender):
     """ Workspace display based on matplotlib backend """
 
     def __init__(self, workspace, wait_for_keyboard=False,
-                 rows=1, cols=1, scale=1.):
+                 rows=1, cols=1, scale=1., dynamic=False):
         WorkspaceRender.__init__(self, workspace)
         plt.rcParams.update({'font.size': int(scale * 5)})
-        self._continuously_drawing = True
+        self._continuously_drawing = dynamic
         if self._continuously_drawing:
             plt.ion()   # continuously plot
         self._plot3d = False
@@ -172,7 +172,7 @@ class WorkspaceDrawer(WorkspaceRender):
     def draw_ws_line(self, line, color='r', color_id=None):
         if color_id is not None:
             color = cm.rainbow(float(color_id % 100) / 20.)
-        [self._ax.plot(point[0], point[1], c=color) for point in line]
+        [self._ax.plot(point[0], point[1], 'o', c=color) for point in line]
 
     def draw_ws_line_fill(self, line, color='r', color_id=None, linewidth=2.0):
         if color_id is not None:

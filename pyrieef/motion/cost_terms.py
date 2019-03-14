@@ -282,12 +282,12 @@ class ObstaclePotential2D(DifferentiableMap):
 
     """ obstacle potential class """
 
-    def __init__(self, signed_distance_field):
+    def __init__(self, signed_distance_field, scaling=50., alpha=1.e-3):
         assert signed_distance_field.input_dimension() == 2
         assert signed_distance_field.output_dimension() == 1
         self._sdf = signed_distance_field
-        self._rho_scaling = 50.
-        self._alpha = 1.e-3
+        self._rho_scaling = scaling
+        self._alpha = alpha
 
     def output_dimension(self):
         return 3

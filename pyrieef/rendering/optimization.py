@@ -51,7 +51,7 @@ class TrajectoryOptimizationViewer:
                     self.objective.workspace)
             else:
                 self.viewer = renderer.WorkspaceDrawer(
-                    self.objective.workspace)
+                    self.objective.workspace, dynamic=True)
         else:
             self.viewer = renderer.WorkspaceHeightmap(self.objective.workspace)
             self._draw_gradient = False
