@@ -17,7 +17,7 @@
 #
 #                                        Jim Mainprice on Sunday June 13 2018
 
-# code is copied from AI a modern approach
+# Modified from AI a Modern Approach (AIMA)
 # where POMDP has been removed
 # https://github.com/aimacode/aima-python/blob/master/mdp.py
 

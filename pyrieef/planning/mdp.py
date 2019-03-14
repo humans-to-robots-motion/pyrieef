@@ -17,7 +17,7 @@
 #
 #                                       Jim Mainprice on Thursday Mars 14 2019
 
-# code is copied from AI a modern approach
+# Modified from AI a Modern Approach (AIMA)
 # where POMDP has been removed
 # https://github.com/aimacode/aima-python/blob/master/mdp.py
 
@@ -29,17 +29,15 @@ dictionary of {state: number} pairs. We then define the value_iteration
 and policy_iteration algorithms."""
 
 from pyrieef.utils.misc import vector_add, orientations, turn_right, turn_left
-
 import random
-import numpy as np
-from collections import defaultdict
 
 
 class MDP:
 
-    """A Markov Decision Process, defined by an initial state,
-    transition model,
-    and reward function. We also keep track of a gamma value, for use by
+    """A Markov Decision Process,
+    defined by an initial state, transition model, and reward function.
+
+    We also keep track of a gamma value, for use by
     algorithms. The transition model is represented somewhat differently from
     the text. Instead of P(s' | s, a) being a probability number for each
     state/state/action triplet, we instead have T(s, a) return a
@@ -90,9 +88,12 @@ class MDP:
             return self.transitions[state][action]
 
     def actions(self, state):
-        """Return a list of actions that can be performed in this state. By default, a
-        fixed list of actions, except for terminal states. Override this
-        method if you need to specialize by state."""
+        """
+        Return a list of actions that can be performed
+        in this state. By default, a fixed list of actions, except
+        for terminal states. Override this method if you need to specialize
+        by state.
+        """
 
         if state in self.terminals:
             return [None]
@@ -137,8 +138,8 @@ class MDP:
 class MDP2(MDP):
 
     """
-    Inherits from MDP. Handles terminal states, and transitions
-    to and from terminal states better.
+    Handles terminal states, and transitions to and
+    from terminal states better.
     """
 
     def __init__(self, init, actlist, terminals,
@@ -155,10 +156,14 @@ class MDP2(MDP):
 
 class GridMDP(MDP):
 
-    """A two-dimensional grid MDP, as in [Figure 17.1]. All you have to do is
-    specify the grid as a list of lists of rewards; use None for an obstacle
-    (unreachable state). Also, you should specify the terminal states.
-    An action is an (x, y) unit vector; e.g. (1, 0) means move east."""
+    """
+    A two-dimensional grid MDP, as in [Figure 17.1].
+
+    All you have to do is specify the grid as a list of lists of rewards;
+    use None for an obstacle (unreachable state). Also, you should
+    specify the terminal states. An action is an (x, y) unit vector;
+    e.g. (1, 0) means move east.
+    """
 
     def __init__(self, grid, terminals, init=(0, 0), gamma=.9):
         grid.reverse()     # because we want row 0 on bottom, not on top
@@ -264,6 +269,17 @@ def expected_utility(a, s, U, mdp):
 # ___________________________________________________________________________
 
 
+def policy_evaluation(pi, U, mdp, k=20):
+    """Return an updated utility mapping U from each state in the MDP to its
+    utility, using an approximation (modified policy iteration)."""
+
+    R, T, gamma = mdp.R, mdp.T, mdp.gamma
+    for i in range(k):
+        for s in mdp.states:
+            U[s] = R(s) + gamma * sum(p * U[s1] for (p, s1) in T(s, pi[s]))
+    return U
+
+
 def policy_iteration(mdp):
     """Solve an MDP by policy iteration [Figure 17.7]"""
 
@@ -280,17 +296,6 @@ def policy_iteration(mdp):
                 unchanged = False
         if unchanged:
             return pi
-
-
-def policy_evaluation(pi, U, mdp, k=20):
-    """Return an updated utility mapping U from each state in the MDP to its
-    utility, using an approximation (modified policy iteration)."""
-
-    R, T, gamma = mdp.R, mdp.T, mdp.gamma
-    for i in range(k):
-        for s in mdp.states:
-            U[s] = R(s) + gamma * sum(p * U[s1] for (p, s1) in T(s, pi[s]))
-    return U
 
 
 __doc__ += """
