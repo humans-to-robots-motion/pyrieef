@@ -22,6 +22,7 @@ import sys
 import os
 from time import sleep
 import math
+import operator
 
 
 def dict_to_object(d):
@@ -62,3 +63,27 @@ def make_directory(directory):
 def pad_zeros(string, number, maximum):
     zeros = math.ceil(math.log10(maximum))
     return string + '{:0{width}}'.format(number, width=str(int(zeros)))
+
+
+def vector_add(a, b):
+    """Component-wise addition of two vectors."""
+    return tuple(map(operator.add, a, b))
+
+# ____________________________________________________________________________
+# Grid Functions
+
+
+orientations = EAST, NORTH, WEST, SOUTH = [(1, 0), (0, 1), (-1, 0), (0, -1)]
+turns = LEFT, RIGHT = (+1, -1)
+
+
+def turn_heading(heading, inc, headings=orientations):
+    return headings[(headings.index(heading) + inc) % len(headings)]
+
+
+def turn_right(heading):
+    return turn_heading(heading, RIGHT)
+
+
+def turn_left(heading):
+    return turn_heading(heading, LEFT)
