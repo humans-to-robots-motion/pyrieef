@@ -19,78 +19,31 @@
 
 from demos_common_imports import *
 import numpy as np
-import matplotlib.pyplot as plt
 from pyrieef.geometry.workspace import *
 from pyrieef.geometry.charge_simulation import *
 from pyrieef.geometry.pixel_map import *
 from pyrieef.geometry.geodesics import *
 from pyrieef.geometry.diffeomorphisms import *
 from pyrieef.geometry.utils import *
+from pyrieef.rendering.workspace_renderer import WorkspaceDrawer
 import itertools
 
-# circle = ElectricCircle()
-# circle.origin = np.array([.1, .0])
-
-circle_1 = AnalyticCircle()
-circle_1.set_alpha(alpha_f, beta_inv_f)
-circle_1.circle.origin = np.array([.1, .0])
-circle_1.circle.radius = 0.1
-circle_1.eta = circle_1.circle.radius
-
-circle_2 = AnalyticCircle()
-circle_2.set_alpha(alpha_f, beta_inv_f)
-circle_2.circle.origin = np.array([.1, .25])
-circle_2.circle.radius = 0.05
-circle_2.eta = circle_2.circle.radius
-
-circle_3 = AnalyticCircle()
-circle_3.set_alpha(alpha_f, beta_inv_f)
-circle_3.circle.origin = np.array([.2, .25])
-circle_3.circle.radius = 0.05
-circle_3.eta = circle_3.circle.radius
-
-circle_4 = AnalyticCircle()
-circle_4.set_alpha(alpha_f, beta_inv_f)
-circle_4.circle.origin = np.array([.0, .25])
-circle_4.circle.radius = 0.05
-circle_4.eta = circle_4.circle.radius
-
-analytical_circles = []
-analytical_circles.append(circle_1)
-analytical_circles.append(circle_2)
-analytical_circles.append(circle_3)
-analytical_circles.append(circle_4)
+circles = []
+circles.append(AnalyticCircle(origin=[.1, .0], radius=0.1))
+circles.append(AnalyticCircle(origin=[.1, .25], radius=0.05))
+circles.append(AnalyticCircle(origin=[.2, .25], radius=0.05))
+circles.append(AnalyticCircle(origin=[.0, .25], radius=0.05))
 
 workspace = Workspace()
-for circle in analytical_circles:
-    workspace.obstacles.append(circle.object())
-for obstacles in workspace.obstacles:
-    points = obstacles.sampled_points()
-    X = np.array(points)[:, 0]
-    Y = np.array(points)[:, 1]
-    plt.plot(X, Y, "b", linewidth=2.0)
-
-extent = Extent(workspace.box.dim[0] / 2.)
-grid = PixelMap(0.01, extent)
-matrix = np.zeros((grid.nb_cells_x, grid.nb_cells_y))
-for i in range(grid.nb_cells_x):
-    for j in range(grid.nb_cells_y):
-        p = grid.grid_to_world(np.array([i, j]))
-plt.axis('equal')
-plt.axis(workspace.box.box_extent())
+workspace.obstacles = [circle.object() for circle in circles]
+renderer = WorkspaceDrawer(workspace)
 
 x_goal = np.array([0.4, 0.4])
 nx, ny = (3, 3)
 x = np.linspace(-.2, -.1, nx)
 y = np.linspace(-.5, -.1, ny)
-# nx, ny = (3, 1)
-# x = np.linspace(-.2, -.1, nx)
-# y = np.linspace(-.2, -.2, ny)
-# nx, ny = (1, 1)
-# x = [-0.2]
-# y = [-0.2]
 
-circles = AnalyticMultiCircle(analytical_circles)
+analytical_circles = AnalyticMultiCircle(circles)
 
 for i, j in itertools.product(list(range(nx)), list(range(ny))):
     x_init = np.array([x[i], y[j]])
@@ -98,15 +51,10 @@ for i, j in itertools.product(list(range(nx)), list(range(ny))):
 
     # Does not have an inverse.
     # [line, line_inter] = InterpolationMultiGeodescis(
-    #     circles, x_init, x_goal)
+    #     analytical_circles, x_init, x_goal)
 
-    line = NaturalGradientGeodescis(
-        circles, x_init, x_goal)
-
-    plot_line(line, 'r')
-    # plot_line(line_inter, 'g')
-
-for obst in workspace.obstacles:
-    plt.plot(obst.origin[0], obst.origin[1], 'kx')
-plt.plot(x_goal[0], x_goal[1], 'ko')
-plt.show()
+    line = NaturalGradientGeodescis(analytical_circles, x_init, x_goal)
+    renderer.draw_ws_line(line)
+renderer.draw_ws_obstacles()
+renderer.draw_ws_point([x_goal[0], x_goal[1]], color='k', shape='o')
+renderer.show()

@@ -222,10 +222,8 @@ class AnalyticEllipse(AnalyticPlaneDiffeomoprhism):
 
 class AnalyticCircle(AnalyticPlaneDiffeomoprhism):
 
-    def __init__(self):
-        self.circle = Circle()
-        self.circle.radius = .1
-        self.circle.origin = np.array([.1, -.1])
+    def __init__(self, origin=[.1, -.1], radius=.1):
+        self.circle = Circle(origin, radius)
         self.eta = self.circle.radius  # for the exp
         # self.eta = .01 # for the 1/x
         self.gamma = 1.
