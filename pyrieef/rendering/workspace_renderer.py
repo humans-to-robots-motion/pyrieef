@@ -198,7 +198,7 @@ class WorkspaceDrawer(WorkspaceRender):
         plt.draw()
         plt.pause(t_sleep)
         if self._wait_for_keyboard:
-            raw_input("Press Enter to continue...")
+            input("Press Enter to continue...")
         plt.close(self._fig)
 
 

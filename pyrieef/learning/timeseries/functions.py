@@ -29,10 +29,14 @@
 import numpy as np
 from scipy.interpolate import interp1d
 
-colvec = lambda x:
-    np.array(x).reshape(-1, 1)
-rowvec = lambda x:
-    np.array(x).reshape(1, -1)
+
+def colvec(x):
+    return np.array(x).reshape(-1, 1)
+
+
+def rowvec(x):
+    return np.array(x).reshape(1, -1)
+
 
 realmin = np.finfo(np.float32).tiny
 realmax = np.finfo(np.float32).max

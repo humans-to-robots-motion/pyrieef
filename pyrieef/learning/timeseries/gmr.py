@@ -34,7 +34,7 @@ Created on Thu Jul 09 18:43:10 2015
 
 import numpy as np
 from scipy import linalg
-from sklearn import mixture
+# from sklearn import mixture
 
 
 class GMR():
@@ -42,41 +42,38 @@ class GMR():
     Gaussian Mixture Regression
     """
 
-    def __init__(self, gmm, slice=False, use_pybdlib_format=False):
+    def __init__(self, gmm, use_slice=False, use_pybdlib_format=False):
         """
 
         :param gmm:
-        :param slice:
+        :param use_slice:
         :param use_pybdlib_format:  [bool]
                 Choose True if covariance and mean
                 is in pybdlib format and not scipy
         """
         if use_pybdlib_format:
-            self.gmm = mixture.GMM(
-                n_components=gmm.nb_states, covariance_type='full')
-            self.gmm.weights_ = gmm.Priors
+            # self.gmm = mixture.GMM(
+            #     n_components=gmm.nb_states, covariance_type='full')
+            # self.gmm.weights_ = gmm.Priors
 
-            self.gmm.covars_ = np.transpose(gmm.Sigma, (2, 0, 1))
-            self.gmm.means_ = np.transpose(gmm.Mu, (1, 0))
+            # self.gmm.covars_ = np.transpose(gmm.Sigma, (2, 0, 1))
+            # self.gmm.means_ = np.transpose(gmm.Mu, (1, 0))
+            raise NotImplementedError()
         else:
             self.gmm = gmm
 
-        if slice:
-            self.slice_gmm = mixture.GMM(n_components=self.gmm.n_components,
-                                         covariance_type='full')
+        if use_slice:
+            # self.slice_gmm = mixture.GMM(n_components=self.gmm.n_components,
+            #                              covariance_type='full')
+            raise NotImplementedError()
 
         self.use_pybdlib_ = use_pybdlib_format
         self.InvSigmaInIn = [None] * self.gmm.n_components
         self.InvSigmaOutIn = [None] * self.gmm.n_components
-
         self.SigmaOutTmp = [None] * self.gmm.n_components
-
         self.inv_tmp = [None] * self.gmm.n_components
-
         self.pri_tmp = [None] * self.gmm.n_components
-
         self.cov_tmp = [None] * self.gmm.n_components
-
         self.input = None
         self.output = None
 
@@ -185,7 +182,7 @@ class GMR():
                 else:
                     SigmaOut = SigmaOut + beta[i] * self.SigmaOutTmp[i]
 
-                # create a new gmm from this slice
+        # create a new gmm from this slice
         out_gmm = mixture.GMM(
             n_components=self.gmm.n_components, covariance_type='full')
 
@@ -204,7 +201,8 @@ class GMR():
                 X = X[:, np.newaxis]
         if X.shape[0] < self.gmm.n_components:
                 raise ValueError(
-                        'GMM estimation with %s components, but got only %s samples' %
+                        'GMM estimation with %s components,
+                        but got only %s samples' %
                         (self.gmm.n_components, X.shape[0]))
         """
         # set input and output
@@ -224,16 +222,16 @@ class GMR():
         for i in out_hist:
             span[i] = np.linspace(-1, 1, N)
 
-        inpCr = np.array(self.input, dtype=np.intp)
-        outCr = np.array(self.output, dtype=np.intp)
+        # inpCr = np.array(self.input, dtype=np.intp)
+        # outCr = np.array(self.output, dtype=np.intp)
 
         '''
-		if len(self.output) == 1:
-			self.output = self.output[0]
+        if len(self.output) == 1:
+            self.output = self.output[0]
 
-		if len(self.input) == 1:
-			self.input = self.input[0]
-		'''
+        if len(self.input) == 1:
+            self.input = self.input[0]
+    '''
 
         prob = np.empty(self.gmm.n_components, dtype=float)
 
@@ -245,7 +243,8 @@ class GMR():
 
         try:
             beta = prob / np.sum(prob)
-        except:
+        except Exception as e:
+            print(e)
             beta = np.ones(prob.shape) / prob.shape[0]
 
         MuOut = np.zeros(len(self.output), dtype=float)
@@ -420,7 +419,8 @@ class GMR():
 
         return (MuOut, SigmaOut)
 
-    def predict(self, sample, input, output, variance_type='full', sigma_input=None):
+    def predict(self, sample, input, output,
+                variance_type='full', sigma_input=None):
 
         # X = np.asarray(X, dtype=np.float)
         """

@@ -90,7 +90,7 @@ class Learch2D(Learch):
 
     def planning(self):
         for workspace in self._workspaces[k]:
-        return 0
+            return 0
 
     def supervised_learning(self):
         return 0

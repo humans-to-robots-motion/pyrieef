@@ -111,19 +111,19 @@ class GMM(Model):
             gmm.lmbda = self.lmbda + other.lmbda[None]
             gmm.mu = np.einsum('aij,aj->ai', gmm.sigma, gmm.mu)
 
-            Z = np.linalg.slogdet(self.lmbda)[1]\
+            Z = np.linalg.slogdet(self.lmbda)[1] \
                 + np.linalg.slogdet(other.lmbda)[1] \
                 - 0.5 * np.linalg.slogdet(gmm.lmbda)[1] \
                 - self.nb_dim / 2. * np.log(2 * np.pi) \
-                + 0.5 * (np.einsum('ai,aj->a',
-                                   np.einsum('ai,aij->aj',
-                                             gmm.mu, gmm.lmbda), gmm.mu)
-                         - np.einsum('ai,aj->a',
-                                     np.einsum('ai,aij->aj',
-                                               self.mu, self.lmbda), self.mu)
-                         - np.sum(np.einsum('i,ij->j',
-                                            other.mu, other.lmbda) * other.mu)
-                         )
+                + 0.5 * (
+                    np.einsum(
+                        'ai,aj->a', np.einsum(
+                            'ai,aij->aj',
+                            gmm.mu, gmm.lmbda), gmm.mu) -
+                    np.einsum('ai,aj->a', np.einsum(
+                        'ai,aij->aj', self.mu, self.lmbda), self.mu) - np.sum(
+                        np.einsum('i,ij->j', other.mu, other.lmbda) * other.mu)
+            )
             gmm.priors = np.exp(Z) * self.priors
             gmm.priors /= np.sum(gmm.priors)
 
@@ -172,7 +172,8 @@ class GMM(Model):
 
     def concatenate_gaussian(self, q, get_mvn=True, reg=None):
         """
-        Get a concatenated-block-diagonal replication of the GMM with sequence of state
+        Get a concatenated-block-diagonal replication of the GMM
+        with sequence of state
         given by q.
 
         :param q:           [list of int]
@@ -183,7 +184,9 @@ class GMM(Model):
         """
         if reg is None:
             if not get_mvn:
-                return np.concatenate([self.mu[i] for i in q]), block_diag(*[self.sigma[i] for i in q])
+                return np.concatenate(
+                    [self.mu[i] for i in q]),
+                block_diag(*[self.sigma[i] for i in q])
             else:
                 mvn = MVN()
                 mvn.mu = np.concatenate([self.mu[i] for i in q])
@@ -279,8 +282,10 @@ class GMM(Model):
 
         self.priors = np.ones(self.nb_states) / self.nb_states
 
-    def em(self, data, reg=1e-8, maxiter=100, minstepsize=1e-5, diag=False, reg_finish=False,
-           kmeans_init=False, random_init=True, dep_mask=None, verbose=False, only_scikit=False,
+    def em(self, data, reg=1e-8,
+           maxiter=100, minstepsize=1e-5, diag=False, reg_finish=False,
+           kmeans_init=False, random_init=True,
+           dep_mask=None, verbose=False, only_scikit=False,
            no_init=False):
         """
 
@@ -298,7 +303,8 @@ class GMM(Model):
         :param random_init:     [bool]
                 Init components randomely.
         :param dep_mask:        [np.array([nb_dim, nb_dim])]
-                Composed of 0 and 1. Mask given the dependencies in the covariance matrices
+                Composed of 0 and 1.
+                Mask given the dependencies in the covariance matrices
         :return:
         """
 
@@ -348,7 +354,8 @@ class GMM(Model):
             # nb_dim, nb_states, nb_samples
             dx = data[None, :] - self.mu[:, :, None]
 
-            self.sigma = np.einsum('acj,aic->aij', np.einsum('aic,ac->aci', dx, GAMMA2),
+            self.sigma = np.einsum('acj,aic->aij',
+                                   np.einsum('aic,ac->aci', dx, GAMMA2),
                                    dx)  # a states, c sample, i-j dim
 
             self.sigma += self.reg
@@ -370,19 +377,23 @@ class GMM(Model):
                 if LL[it] - LL[it - 1] < max_diff_ll:
                     if reg_finish is not False:
                         self.sigma = np.einsum(
-                            'acj,aic->aij', np.einsum('aic,ac->aci', dx, GAMMA2), dx) + reg_finish
+                            'acj,aic->aij', np.einsum(
+                                'aic,ac->aci', dx, GAMMA2), dx) + reg_finish
 
                     if verbose:
-                        print colored('Converged after %d iterations: %.3e' % (it, LL[it]), 'red', 'on_white')
+                        print colored(
+                            'Converged after %d iterations: %.3e' % (
+                                it, LL[it]), 'red', 'on_white')
                     return GAMMA
         if verbose:
-            print "GMM did not converge before reaching max iteration. Consider augmenting the number of max iterations."
+            print("GMM did not converge before reaching max iteration. Consider augmenting the number of max iterations.")
         return GAMMA
 
     def init_hmm_kbins(self, demos, dep=None, reg=1e-8, dep_mask=None):
         """
-        Init HMM by splitting each demos in K bins along time. Each K states of the HMM will
-        be initialized with one of the bin. It corresponds to a left-to-right HMM.
+        Init HMM by splitting each demos in K bins along time.
+        Each K states of the HMM will be initialized with one of the bin.
+        It corresponds to a left-to-right HMM.
 
         :param demos:	[list of np.array([nb_timestep, nb_dim])]
         :param dep:
@@ -398,8 +409,9 @@ class GMM(Model):
         t_sep = []
 
         for demo in demos:
-            t_sep += [map(int, np.round(np.linspace(0,
-                                                    demo.shape[0], self.nb_states + 1)))]
+            t_sep += [map(
+                int, np.round(np.linspace(
+                    0, demo.shape[0], self.nb_states + 1)))]
 
         # print t_sep
         for i in range(self.nb_states):
@@ -458,16 +470,15 @@ class GMM(Model):
 
     def mvn_pdf(self, x, reg=None):
         """
-
-        :param x: 			np.array([nb_samples, nb_dim])
+        :param x:           np.array([nb_samples, nb_dim])
                 samples
-        :param mu: 			np.array([nb_states, nb_dim])
+        :param mu:          np.array([nb_states, nb_dim])
                 mean vector
-        :param sigma_chol: 	np.array([nb_states, nb_dim, nb_dim])
+        :param sigma_chol:  np.array([nb_states, nb_dim, nb_dim])
                 cholesky decomposition of covariance matrices
-        :param lmbda: 		np.array([nb_states, nb_dim, nb_dim])
+        :param lmbda:       np.array([nb_states, nb_dim, nb_dim])
                 precision matrices
-        :return: 			np.array([nb_states, nb_samples])
+        :return:            np.array([nb_states, nb_samples])
                 log mvn
         """
         # if len(x.shape) > 1:  # TODO implement mvn for multiple xs
@@ -482,6 +493,7 @@ class GMM(Model):
         eins_idx = ('baj,baj->ba', 'ajk,baj->bak') if x.ndim > 1 else (
             'aj,aj->a', 'ajk,aj->ak')
 
-        return -0.5 * np.einsum(eins_idx[0], dx, np.einsum(eins_idx[1], lmbda_, dx)) \
+        return -0.5 * np.einsum(
+            eins_idx[0], dx, np.einsum(eins_idx[1], lmbda_, dx)) \
             - mu.shape[1] / 2. * np.log(2 * np.pi) - np.sum(
             np.log(sigma_chol_.diagonal(axis1=1, axis2=2)), axis=1)
