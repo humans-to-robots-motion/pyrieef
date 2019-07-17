@@ -22,7 +22,9 @@ import demos_common_imports
 import tensorflow as tf
 from pyrieef.learning.random_environment import *
 from pyrieef.learning.dataset import *
-from pyrieef.learning.tf_networks import *
+from pyrieef.learning.tf_networks import ConvDeconv64
+from pyrieef.learning.tf_networks import ConvDeconvSmall
+from pyrieef.learning.tf_networks import ConvDeconvResize
 
 # works with tensotflow 1.1.0.
 
