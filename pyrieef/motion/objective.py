@@ -287,7 +287,7 @@ class MotionOptimization2DCostMap:
                 self.function_network.center_of_clique_map()))
 
     def add_obstacle_terms(self, geodesic=False):
-        """ Takes a matrix and adds a isometric potential term
+        """ Takes a matrix and adds an isometric potential term
             to all cliques """
         assert self.obstacle_potential is not None
         self.add_isometric_potential_to_all_cliques(

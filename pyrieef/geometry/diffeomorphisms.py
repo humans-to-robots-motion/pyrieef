@@ -354,17 +354,17 @@ def NaturalGradientGeodescis(obj, x_1, x_2, attractor=True):
     x_tmp = x_init
     eta = 0.001
     line = []
-    for i in range(1000):
+    line.append([x_init.item(0), x_init.item(1)])
+    for i in range(10000):
         # Compute tensor.
         J = obj.jacobian(np.array(x_tmp.T)[0])
-        g = J.T * J
         # Implement the attractor derivative here directly
         # suposes that it's of the form |phi(q) - phi(q_goal)|^2
         # hence the addition of the J^T
-        B = J.T if attractor else np.eye(2)
-        ridge = 0.
-        d_x = np.linalg.inv(g + ridge * np.eye(2)) * B * (x_goal - x_tmp)
-        x_new = x_tmp + eta * normalize(d_x)
+        B = J if attractor else np.eye(2)
+        ridge = 0.0
+        g_inv = np.linalg.inv(J.T * J + ridge * np.eye(2))
+        x_new = x_tmp + eta * g_inv * B *  normalize( x_goal - x_tmp)
         line.append(np.array([x_new.item(0), x_new.item(1)]))
         if np.linalg.norm(x_new - x_goal) <= eta:
             line.append([x_goal.item(0), x_goal.item(1)])
