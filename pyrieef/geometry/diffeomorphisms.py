@@ -336,9 +336,9 @@ def InterpolationGeodescis(obj, x_1, x_2):
     line = []
     line_inter = []
     line.append(x_1)
-    p_init = obj.forward(np.array(x_1))
-    p_goal = obj.forward(np.array(x_2))
-    for s in np.linspace(0., 1., 100):
+    p_init = obj.forward(x_1)
+    p_goal = obj.forward(x_2)
+    for s in np.linspace(0., 1., 1000):
         p = (1. - s) * p_init + s * p_goal
         x_new = obj.inverse(p)
         line.append(x_new)
@@ -352,7 +352,7 @@ def NaturalGradientGeodescis(obj, x_1, x_2, attractor=True):
     x_init = np.matrix(x_1).T
     x_goal = np.matrix(x_2).T
     x_tmp = x_init
-    eta = 0.01
+    eta = 0.001
     line = []
     for i in range(1000):
         # Compute tensor.
@@ -363,8 +363,7 @@ def NaturalGradientGeodescis(obj, x_1, x_2, attractor=True):
         # hence the addition of the J^T
         B = J.T if attractor else np.eye(2)
         ridge = 0.
-        d_x = np.linalg.inv(
-            g + ridge * np.eye(2)) * B * (x_goal - x_tmp)
+        d_x = np.linalg.inv(g + ridge * np.eye(2)) * B * (x_goal - x_tmp)
         x_new = x_tmp + eta * normalize(d_x)
         line.append(np.array([x_new.item(0), x_new.item(1)]))
         if np.linalg.norm(x_new - x_goal) <= eta:

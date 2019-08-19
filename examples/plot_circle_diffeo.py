@@ -70,7 +70,7 @@ for i, j in itertools.product(list(range(nx)), list(range(ny))):
     plot_line(line, 'b', .01)
     # plot_line(line_inter, 'g')
 
-    line = NaturalGradientGeodescis(phi, x_init, x_goal)
+    line = NaturalGradientGeodescis(phi, x_init, x_goal, attractor=True)
     plot_line(line, 'r', .01)
 
 plt.plot(workspace.obstacles[0].origin[0],
