@@ -44,7 +44,7 @@ class GeodesicObjective2D:
         self._term_potential_scalar = 100000.
         self._velocity_scalar = 100.
 
-    def add_init_and_terminal_terms(self):
+    def add_terminal_term(self):
 
         terminal_potential = Pullback(
             SquaredNorm(self.q_goal),
@@ -54,7 +54,7 @@ class GeodesicObjective2D:
 
     def add_smoothness_terms(self):
         fd = FiniteDifferencesVelocity(
-            self.config_space_dim + 1,
+            self.embedding.output_dimension(),
             self.dt)
         clique_l = self.function_network.left_most_of_clique_map()
         clique_c = self.function_network.center_of_clique_map()
@@ -73,7 +73,7 @@ class GeodesicObjective2D:
             self.trajectory_space_dim,
             self.config_space_dim)
 
-        self.add_init_and_terminal_terms()
+        self.add_terminal_term()
         self.add_smoothness_terms()
 
         """ resets the objective """

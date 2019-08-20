@@ -255,7 +255,7 @@ class RangeSubspaceMap(DifferentiableMap):
 class CombinedOutputMap(DifferentiableMap):
     """ creates a combination of the maps
         phi(x) = [phi1(x); phi2(x); ...; phiN(x)]
-        TODO : Test and add Hessian and Jacobian formulas
+        TODO : Test
         """
 
     def __init__(self, maps):
@@ -272,9 +272,19 @@ class CombinedOutputMap(DifferentiableMap):
         idx = 0
         phi = np.zeros(self._output_dim)
         for m in self._maps:
-            phi[idx:m.output_dimension() + idx] = m(q)
+            v = m(q)
+            phi[idx:m.output_dimension() + idx] = v
             idx += m.output_dimension()
         return phi
+
+    def jacobian(self, q):
+        idx = 0
+        J_phi = np.zeros((self._output_dim, self.input_dimension()))
+        for m in self._maps:
+            J = m.jacobian(q)
+            J_phi[idx:m.output_dimension() + idx, 0:m.input_dimension()] = J
+            idx += m.output_dimension()
+        return J_phi
 
 
 class ProductFunction(DifferentiableMap):

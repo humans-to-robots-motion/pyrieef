@@ -34,7 +34,7 @@ def newton_optimize_trajectory(
         fun=objective.forward,
         jac=objective.gradient,
         hess=objective.hessian,
-        tol=1e-10,
+        tol=1e-9,
         options={'maxiter': maxiter, 'disp': verbose}
     )
     if verbose:
