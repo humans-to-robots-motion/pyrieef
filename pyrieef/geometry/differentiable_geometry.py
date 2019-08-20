@@ -254,10 +254,11 @@ class RangeSubspaceMap(DifferentiableMap):
 
 class CombinedOutputMap(DifferentiableMap):
     """ creates a combination of the maps
-        phi(x) = [phi1(x); phi2(x); ...; phiN(x)]"""
+        phi(x) = [phi1(x); phi2(x); ...; phiN(x)]
+        TODO : Test and add Hessian and Jacobian formulas
+        """
 
     def __init__(self, maps):
-        """n is the input dimension, indices are the output"""
         self._maps = maps
         self._output_dim = sum(m.output_dimension() for m in self._maps)
 
