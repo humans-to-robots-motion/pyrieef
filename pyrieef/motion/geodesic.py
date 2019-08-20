@@ -23,7 +23,6 @@ from motion.cost_terms import *
 from optimization.optimization import *
 from geometry.differentiable_geometry import *
 from geometry.workspace import *
-from scipy import optimize
 
 
 class GeodesicObjective2D:
@@ -45,7 +44,6 @@ class GeodesicObjective2D:
         self._velocity_scalar = 100.
 
     def add_terminal_term(self):
-
         terminal_potential = Pullback(
             SquaredNorm(self.q_goal),
             self.function_network.center_of_clique_map())
@@ -62,9 +60,7 @@ class GeodesicObjective2D:
         ws_map_c = Pullback(self.embedding, clique_c)
         ws_vel_map = Pullback(fd, CombinedOutputMap([ws_map_l, ws_map_c]))
         geodesic_term = Pullback(
-            SquaredNorm(
-                np.zeros(ws_vel_map.output_dimension())),
-            ws_vel_map)
+            SquaredNorm(np.zeros(ws_vel_map.output_dimension())), ws_vel_map)
         self.function_network.register_function_for_all_cliques(
             Scale(geodesic_term, self._velocity_scalar))
 
@@ -72,10 +68,7 @@ class GeodesicObjective2D:
         self.function_network = CliquesFunctionNetwork(
             self.trajectory_space_dim,
             self.config_space_dim)
-
         self.add_terminal_term()
         self.add_smoothness_terms()
-
-        """ resets the objective """
         self.objective = TrajectoryObjectiveFunction(
             self.q_init, self.function_network)
