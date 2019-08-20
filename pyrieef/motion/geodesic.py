@@ -51,14 +51,14 @@ class GeodesicObjective2D:
             Scale(terminal_potential, self._term_potential_scalar))
 
     def add_smoothness_terms(self):
+        clique_l = self.function_network.left_most_of_clique_map()
+        clique_c = self.function_network.center_of_clique_map()
+        ws_map_l = Compose(self.embedding, clique_l)
+        ws_map_c = Compose(self.embedding, clique_c)
         fd = FiniteDifferencesVelocity(
             self.embedding.output_dimension(),
             self.dt)
-        clique_l = self.function_network.left_most_of_clique_map()
-        clique_c = self.function_network.center_of_clique_map()
-        ws_map_l = Pullback(self.embedding, clique_l)
-        ws_map_c = Pullback(self.embedding, clique_c)
-        ws_vel_map = Pullback(fd, CombinedOutputMap([ws_map_l, ws_map_c]))
+        ws_vel_map = Compose(fd, CombinedOutputMap([ws_map_l, ws_map_c]))
         geodesic_term = Pullback(
             SquaredNorm(np.zeros(ws_vel_map.output_dimension())), ws_vel_map)
         self.function_network.register_function_for_all_cliques(
