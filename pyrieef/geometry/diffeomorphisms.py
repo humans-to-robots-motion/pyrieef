@@ -352,7 +352,7 @@ def NaturalGradientGeodescis(obj, x_1, x_2, attractor=True):
     x_init = np.matrix(x_1).T
     x_goal = np.matrix(x_2).T
     x_tmp = x_init
-    eta = 0.001
+    eta = 0.01
     line = []
     line.append([x_init.item(0), x_init.item(1)])
     for i in range(10000):

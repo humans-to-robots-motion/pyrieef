@@ -34,28 +34,17 @@ class GeodesicObjective2D:
                  embedding=None):
         self.verbose = False
         self.config_space_dim = n       # nb of dofs
+        self.q_init = q_init            # start configuration
+        self.q_goal = q_goal            # goal configuration
         self.T = T                      # time steps
         self.dt = 0.1                   # sample rate.
+        self.trajectory_space_dim = (self.config_space_dim * (self.T + 2))
         self.embedding = embedding
         self._init_potential_scalar = 0.
-        self._term_potential_scalar = 10000000.
-        self._velocity_scalar = 1.
-
-    def set_test_objective(self):
-        """ This objective does not collide with the enviroment"""
-        self.create_sdf_test_workspace()
-        self.obstacle_potential_from_sdf()
-        self.create_clique_network()
-        self.create_objective()
+        self._term_potential_scalar = 100000.
+        self._velocity_scalar = 100.
 
     def add_init_and_terminal_terms(self):
-
-        if self._init_potential_scalar > 0.:
-            initial_potential = Pullback(
-                SquaredNorm(self.q_init),
-                self.function_network.left_most_of_clique_map())
-            self.function_network.register_function_for_clique(
-                0, Scale(initial_potential, self._init_potential_scalar))
 
         terminal_potential = Pullback(
             SquaredNorm(self.q_goal),
@@ -64,25 +53,28 @@ class GeodesicObjective2D:
             Scale(terminal_potential, self._term_potential_scalar))
 
     def add_smoothness_terms(self):
-
-        derivative = Pullback( 
-            Pullback(
-                SquaredNorm(np.zeros(2)),
-                Pullback(
-                    FiniteDifferencesVelocity(self.config_space_dim, self.dt)),
-                    self.embedding),
-            self.function_network.left_of_clique_map())
-
+        fd = FiniteDifferencesVelocity(
+            self.config_space_dim + 1,
+            self.dt)
+        clique_l = self.function_network.left_most_of_clique_map()
+        clique_c = self.function_network.center_of_clique_map()
+        ws_map_l = Pullback(self.embedding, clique_l)
+        ws_map_c = Pullback(self.embedding, clique_c)
+        ws_vel_map = Pullback(fd, CombinedOutputMap([ws_map_l, ws_map_c]))
+        geodesic_term = Pullback(
+            SquaredNorm(
+                np.zeros(ws_vel_map.output_dimension())),
+            ws_vel_map)
         self.function_network.register_function_for_all_cliques(
-            Scale(derivative, self._velocity_scalar))
+            Scale(geodesic_term, self._velocity_scalar))
 
     def create_clique_network(self):
-        self.add_init_and_terminal_terms()
-        self.add_smoothness_terms(1)
-
         self.function_network = CliquesFunctionNetwork(
             self.trajectory_space_dim,
             self.config_space_dim)
+
+        self.add_init_and_terminal_terms()
+        self.add_smoothness_terms()
 
         """ resets the objective """
         self.objective = TrajectoryObjectiveFunction(

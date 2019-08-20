@@ -252,6 +252,30 @@ class RangeSubspaceMap(DifferentiableMap):
         return np.matrix(np.zeros((self._dim), (self._dim)))
 
 
+class CombinedOutputMap(DifferentiableMap):
+    """ creates a combination of the maps
+        phi(x) = [phi1(x); phi2(x); ...; phiN(x)]"""
+
+    def __init__(self, maps):
+        """n is the input dimension, indices are the output"""
+        self._maps = maps
+        self._output_dim = sum(m.output_dimension() for m in self._maps)
+
+    def output_dimension(self):
+        return self._output_dim
+
+    def input_dimension(self):
+        return self._maps[0].input_dimension()
+
+    def forward(self, q):
+        idx = 0
+        phi = np.zeros(self._output_dim)
+        for m in self._maps:
+            phi[idx:m.output_dimension() + idx] = m(q)
+            idx += m.output_dimension()
+        return phi
+
+
 class ProductFunction(DifferentiableMap):
     """Take the product of functions"""
 
