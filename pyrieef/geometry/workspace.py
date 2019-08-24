@@ -686,8 +686,6 @@ class Polygon(Shape):
         return self.closest_edge(x)[0].dist_hessian(x)
 
     def dist_from_border(self, x):
-        # d = self.closest_edge(x)[2]
-        # return d if self.is_inside(x) else -d
         d = [None] * len(self._edges)
         for i, edge in enumerate(self._edges):
             d[i] = edge.dist_from_border(x)
@@ -707,11 +705,8 @@ class Polygon(Shape):
 def hexagon(scale=1.):
     verticies = [None] * 6
     verticies[0] = scale * np.array([0, 1])
-    print(verticies)
     for i, v in enumerate(verticies):
-        print(v)
         verticies[i + 1] = np.dot(rotation_matrix_2d(60), v)
-        print(i)
         if i >= 4:
             break
     return Polygon(np.array([0., 0.]), verticies)
