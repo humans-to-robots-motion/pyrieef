@@ -25,6 +25,7 @@ import math
 from .pixel_map import *
 from abc import abstractmethod
 from .differentiable_geometry import *
+from .rotations import *
 
 
 def vector_norm(x):
@@ -260,6 +261,12 @@ class Segment(Shape):
         p2 = self.origin + -1. * p0
         return p1, p2
 
+    def p1(self):
+        return self._p1
+
+    def p2(self):
+        return self._p2
+
     def sampled_points(self):
         return sample_line(self._p1, self._p2, self.nb_points)
 
@@ -440,10 +447,10 @@ class Box(Shape):
     def sampled_points(self):
         points = []
         v = self.verticies()
-        points.extend(sample_line(v[0], v[1]))
-        points.extend(sample_line(v[1], v[2]))
-        points.extend(sample_line(v[2], v[3]))
-        points.extend(sample_line(v[3], v[0]))
+        points.extend(sample_line(v[0], v[1], self.nb_points / 4))
+        points.extend(sample_line(v[1], v[2], self.nb_points / 4))
+        points.extend(sample_line(v[2], v[3], self.nb_points / 4))
+        points.extend(sample_line(v[3], v[0], self.nb_points / 4))
         return points
 
 
@@ -600,16 +607,19 @@ def line_side(a, b, p):
     #     p : numpy array 2d (point that should be right or left)
     #
     # TODO can this function be done for higher dimensions
-    m = np.array([[b[0] - a[0], b[1] - a[1]],
-                  [p[0] - a[0], p[1] - a[1]]])
-    return np.linalg.det(m) > 0
+
+    # m = np.array([[b[0] - a[0], b[1] - a[1]],
+    #               [p[0] - a[0], p[1] - a[1]]])
+    # return np.linalg.det(m) > 0
+
+    m = (b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0])
+    return m < 0
 
 
 class Polygon(Shape):
     """
-        An axis aligned box (hypercube) defined by
+        A Polygon class
             - origin    : its center
-            - dim       : its extent
 
         TODO 1) define distance
              2) class should work for 2D and 3D boxes
@@ -626,25 +636,22 @@ class Polygon(Shape):
                      np.array([1., 1.])]):
         Shape.__init__(self)
         self.origin = origin
-        self.dim = dim
+        self._verticies = verticies
+        self._edges = [None] * len(self._verticies)
+        self.create_segments()
 
     def create_segments(self):
-        self.edges = [None] * len(self.verticies)
-        for i in range(self.edges):
-            self.edges = segment_from_end_points(
-                self.verticies[i],
-                self.verticies[i + 1])
-
-    def diag(self):
-        return np.linalg.norm(self.dim)
+        for i in range(len(self._edges)):
+            v1 = self._verticies[i]
+            if i < len(self._edges) - 1:
+                v2 = self._verticies[i + 1]
+            else:
+                v2 = self._verticies[0]
+            self._edges[i] = segment_from_end_points(v1, v2)
 
     def is_inside(self, x):
         """
-        Returns false if any of the component of the vector
-        is smaller or bigger than the lower and top corner
-        of the box respectively
-
-        Warning : This is only valid for AxisAligned Box
+        Returns false if x is outside of the polygon
 
         Parameters
         ----------
@@ -652,44 +659,62 @@ class Polygon(Shape):
             arbitrary dimensions, 2d and 3d
             or meshgrid data shape = (2 or 3, n, n)
         """
-        self.edges
+        single = x.shape == (2,) or x.shape == (3,)
+        shape = 1 if single else (x.shape[1], x.shape[2])
+        inside = np.full(shape, True)
+        for e in self._edges:
+            inside = np.where(line_side(e.p1(), e.p2(), x), False, inside)
+        return inside
 
-    def closest_segment(self, x):
+    def closest_edge(self, x):
         min_dist = np.inf
         closest_point = np.zeros(x.shape)
-        closest_segment = None
-        for segment in self.segments():
-            p = segment.closest_point(x)
+        closest_edge = None
+        for edge in self._edges:
+            p = edge.closest_point(x)
             d = np.linalg.norm(x - p)
             if min_dist > d:
                 min_dist = d
                 closest_point = p.copy()
-                closest_segment = segment
-        return closest_segment, closest_point
+                closest_edge = edge
+        return closest_edge, closest_point, min_dist
 
     def closest_point(self, x):
-        return self.closest_segment(x)[1]
+        return self.closest_edge(x)[1]
 
     def dist_hessian(self, x):
-        return self.closest_segment(x)[0].dist_hessian(x)
+        return self.closest_edge(x)[0].dist_hessian(x)
 
     def dist_from_border(self, x):
-        d = [None] * 4
-        for i, segment in enumerate(self.segments()):
-            d[i] = segment.dist_from_border(x)
-        sign = np.where(Box.is_inside(self, x), -1., 1.)
+        # d = self.closest_edge(x)[2]
+        # return d if self.is_inside(x) else -d
+        d = [None] * len(self._edges)
+        for i, edge in enumerate(self._edges):
+            d[i] = edge.dist_from_border(x)
+        sign = np.where(self.is_inside(x), -1., 1.)
         minimum = np.min(np.array(d), axis=0)
         d = sign * minimum
         return np.asscalar(d) if d.size == 1 else d
 
     def sampled_points(self):
         points = []
-        v = self.verticies()
-        points.extend(sample_line(v[0], v[1]))
-        points.extend(sample_line(v[1], v[2]))
-        points.extend(sample_line(v[2], v[3]))
-        points.extend(sample_line(v[3], v[0]))
+        for edge in self._edges:
+            points.extend(sample_line(
+                edge.p1(), edge.p2(), self.nb_points / len(self._edges)))
         return points
+
+
+def hexagon(scale=1.):
+    verticies = [None] * 6
+    verticies[0] = scale * np.array([0, 1])
+    print(verticies)
+    for i, v in enumerate(verticies):
+        print(v)
+        verticies[i + 1] = np.dot(rotation_matrix_2d(60), v)
+        print(i)
+        if i >= 4:
+            break
+    return Polygon(np.array([0., 0.]), verticies)
 
 
 class SignedDistance2DMap(DifferentiableMap):

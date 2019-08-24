@@ -176,40 +176,54 @@ def test_ellipse():
 
 
 def test_line_side():
-    assert line_side([1, 0], [0, 0], [-1, -1])
-    assert line_side([25, 0], [0, 0], [-1, -14])
-    assert line_side([25, 20], [0, 20], [-1, 6])
-    assert line_side([24, 20], [-1, 20], [-2, 6])
+    assert not line_side([1, 0], [0, 0], [-1, -1])
+    assert not line_side([25, 0], [0, 0], [-1, -14])
+    assert not line_side([25, 20], [0, 20], [-1, 6])
+    assert not line_side([24, 20], [-1, 20], [-2, 6])
 
-    assert not line_side([1, 0], [0, 0], [1, 1])
-    assert not line_side([12, 0], [0, 0], [2, 1])
-    assert not line_side([-25, 0], [0, 0], [-1, -14])
-    assert not line_side([1, 0.5], [0, 0], [1, 1])
+    assert line_side([1, 0], [0, 0], [1, 1])
+    assert line_side([12, 0], [0, 0], [2, 1])
+    assert line_side([-25, 0], [0, 0], [-1, -14])
+    assert line_side([1, 0.5], [0, 0], [1, 1])
 
-    assert not line_side([0, 5], [1, 10], [10, 20])
-    assert line_side([0, 9.1], [1, 10], [10, 20])
-    assert not line_side([0, 5], [1, 10], [20, 10])
-    assert not line_side([0, 9.1], [1, 10], [20, 10])
+    assert line_side([0, 5], [1, 10], [10, 20])
+    assert not line_side([0, 9.1], [1, 10], [10, 20])
+    assert line_side([0, 5], [1, 10], [20, 10])
+    assert line_side([0, 9.1], [1, 10], [20, 10])
 
-    assert line_side([1, 1], [1, 10], [0, 0])
-    assert not line_side([1, 10], [1, 1], [0, 0])
-    assert not line_side([1, 1], [1, 10], [5, 0])
-    assert line_side([1, 10], [1, 1], [5, 0])
+    assert not line_side([1, 1], [1, 10], [0, 0])
+    assert line_side([1, 10], [1, 1], [0, 0])
+    assert line_side([1, 1], [1, 10], [5, 0])
+    assert not line_side([1, 10], [1, 1], [5, 0])
 
-    assert line_side([1, -1], [10, -1], [0, 0])
-    assert not line_side([10, -1], [1, -1], [0, 0])
-    assert not line_side([1, -1], [10, -1], [0, -9])
-    assert line_side([10, -1], [1, -1], [0, -9])
+    assert not line_side([1, -1], [10, -1], [0, 0])
+    assert line_side([10, -1], [1, -1], [0, 0])
+    assert line_side([1, -1], [10, -1], [0, -9])
+    assert not line_side([10, -1], [1, -1], [0, -9])
 
-    assert line_side([0, 0], [10, 10], [1, 2])
-    assert not line_side([10, 10], [0, 0], [1, 2])
-    assert not line_side([0, 0], [10, 10], [1, 0])
-    assert line_side([10, 10], [0, 0], [1, 0])
+    assert not line_side([0, 0], [10, 10], [1, 2])
+    assert line_side([10, 10], [0, 0], [1, 2])
+    assert line_side([0, 0], [10, 10], [1, 0])
+    assert not line_side([10, 10], [0, 0], [1, 0])
 
-    assert not line_side([0, 0], [-10, 10], [1, 2])
-    assert not line_side([0, 0], [-10, 10], [1, 2])
-    assert line_side([0, 0], [-10, 10], [-1, -2])
-    assert not line_side([-10, 10], [0, 0], [-1, -2])
+    assert line_side([0, 0], [-10, 10], [1, 2])
+    assert line_side([0, 0], [-10, 10], [1, 2])
+    assert not line_side([0, 0], [-10, 10], [-1, -2])
+    assert line_side([-10, 10], [0, 0], [-1, -2])
+
+
+def test_polygon():
+    environment = EnvBox()
+    polygon = hexagon(scale=.5)
+    f = SignedDistance2DMap(polygon)
+    for _ in range(100):
+        p = environment.sample_uniform()
+        J = f.jacobian(p)
+        J_diff = finite_difference_jacobian(f, p)
+        assert check_is_close(J, J_diff, 1e-4)
+        H = f.hessian(p)
+        H_diff = finite_difference_hessian(f, p)
+        assert check_is_close(H, H_diff, 1e-4)
 
 
 def test_sdf_derivatives():
@@ -279,7 +293,8 @@ if __name__ == "__main__":
     # test_circle()
     # test_segment()
     # test_box()
-    test_line_side()
+    # test_line_side()
+    test_polygon()
     # test_axis_aligned_box()
     # test_inside_box()
     # test_ellipse()

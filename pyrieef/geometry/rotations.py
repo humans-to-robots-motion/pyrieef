@@ -17,22 +17,10 @@
 #
 #                                        Jim Mainprice on Sunday June 13 2018
 
-import demos_common_imports
-from pyrieef.geometry.workspace import *
-from pyrieef.rendering.workspace_renderer import WorkspaceDrawer
+import numpy as np
 
-env = EnvBox(dim=np.array([2., 2.]))
-box = Box(origin=np.array([-.5, -.5]), dim=np.array([.5, .5]))
-segment = Segment(origin=np.array([.4, -.5]), orientation=0.2)
-circle = Circle(origin=np.array([.5, .5]), radius=0.2)
-polygon = hexagon(.33)
-workspace = Workspace(env)
-workspace.obstacles.append(box)
-workspace.obstacles.append(segment)
-workspace.obstacles.append(circle)
-workspace.obstacles.append(polygon)
-viewer = WorkspaceDrawer(workspace, wait_for_keyboard=True)
-sdf = SignedDistanceWorkspaceMap(workspace)
-viewer.draw_ws_obstacles()
-viewer.draw_ws_background(sdf, nb_points=200)
-viewer.show_once()
+
+def rotation_matrix_2d(degree):
+    theta = np.radians(degree)
+    c, s = np.cos(theta), np.sin(theta)
+    return np.array(((c, -s), (s, c)))
