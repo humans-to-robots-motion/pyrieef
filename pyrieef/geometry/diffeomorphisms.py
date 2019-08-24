@@ -241,34 +241,17 @@ class AnalyticCircle(AnalyticPlaneDiffeomoprhism):
 
     # squishes points inside the circle
     def Deformationforward(self, x):
-        # print "origin : ", self.origin
         x_center = x - self.circle.origin
-        # Retrieve radius when using beta exponential
-        # d_1 = np.linalg.norm(x_center) - self.radius
         d_1 = np.linalg.norm(x_center)
         alpha = self.alpha_(self.eta, self.circle.radius, self.gamma, d_1)
-        # d_2 = np.linalg.norm(y - self.origin)
-        # print "d_1 (1) : " , d_1
-        # # print "d_2 (1) : " , d_2
-        # print "alpha (11) : " , alpha
-        # # print "alpha (12) : " , (d_1 - d_2)
-        # print "radius :", self.radius
-        # print "origin : ", self.origin
-        # print "1 : ", x_center
-        # print "2 : ", x
-        # print "norm : ", normalize(x_center)
         return alpha * normalize(x_center)
 
     # maps them back outside of the circle
     def Deformationinverse(self, y):
-        # print "origin : ", self.origin
         y_center = y - self.circle.origin
         d_2 = np.linalg.norm(y_center)
         d_1 = self.beta_inv_(self.eta, self.circle.radius, self.gamma, d_2)
         alpha = d_1 - d_2
-        # print "d_1 (2) : " , d_1
-        # print "d_2 (2) : " , d_2
-        # print "alpha (2) : ", alpha
         return alpha * normalize(y_center)
 
     # squishes points inside the circle
@@ -352,7 +335,7 @@ def NaturalGradientGeodescis(obj, x_1, x_2, attractor=True):
     x_init = np.matrix(x_1).T
     x_goal = np.matrix(x_2).T
     x_tmp = x_init
-    eta = 0.01
+    eta = 0.001
     line = []
     line.append([x_init.item(0), x_init.item(1)])
     for i in range(10000):
@@ -364,7 +347,7 @@ def NaturalGradientGeodescis(obj, x_1, x_2, attractor=True):
         B = J if attractor else np.eye(2)
         ridge = 0.0
         g_inv = np.linalg.inv(J.T * J + ridge * np.eye(2))
-        x_new = x_tmp + eta * g_inv * B *  normalize( x_goal - x_tmp)
+        x_new = x_tmp + eta * g_inv * B * normalize(x_goal - x_tmp)
         line.append(np.array([x_new.item(0), x_new.item(1)]))
         if np.linalg.norm(x_new - x_goal) <= eta:
             line.append([x_goal.item(0), x_goal.item(1)])

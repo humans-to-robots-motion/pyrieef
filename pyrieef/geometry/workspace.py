@@ -229,6 +229,14 @@ class Ellipse(Shape):
         return points
 
 
+def sample_line(p_1, p_2, nb_points):
+    # Linear interpolation
+    points = []
+    for alpha in np.linspace(0., 1., nb_points / 4):
+        points.append((1. - alpha) * p_1 + alpha * p_2)
+    return points
+
+
 class Segment(Shape):
     """ A segment defined with an origin, length and orientaiton
         TODO :
@@ -241,23 +249,19 @@ class Segment(Shape):
                  length=0.8):
         Shape.__init__(self)
         self.origin = origin
-        self.orientation = orientation
-        self.length = length
+        self._orientation = orientation
+        self._length = length
+        self._p1, self._p2 = self.end_points()
 
     def end_points(self):
-        p0 = .5 * self.length * np.array(
-            [np.cos(self.orientation), np.sin(self.orientation)])
+        p0 = .5 * self._length * np.array(
+            [np.cos(self._orientation), np.sin(self._orientation)])
         p1 = self.origin + p0
         p2 = self.origin + -1. * p0
         return p1, p2
 
     def sampled_points(self):
-        points = []
-        p1, p2 = self.end_points()
-        for alpha in np.linspace(0., 1., self.nb_points):
-            # Linear interpolation
-            points.append((1. - alpha) * p1 + alpha * p2)
-        return points
+        return sample_line(self._p1, self._p2, self.nb_points)
 
     def closest_point(self, x):
         """
@@ -265,16 +269,15 @@ class Segment(Shape):
         and then checking if the point lines on the segment.
         """
         assert x.shape == self.origin.shape
-        p1, p2 = self.end_points()
-        u = p2 - p1
-        v = x - p1
+        u = self._p2 - self._p1
+        v = x - self._p1
         d = np.dot(u, v) / np.dot(u, u)
         if d <= 0.:
-            p = p1
+            p = self._p1
         elif d >= 1.:
-            p = p2
+            p = self._p2
         else:
-            p = p1 + d * u
+            p = self._p1 + d * u
         return p
 
     def dist_from_border(self, q):
@@ -282,9 +285,8 @@ class Segment(Shape):
             p = self.closest_point(q)
             return vector_norm(p - q)
         else:
-            p1, p2 = self.end_points()
-            u = p2 - p1
-            v = (q.T - p1).T
+            u = self._p2 - self._p1
+            v = (q.T - self._p1).T
             d = np.tensordot(u, v, axes=1) / np.dot(u, u)
             shape = q.shape
             p = np.full(shape, np.inf)
@@ -292,22 +294,21 @@ class Segment(Shape):
             is_r_side = d > 1.
             is_intersection = np.logical_and(d <= 1., d >= 0.)
             for k in range(p.shape[0]):
-                p[k] = np.where(is_l_side, p1[k], p[k])
-                p[k] = np.where(is_r_side, p2[k], p[k])
-                p[k] = np.where(is_intersection, p1[k] + d * u[k], p[k])
+                p[k] = np.where(is_l_side, self._p1[k], p[k])
+                p[k] = np.where(is_r_side, self._p2[k], p[k])
+                p[k] = np.where(is_intersection, self._p1[k] + d * u[k], p[k])
             return vector_norm(p - q)
 
     def dist_hessian(self, x):
-        p1, p2 = self.end_points()
-        u = p2 - p1
-        v = x - p1
+        u = self._p2 - self._p1
+        v = x - self._p1
         d = np.dot(u, v) / np.dot(u, u)
         if d <= 0.:
             # 1 - closer to p1
-            return point_distance_hessian(x, p1)
+            return point_distance_hessian(x, self._p1)
         elif d >= 1.:
             # 2 - closer to p2
-            return point_distance_hessian(x, p2)
+            return point_distance_hessian(x, self._p2)
         else:
             # 3 - closer to the side
             # Warning: only holds for 2D segments for now
@@ -439,10 +440,10 @@ class Box(Shape):
     def sampled_points(self):
         points = []
         v = self.verticies()
-        points.extend(self.sample_line(v[0], v[1]))
-        points.extend(self.sample_line(v[1], v[2]))
-        points.extend(self.sample_line(v[2], v[3]))
-        points.extend(self.sample_line(v[3], v[0]))
+        points.extend(sample_line(v[0], v[1]))
+        points.extend(sample_line(v[1], v[2]))
+        points.extend(sample_line(v[2], v[3]))
+        points.extend(sample_line(v[3], v[0]))
         return points
 
 
@@ -587,6 +588,108 @@ class AxisAlignedBox(Box):
     def dist_hessian(self, x):
         x_center = (x.T - self.origin).T
         return self._switcher_hessian.get(self.find_zone(x_center))(x_center)
+
+
+def line_side(a, b, p):
+    # Compute the side of a line AB that the point P is on
+    #
+    # Parameters
+    #     ----------
+    #     a : numpy array 2d (origin of line segment)
+    #     b : numpy array 2d (end of line segment)
+    #     p : numpy array 2d (point that should be right or left)
+    #
+    # TODO can this function be done for higher dimensions
+    m = np.array([[b[0] - a[0], b[1] - a[1]],
+                  [p[0] - a[0], p[1] - a[1]]])
+    return np.linalg.det(m) > 0
+
+
+class Polygon(Shape):
+    """
+        An axis aligned box (hypercube) defined by
+            - origin    : its center
+            - dim       : its extent
+
+        TODO 1) define distance
+             2) class should work for 2D and 3D boxes
+             3) test this function
+             4) make callable using stack
+    """
+
+    def __init__(self,
+                 origin=np.array([0., 0.]),
+                 verticies=[
+                     np.array([0., 0.]),
+                     np.array([1., 0.]),
+                     np.array([0., 1.]),
+                     np.array([1., 1.])]):
+        Shape.__init__(self)
+        self.origin = origin
+        self.dim = dim
+
+    def create_segments(self):
+        self.edges = [None] * len(self.verticies)
+        for i in range(self.edges):
+            self.edges = segment_from_end_points(
+                self.verticies[i],
+                self.verticies[i + 1])
+
+    def diag(self):
+        return np.linalg.norm(self.dim)
+
+    def is_inside(self, x):
+        """
+        Returns false if any of the component of the vector
+        is smaller or bigger than the lower and top corner
+        of the box respectively
+
+        Warning : This is only valid for AxisAligned Box
+
+        Parameters
+        ----------
+        x : numpy array with
+            arbitrary dimensions, 2d and 3d
+            or meshgrid data shape = (2 or 3, n, n)
+        """
+        self.edges
+
+    def closest_segment(self, x):
+        min_dist = np.inf
+        closest_point = np.zeros(x.shape)
+        closest_segment = None
+        for segment in self.segments():
+            p = segment.closest_point(x)
+            d = np.linalg.norm(x - p)
+            if min_dist > d:
+                min_dist = d
+                closest_point = p.copy()
+                closest_segment = segment
+        return closest_segment, closest_point
+
+    def closest_point(self, x):
+        return self.closest_segment(x)[1]
+
+    def dist_hessian(self, x):
+        return self.closest_segment(x)[0].dist_hessian(x)
+
+    def dist_from_border(self, x):
+        d = [None] * 4
+        for i, segment in enumerate(self.segments()):
+            d[i] = segment.dist_from_border(x)
+        sign = np.where(Box.is_inside(self, x), -1., 1.)
+        minimum = np.min(np.array(d), axis=0)
+        d = sign * minimum
+        return np.asscalar(d) if d.size == 1 else d
+
+    def sampled_points(self):
+        points = []
+        v = self.verticies()
+        points.extend(sample_line(v[0], v[1]))
+        points.extend(sample_line(v[1], v[2]))
+        points.extend(sample_line(v[2], v[3]))
+        points.extend(sample_line(v[3], v[0]))
+        return points
 
 
 class SignedDistance2DMap(DifferentiableMap):
