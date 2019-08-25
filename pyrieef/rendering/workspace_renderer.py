@@ -102,6 +102,7 @@ class WorkspaceDrawer(WorkspaceRender):
         self._fig = None
         self._ax = None
         self._colorbar = None
+        self.background_matrix_eval = True
         self.init(rows, cols)
 
     def init(self, rows, cols):
@@ -149,7 +150,11 @@ class WorkspaceDrawer(WorkspaceRender):
 
     def draw_ws_background(self, phi, nb_points=100):
         X, Y = self._workspace.box.stacked_meshgrid(nb_points)
-        self.draw_ws_img(phi(np.stack([X, Y])).T, "bilinear")
+        if self.background_matrix_eval:
+            Z = phi(np.stack([X, Y])).T
+        else:
+            Z = two_dimension_function_evaluation(X, Y, phi).T
+        self.draw_ws_img(Z, "bilinear")
 
     def draw_ws_img(self, Z, interpolate="nearest"):
         """

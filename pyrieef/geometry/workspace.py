@@ -192,16 +192,19 @@ class Circle(Shape):
 
 class Ellipse(Shape):
     """
-    Define a ellipse shape. This is performed using
-        a and b parameters. (a, b) are the size of the great
-        nd small radii.
+    Define a ellipse shape using a and b parameters.
+    (a, b) are the size of the great nd small radii.
     """
 
     def __init__(self):
         Shape.__init__(self)
         self.origin = np.array([0., 0.])
-        self.a = 0.2
-        self.b = 0.2
+        self._a = 0.5
+        self._b = 0.3
+        assert self._a >= self._b
+
+    def is_inside(self, x):
+        return ((x[0] / self._a)**2 + (x[1] / self._b)**2) < 1.
 
     def dist_from_border(self, x):
         """
@@ -210,22 +213,27 @@ class Ellipse(Shape):
         """
         x_abs = math.fabs(x[0])
         y_abs = math.fabs(x[1])
-        a_m_b = self.a**2 - self.b**2
+        a_m_b = self._a**2 - self._b**2
         phi = 0.
         for i in range(100):
-            phi = math.atan2(a_m_b * math.sin(phi) + y_abs * self.b,
-                             x_abs * self.a)
-            # print "phi : ", phi
+            phi_n = math.atan2(
+                a_m_b * math.sin(phi) + y_abs * self._b,
+                x_abs * self._a)
+            if math.fabs(phi_n - phi) < 1e-8:
+                break
+            phi = phi_n
             if phi > math.pi / 2:
                 break
-        return math.sqrt((x_abs - self.a * math.cos(phi))**2 +
-                         (y_abs - self.b * math.sin(phi))**2)
+        d = math.sqrt((x_abs - self._a * math.cos(phi))**2 +
+                      (y_abs - self._b * math.sin(phi))**2)
+        sign = -1 if self.is_inside(x) else 1.
+        return sign * d
 
     def sampled_points(self):
         points = []
         for theta in np.linspace(0, 2 * math.pi, self.nb_points):
-            x = self.origin[0] + self.a * np.cos(theta)
-            y = self.origin[1] + self.b * np.sin(theta)
+            x = self.origin[0] + self._a * np.cos(theta)
+            y = self.origin[1] + self._b * np.sin(theta)
             points.append(np.array([x, y]))
         return points
 
@@ -710,6 +718,8 @@ def hexagon(scale=1.):
         if i >= 4:
             break
     return Polygon(np.array([0., 0.]), verticies)
+
+# def ellipse_to_poylgon():
 
 
 class SignedDistance2DMap(DifferentiableMap):
