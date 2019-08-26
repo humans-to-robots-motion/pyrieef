@@ -241,7 +241,7 @@ class Ellipse(Shape):
 def sample_line(p_1, p_2, nb_points):
     # Linear interpolation
     points = []
-    for alpha in np.linspace(0., 1., nb_points / 4):
+    for alpha in np.linspace(0., 1., nb_points):
         points.append((1. - alpha) * p_1 + alpha * p_2)
     return points
 
@@ -445,20 +445,14 @@ class Box(Shape):
         d = sign * minimum
         return np.asscalar(d) if d.size == 1 else d
 
-    def sample_line(self, p_1, p_2):
-        points = []
-        for alpha in np.linspace(0., 1., self.nb_points / 4):
-            # Linear interpolation
-            points.append((1. - alpha) * p_1 + alpha * p_2)
-        return points
-
     def sampled_points(self):
         points = []
         v = self.verticies()
-        points.extend(sample_line(v[0], v[1], self.nb_points / 4))
-        points.extend(sample_line(v[1], v[2], self.nb_points / 4))
-        points.extend(sample_line(v[2], v[3], self.nb_points / 4))
-        points.extend(sample_line(v[3], v[0], self.nb_points / 4))
+        nb_points_per_edge = max(5, self.nb_points / 4)
+        points.extend(sample_line(v[0], v[1], nb_points_per_edge))
+        points.extend(sample_line(v[1], v[2], nb_points_per_edge))
+        points.extend(sample_line(v[2], v[3], nb_points_per_edge))
+        points.extend(sample_line(v[3], v[0], nb_points_per_edge))
         return points
 
 
@@ -699,10 +693,12 @@ class Polygon(Shape):
         return np.asscalar(d) if d.size == 1 else d
 
     def sampled_points(self):
+        nb_points_per_edge = max(2, int(self.nb_points / len(self._edges)))
+        print("nb_points_per_edge : ", nb_points_per_edge)
         points = []
         for edge in self._edges:
-            points.extend(sample_line(
-                edge.p1(), edge.p2(), self.nb_points / len(self._edges)))
+            points.extend(
+                sample_line(edge.p1(), edge.p2(), nb_points_per_edge))
         return points
 
 
@@ -714,8 +710,6 @@ def hexagon(scale=1.):
         if i >= 4:
             break
     return Polygon(np.array([0., 0.]), verticies)
-
-# def ellipse_to_poylgon():
 
 
 class SignedDistance2DMap(DifferentiableMap):

@@ -139,6 +139,20 @@ class PolarCoordinateSystem(AnalyticPlaneDiffeomoprhism):
         return np.array([x, y])
 
 
+def ellipse_polygon(a, b,
+                    translation=[0., 0.],
+                    orientation=0.):
+    ellipse = Ellipse(a, b)
+    ellipse.nb_points = 50
+    points = ellipse.sampled_points()
+    R = rotation_matrix_2d(180 * orientation / np.pi)
+    for i, p in enumerate(points):
+        points[i] = np.dot(R, p) + np.array(translation)
+    return ConvexPolygon(
+        ellipse.origin + np.array([-.2, -.2]),
+        verticies=points[:-1])
+
+
 class ConvexPolygon(Polygon):
 
     def __init__(self,
@@ -148,10 +162,9 @@ class ConvexPolygon(Polygon):
                      np.array([-.5, .5]),
                      np.array([-.5, -.5]),
                      np.array([.5, -.5])
-                 ],
-                 distances=[.707, .707, .707, .707]):
+                 ]):
         Polygon.__init__(self, origin, verticies)
-        self._focus = self.origin + np.array([.2, .2])
+        self._focus = self.origin
         self._vertex_coordinates()
 
     def focus(self):
@@ -168,7 +181,7 @@ class ConvexPolygon(Polygon):
         """ point on the boundary that intersects the
             line between the focus and a given point
             TODO : test this function """
-        v0 = self._verticies[0]
+        v0 = self._verticies[0] - self._focus
         alpha = vectors_angle(v0, x - self._focus)
         j = 0
         for i, theta in enumerate(self._coordinates):
