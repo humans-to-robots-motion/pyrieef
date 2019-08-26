@@ -23,9 +23,8 @@ from geometry.utils import *
 
 def test_line_parameters():
 
-    p1, p2 = np.zeros((2,)), np.zeros((2,))
-    p1[0], p1[1] = 2, 3
-    p2[0], p2[1] = 6, 4
+    p1 = np.array([2, 3])
+    p2 = np.array([6, 4])
     a_res = 1 / 4
     b_res = 5 / 2
 
@@ -40,5 +39,39 @@ def test_line_parameters():
     assert np.fabs(b - b_res) < 1e-6
 
 
+def test_line_line_intersection():
+
+    p1 = np.array([0, 0])
+    p2 = np.array([1, 1])
+    p3 = np.array([0, 1])
+    p4 = np.array([1, 0])
+    pr = np.array([0.5, 0.5])
+
+    p = line_line_intersection(p1, p2, p3, p4)
+    print("p : ", p)
+    assert np.linalg.norm(p - pr) < 1e-6
+
+    p1 = np.array([0, 0])
+    p2 = np.array([3, 3])
+    p3 = np.array([0, 3])
+    p4 = np.array([3, 0])
+    pr = np.array([1.5, 1.5])
+
+    p = line_line_intersection(p1, p2, p3, p4)
+    print("p : ", p)
+    assert np.linalg.norm(p - pr) < 1e-6
+
+    p1 = np.array([0, 0])
+    p2 = np.array([3, 3])
+    p3 = np.array([0, 3])
+    p4 = np.array([.1, 2.9])
+    pr = np.array([1.5, 1.5])
+
+    p = line_line_intersection(p1, p2, p3, p4)
+    print("p : ", p)
+    assert np.linalg.norm(p - pr) < 1e-6
+
+
 if __name__ == "__main__":
     test_line_parameters()
+    test_line_line_intersection()

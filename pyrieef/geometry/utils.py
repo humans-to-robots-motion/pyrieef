@@ -54,10 +54,14 @@ def line_line_intersection(p1, p2, p3, p4):
         p3, p4 : points on L2
 
         see https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
+        TODO: TEST
         """
-    a, b = line_parameters(p1, p2)
-    c, d = line_parameters(p3, p4)
-    return np.array([(d - c) / (a - b), (a * d - b * c) / (a - b)])
+    a, c = line_parameters(p1, p2)  # L1
+    b, d = line_parameters(p3, p4)  # L2
+    print("b, d = {}, {}".format(b, d))
+    x = (d - c) / (a - b)
+    y = (a * d - b * c) / (a - b)
+    return np.array([x, y])
 
 
 def lw(x):
