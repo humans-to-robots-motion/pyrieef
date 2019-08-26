@@ -628,20 +628,16 @@ class Polygon(Shape):
     """
         A Polygon class
             - origin    : its center
-
-        TODO 1) define distance
-             2) class should work for 2D and 3D boxes
-             3) test this function
-             4) make callable using stack
+            - verticies : stored and passed in a counter-clockwise order
     """
 
     def __init__(self,
                  origin=np.array([0., 0.]),
                  verticies=[
-                     np.array([0., 0.]),
+                     np.array([1., 1.]),
                      np.array([1., 0.]),
-                     np.array([0., 1.]),
-                     np.array([1., 1.])]):
+                     np.array([0., 0.]),
+                     np.array([0., 1.])]):
         Shape.__init__(self)
         self.origin = origin
         self._verticies = verticies

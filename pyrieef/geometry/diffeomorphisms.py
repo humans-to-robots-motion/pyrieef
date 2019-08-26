@@ -142,14 +142,39 @@ class PolarCoordinateSystem(AnalyticPlaneDiffeomoprhism):
 class ConvexPolygon(Polygon):
 
     def __init__(self,
-                 origin=np.array([0.5, 0.5]),
+                 origin=np.array([0., 0.]),
                  verticies=[
-                     np.array([0., 0.]),
-                     np.array([1., 0.]),
-                     np.array([1., 1.]),
-                     np.array([0., 1.])],
+                     np.array([.5, .5]),
+                     np.array([-.5, .5]),
+                     np.array([-.5, -.5]),
+                     np.array([.5, -.5])
+                 ],
                  distances=[.707, .707, .707, .707]):
-        Polygon.__init__(origin, verticies)
+        Polygon.__init__(self, origin, verticies)
+        self._focus = self.origin
+        self._vertex_coordinates()
+
+    def _vertex_coordinates(self):
+        """ associates an angle for each vertex """
+        v0 = self._verticies[0]
+        self._coordinates = [None] * len(self._verticies)
+        for i, v in enumerate(self._verticies):
+            self._coordinates[i] = vectors_angle(v0, v)
+
+    def intersection_point(self, x):
+        """ point on the boundary that intersects the
+            line between the focus and a given point
+            TODO : test this function """
+        v0 = self._verticies[0]
+        alpha = np.arccos(np.dot(x - self._focus, v0))
+        for i, theta in enumerate(self._coordinates):
+            if theta > alpha:
+                break
+        p = line_line_intersection(
+            self._focus, x,
+            self._verticies[i - 1],
+            self._verticies[i])
+        return p
 
 
 class ElectricCircle(AnalyticPlaneDiffeomoprhism):

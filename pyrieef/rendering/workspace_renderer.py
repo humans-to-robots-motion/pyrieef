@@ -180,6 +180,7 @@ class WorkspaceDrawer(WorkspaceRender):
         [self._ax.plot(point[0], point[1], 'o', c=color) for point in line]
 
     def draw_ws_line_fill(self, line, color='r', color_id=None, linewidth=2.0):
+        """ draws a line where points are given as a list """
         if color_id is not None:
             color = cm.rainbow(float(color_id % 100) / 20.)
         line_x = [point[0] for point in line]

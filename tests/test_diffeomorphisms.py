@@ -1,4 +1,4 @@
-        #!/usr/bin/env python
+#!/usr/bin/env python
 
 # Copyright (c) 2018, University of Stuttgart
 # All rights reserved.
@@ -21,7 +21,7 @@ import __init__
 from test_differentiable_geometry import *
 from geometry.diffeomorphisms import *
 
-    
+
 def check_beta(alpha, beta, beta_inv):
     success = False
     for i in range(1000):
@@ -107,6 +107,10 @@ def test_inverse_functions():
     #     print "Analytic Ellipse Error !!!"
 
     print("Done.")
+
+
+def test_convex_polygon():
+    box = ConvexPolygon()
 
 
 if __name__ == "__main__":

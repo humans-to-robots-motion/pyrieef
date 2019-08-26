@@ -20,6 +20,14 @@
 import numpy as np
 
 
+def vectors_angle(v1, v2):
+    """ computes an ange between two vectors
+        the angle is restricted to the range [0, 2pi]"""
+    assert v1.shape == (2,) or v1.shape == (3,)
+    assert v1.shape == v2.shape
+    return np.mod(np.arctan2(np.cross(v1, v2), np.dot(v1, v2)), 2 * np.pi)
+
+
 def rotation_matrix_2d(degree):
     theta = np.radians(degree)
     c, s = np.cos(theta), np.sin(theta)
