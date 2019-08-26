@@ -51,6 +51,10 @@ def test_line_line_intersection():
     print("p : ", p)
     assert np.linalg.norm(p - pr) < 1e-6
 
+    p = line_line_intersection_det(p1, p2, p3, p4)
+    print("p : ", p)
+    assert np.linalg.norm(p - pr) < 1e-6
+
     p1 = np.array([0, 0])
     p2 = np.array([3, 3])
     p3 = np.array([0, 3])
@@ -58,6 +62,10 @@ def test_line_line_intersection():
     pr = np.array([1.5, 1.5])
 
     p = line_line_intersection(p1, p2, p3, p4)
+    print("p : ", p)
+    assert np.linalg.norm(p - pr) < 1e-6
+
+    p = line_line_intersection_det(p1, p2, p3, p4)
     print("p : ", p)
     assert np.linalg.norm(p - pr) < 1e-6
 
@@ -70,6 +78,11 @@ def test_line_line_intersection():
     p = line_line_intersection(p1, p2, p3, p4)
     print("p : ", p)
     assert np.linalg.norm(p - pr) < 1e-6
+
+    p = line_line_intersection_det(p1, p2, p3, p4)
+    print("p : ", p)
+    assert np.linalg.norm(p - pr) < 1e-6
+
 
 
 if __name__ == "__main__":

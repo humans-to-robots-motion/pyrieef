@@ -151,30 +151,37 @@ class ConvexPolygon(Polygon):
                  ],
                  distances=[.707, .707, .707, .707]):
         Polygon.__init__(self, origin, verticies)
-        self._focus = self.origin
+        self._focus = self.origin + np.array([.2, .2])
         self._vertex_coordinates()
+
+    def focus(self):
+        return self._focus
 
     def _vertex_coordinates(self):
         """ associates an angle for each vertex """
-        v0 = self._verticies[0]
+        v0 = self._verticies[0] - self._focus
         self._coordinates = [None] * len(self._verticies)
         for i, v in enumerate(self._verticies):
-            self._coordinates[i] = vectors_angle(v0, v)
+            self._coordinates[i] = vectors_angle(v0, v - self._focus)
 
     def intersection_point(self, x):
         """ point on the boundary that intersects the
             line between the focus and a given point
             TODO : test this function """
         v0 = self._verticies[0]
-        alpha = np.arccos(np.dot(x - self._focus, v0))
+        alpha = vectors_angle(v0, x - self._focus)
+        j = 0
         for i, theta in enumerate(self._coordinates):
             if theta > alpha:
+                if i == 0:
+                    j = len(self._coordinates) - 1
+                else:
+                    j = i - 1
                 break
-        p = line_line_intersection(
+        return line_line_intersection_det(
             self._focus, x,
-            self._verticies[i - 1],
-            self._verticies[i])
-        return p
+            self._verticies[i],
+            self._verticies[j])
 
 
 class ElectricCircle(AnalyticPlaneDiffeomoprhism):

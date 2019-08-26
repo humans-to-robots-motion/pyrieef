@@ -22,22 +22,24 @@ from pyrieef.geometry.workspace import *
 from pyrieef.geometry.diffeomorphisms import *
 from pyrieef.rendering.workspace_renderer import WorkspaceDrawer
 
-env = EnvBox(dim=np.array([2., 2.]))
-box = Box(origin=np.array([-.5, -.5]), dim=np.array([.5, .5]))
-segment = Segment(origin=np.array([.4, -.5]), orientation=0.2)
-circle = Circle(origin=np.array([.5, .5]), radius=0.2)
-ellipse = Ellipse(a=0.5, b=0.3)
-polygon = hexagon(.33)
-# polygon = ConvexPolygon()
+env = EnvBox(
+    origin=np.array([.0, .0]),
+    dim=np.array([2., 2.]))
+polygon = ConvexPolygon(origin=env.origin)
 workspace = Workspace(env)
-workspace.obstacles.append(box)
-workspace.obstacles.append(segment)
-workspace.obstacles.append(circle)
 workspace.obstacles.append(polygon)
-# workspace.obstacles.append(ellipse)
 viewer = WorkspaceDrawer(workspace, wait_for_keyboard=True)
 sdf = SignedDistanceWorkspaceMap(workspace)
+
 viewer.draw_ws_obstacles()
+viewer.draw_ws_circle(origin=env.origin, radius=1.)
 # viewer.background_matrix_eval = False
 viewer.draw_ws_background(sdf, nb_points=200)
+
+for theta in np.linspace(0, 2 * math.pi, 20, endpoint=False):
+    p1 = np.array([np.cos(theta), np.sin(theta)])
+    p2 = polygon.intersection_point(p1)
+    viewer.draw_ws_line_fill([polygon.focus(), p1], color='k')
+    viewer.draw_ws_point(p2, color='r', shape='o')
+
 viewer.show_once()

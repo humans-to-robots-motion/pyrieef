@@ -48,20 +48,45 @@ def line_line_intersection(p1, p2, p3, p4):
     """
     Determines the intersection point between two lines L1 and L2
 
+        This function is degenerated when the slope can not be computed
+        (i.e, vertical line)
+
         Parameters
         ----------
         p1, p2 : points on L1
         p3, p4 : points on L2
 
         see https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
-        TODO: TEST
-        """
+    """
     a, c = line_parameters(p1, p2)  # L1
     b, d = line_parameters(p3, p4)  # L2
-    print("b, d = {}, {}".format(b, d))
+    # print("b, d = {}, {}".format(b, d))
     x = (d - c) / (a - b)
     y = (a * d - b * c) / (a - b)
     return np.array([x, y])
+
+
+def line_line_intersection_det(p1, p2, p3, p4):
+    """
+    Determines the intersection point between two lines L1 and L2
+
+        Parameters
+        ----------
+        p1, p2 : points on L1
+        p3, p4 : points on L2
+
+        see https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
+    """
+    det_A = ((p1[0] * p2[1] - p1[1] * p2[0]) * (p3[0] - p4[0]) -
+             (p3[0] * p4[1] - p3[1] * p4[0]) * (p1[0] - p2[0]))
+
+    det_B = ((p1[0] * p2[1] - p1[1] * p2[0]) * (p3[1] - p4[1]) -
+             (p3[0] * p4[1] - p3[1] * p4[0]) * (p1[1] - p2[1]))
+
+    det_C = ((p1[0] - p2[0]) * (p3[1] - p4[1]) -
+             (p1[1] - p2[1]) * (p3[0] - p4[0]))
+
+    return np.array([det_A / det_C, det_B / det_C])
 
 
 def lw(x):
