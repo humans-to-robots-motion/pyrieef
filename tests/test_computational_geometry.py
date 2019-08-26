@@ -17,25 +17,28 @@
 #
 #                                        Jim Mainprice on Sunday June 13 2018
 
-import demos_common_imports
-from pyrieef.geometry.workspace import *
-from pyrieef.rendering.workspace_renderer import WorkspaceDrawer
+import __init__
+from geometry.utils import *
 
-env = EnvBox(dim=np.array([2., 2.]))
-box = Box(origin=np.array([-.5, -.5]), dim=np.array([.5, .5]))
-segment = Segment(origin=np.array([.4, -.5]), orientation=0.2)
-circle = Circle(origin=np.array([.5, .5]), radius=0.2)
-ellipse = Ellipse(a=0.5, b=0.3)
-polygon = hexagon(.33)
-workspace = Workspace(env)
-# workspace.obstacles.append(box)
-# workspace.obstacles.append(segment)
-# workspace.obstacles.append(circle)
-workspace.obstacles.append(polygon)
-# workspace.obstacles.append(ellipse)
-viewer = WorkspaceDrawer(workspace, wait_for_keyboard=True)
-sdf = SignedDistanceWorkspaceMap(workspace)
-viewer.draw_ws_obstacles()
-# viewer.background_matrix_eval = False
-viewer.draw_ws_background(sdf, nb_points=200)
-viewer.show_once()
+
+def test_line_parameters():
+
+    p1, p2 = np.zeros((2,)), np.zeros((2,))
+    p1[0], p1[1] = 2, 3
+    p2[0], p2[1] = 6, 4
+    a_res = 1 / 4
+    b_res = 5 / 2
+
+    a, b = line_parameters(p1, p2)
+    print("a : {}, b : {}".format(a, b))
+    assert np.fabs(a - a_res) < 1e-6
+    assert np.fabs(b - b_res) < 1e-6
+
+    a, b = line_parameters(p2, p1)
+    print("a : {}, b : {}".format(a, b))
+    assert np.fabs(a - a_res) < 1e-6
+    assert np.fabs(b - b_res) < 1e-6
+
+
+if __name__ == "__main__":
+    test_line_parameters()

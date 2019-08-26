@@ -139,6 +139,19 @@ class PolarCoordinateSystem(AnalyticPlaneDiffeomoprhism):
         return np.array([x, y])
 
 
+class ConvexPolygon(Polygon):
+
+    def __init__(self,
+                 origin=np.array([0.5, 0.5]),
+                 verticies=[
+                     np.array([0., 0.]),
+                     np.array([1., 0.]),
+                     np.array([1., 1.]),
+                     np.array([0., 1.])],
+                 distances=[.707, .707, .707, .707]):
+        Polygon.__init__(origin, verticies)
+
+
 class ElectricCircle(AnalyticPlaneDiffeomoprhism):
 
     def __init__(self):

@@ -112,6 +112,7 @@ def test_motion_optimimization_2d():
     print("jac : ", res.jac)
     assert_allclose(res.jac, np.zeros(res.jac.size), atol=1e-1)
 
+
 if __name__ == "__main__":
     test_optimization_module()
     test_optimization_trust()

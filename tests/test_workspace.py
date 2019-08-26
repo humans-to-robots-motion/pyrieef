@@ -162,17 +162,15 @@ def test_axis_aligned_box():
 
 def test_ellipse():
 
-    ellipse = Ellipse()
-    ellipse.a = 0.1
-    ellipse.b = 0.2
+    ellipse = Ellipse(a=0.2, b=0.1)
 
     dist = ellipse.dist_from_border(np.array([0.3, 0.0]))
     print("dist = ", dist)
-    assert np.fabs(dist - 0.2) < 1.e-06
+    assert np.fabs(dist - 0.1) < 1.e-06
 
     dist = ellipse.dist_from_border(np.array([0.0, 0.3]))
     print("dist = ", dist)
-    assert np.fabs(dist - 0.1) < 1.e-06
+    assert np.fabs(dist - 0.2) < 1.e-06
 
 
 def test_line_side():
@@ -294,10 +292,10 @@ if __name__ == "__main__":
     # test_segment()
     # test_box()
     # test_line_side()
-    test_polygon()
+    # test_polygon()
     # test_axis_aligned_box()
     # test_inside_box()
-    # test_ellipse()
+    test_ellipse()
     # test_sdf_derivatives()
     # test_sdf_workspace()
     # test_meshgrid()

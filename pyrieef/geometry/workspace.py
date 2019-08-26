@@ -196,11 +196,11 @@ class Ellipse(Shape):
     (a, b) are the size of the great nd small radii.
     """
 
-    def __init__(self):
+    def __init__(self, a, b):
         Shape.__init__(self)
         self.origin = np.array([0., 0.])
-        self._a = 0.5
-        self._b = 0.3
+        self._a = a
+        self._b = b
         assert self._a >= self._b
 
     def is_inside(self, x):
