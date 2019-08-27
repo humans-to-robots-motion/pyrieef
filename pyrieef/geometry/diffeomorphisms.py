@@ -197,6 +197,51 @@ class ConvexPolygon(Polygon):
             self._verticies[j])
 
 
+class AnalyticConvexPolygon(AnalyticPlaneDiffeomoprhism):
+
+    def __init__(self, origin=[.1, -.1], polygon=None):
+        self.object = polygon
+        # self.eta = self.circle.radius  # for the exp
+        # self.eta = .01 # for the 1/x
+        self.gamma = 1.
+        self.set_alpha(alpha_f, beta_inv_f)
+
+    def object(self):
+        """ Access the internal object. """
+        return self.circle
+
+    def set_alpha(self, a, b):
+        """ To recover the distance scaling one should
+            pass the alpha and beta inverse functions."""
+        self.alpha_ = a
+        self.beta_inv_ = b
+
+    def Deformationforward(self, x):
+        """ squishes points inside the circle """
+        x_center = x - self.object.origin
+        d_1 = np.linalg.norm(x_center)
+        alpha = self.alpha_(self.eta, self.circle.radius, self.gamma, d_1)
+        return alpha * normalize(x_center)
+
+    def Deformationinverse(self, y):
+        """ maps them back outside of the circle """
+        y_center = y - self.object.origin
+        d_2 = np.linalg.norm(y_center)
+        d_1 = self.beta_inv_(self.eta, self.circle.radius, self.gamma, d_2)
+        alpha = d_1 - d_2
+        return alpha * normalize(y_center)
+
+    def forward(self, x):
+        """ squishes points inside the circle """
+        y = x - self.Deformationforward(x)
+        return y
+
+    def inverse(self, y):
+        """ maps them back outside of the circle """
+        x = y + self.Deformationinverse(y)
+        return x
+
+
 class ElectricCircle(AnalyticPlaneDiffeomoprhism):
 
     def __init__(self):
