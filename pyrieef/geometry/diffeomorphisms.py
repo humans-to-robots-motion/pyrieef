@@ -86,17 +86,20 @@ def beta_inv_f(eta, r, gamma, y):
     return l / gamma + y
 
 
-class PlaneDiffeomoprhism(DifferentiableMap):
+class Diffeomoprhism(DifferentiableMap):
 
     def output_dimension(self):
-        return 2
-
-    def input_dimension(self):
-        return 2
+        return self.input_dimension()
 
     @abstractmethod
     def inverse(self, y):
         raise NotImplementedError()
+
+
+class PlaneDiffeomoprhism(Diffeomoprhism):
+
+    def input_dimension(self):
+        return 2
 
 
 class AnalyticPlaneDiffeomoprhism(PlaneDiffeomoprhism):
@@ -104,6 +107,25 @@ class AnalyticPlaneDiffeomoprhism(PlaneDiffeomoprhism):
     @abstractmethod
     def object(self):
         raise NotImplementedError()
+
+
+class ComposeDiffeo(Compose):
+
+    def __init__(self, f, g):
+        """
+
+            f round g : f(g(q))
+
+            This function should be called pullback if we approxiate
+            higher order (i.e., hessians) derivaties by pullback, here it's
+            computing the true 1st order derivative of the composition.
+
+            """
+        Compose.__init__(self, f, g)
+
+    def inverse(self, y):
+        return self._g.inverse(self._f.inverse(y))
+
 
 # The polar coordinates r and phi can be converted to the Cartesian coordinates
 # x and y by using the trigonometric functions sine and cosine
@@ -140,6 +162,7 @@ class PolarCoordinateSystem(AnalyticPlaneDiffeomoprhism):
 
 
 def ellipse_polygon(a, b,
+                    focus=[0., 0.],
                     translation=[0., 0.],
                     orientation=0.):
     ellipse = Ellipse(a, b)
@@ -148,8 +171,9 @@ def ellipse_polygon(a, b,
     R = rotation_matrix_2d(180 * orientation / np.pi)
     for i, p in enumerate(points):
         points[i] = np.dot(R, p) + np.array(translation)
+    focus = np.dot(R, focus) + np.array(translation)
     return ConvexPolygon(
-        ellipse.origin + np.array([-.2, -.2]),
+        ellipse.origin + focus,
         verticies=points[:-1])
 
 
@@ -200,15 +224,15 @@ class ConvexPolygon(Polygon):
 class AnalyticConvexPolygon(AnalyticPlaneDiffeomoprhism):
 
     def __init__(self, origin=[.1, -.1], polygon=None):
-        self.object = polygon
+        self._object = polygon
         # self.eta = self.circle.radius  # for the exp
-        # self.eta = .01 # for the 1/x
+        # self.eta = .1  # for the 1/x
         self.gamma = 1.
         self.set_alpha(alpha_f, beta_inv_f)
 
     def object(self):
         """ Access the internal object. """
-        return self.circle
+        return self._object
 
     def set_alpha(self, a, b):
         """ To recover the distance scaling one should
@@ -218,16 +242,20 @@ class AnalyticConvexPolygon(AnalyticPlaneDiffeomoprhism):
 
     def Deformationforward(self, x):
         """ squishes points inside the circle """
-        x_center = x - self.object.origin
+        x_center = x - self._object.origin
+        r = np.linalg.norm(
+            self._object.intersection_point(x) - self._object.origin)
         d_1 = np.linalg.norm(x_center)
-        alpha = self.alpha_(self.eta, self.circle.radius, self.gamma, d_1)
+        alpha = self.alpha_(r, r, self.gamma, d_1)
         return alpha * normalize(x_center)
 
     def Deformationinverse(self, y):
         """ maps them back outside of the circle """
-        y_center = y - self.object.origin
+        y_center = y - self._object.origin
+        r = np.linalg.norm(
+            self._object.intersection_point(y) - self._object.origin)
         d_2 = np.linalg.norm(y_center)
-        d_1 = self.beta_inv_(self.eta, self.circle.radius, self.gamma, d_2)
+        d_1 = self.beta_inv_(r, r, self.gamma, d_2)
         alpha = d_1 - d_2
         return alpha * normalize(y_center)
 
@@ -438,16 +466,16 @@ def NaturalGradientGeodescis(obj, x_1, x_2, attractor=True):
     x_init = np.matrix(x_1).T
     x_goal = np.matrix(x_2).T
     x_tmp = x_init
-    eta = 0.001
+    eta = 0.01
     line = []
     line.append([x_init.item(0), x_init.item(1)])
-    for i in range(10000):
+    for i in range(500):
         # Compute tensor.
         J = obj.jacobian(np.array(x_tmp.T)[0])
         # Implement the attractor derivative here directly
         # suposes that it's of the form |phi(q) - phi(q_goal)|^2
         # hence the addition of the J^T
-        B = J if attractor else np.eye(2)
+        B = J.T if attractor else np.eye(2)
         ridge = 0.0
         g_inv = np.linalg.inv(J.T * J + ridge * np.eye(2))
         x_new = x_tmp + eta * g_inv * B * normalize(x_goal - x_tmp)

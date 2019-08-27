@@ -600,20 +600,20 @@ class AxisAlignedBox(Box):
 
 
 def line_side(a, b, p):
-    # Compute the side of a line AB that the point P is on
-    #
-    # Parameters
-    #     ----------
-    #     a : numpy array 2d (origin of line segment)
-    #     b : numpy array 2d (end of line segment)
-    #     p : numpy array 2d (point that should be right or left)
-    #
-    # TODO can this function be done for higher dimensions
+    """ Compute the side of a line AB that the point P is on
 
-    # m = np.array([[b[0] - a[0], b[1] - a[1]],
-    #               [p[0] - a[0], p[1] - a[1]]])
-    # return np.linalg.det(m) > 0
+     Parameters
+         ----------
+         a : numpy array 2d (origin of line segment)
+         b : numpy array 2d (end of line segment)
+         p : numpy array 2d (point that should be right or left)
 
+     TODO can this function be done for higher dimensions
+
+     m = np.array([[b[0] - a[0], b[1] - a[1]],
+                   [p[0] - a[0], p[1] - a[1]]])
+    return np.linalg.det(m) > 0
+    """
     m = (b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0])
     return m < 0
 
@@ -646,6 +646,9 @@ class Polygon(Shape):
             else:
                 v2 = self._verticies[0]
             self._edges[i] = segment_from_end_points(v1, v2)
+
+    def verticies(self):
+        return self._verticies
 
     def is_inside(self, x):
         """
@@ -702,14 +705,14 @@ class Polygon(Shape):
         return points
 
 
-def hexagon(scale=1.):
+def hexagon(scale=1., translate=[0., 0.]):
     verticies = [None] * 6
     verticies[0] = scale * np.array([0, 1])
     for i, v in enumerate(verticies):
         verticies[i + 1] = np.dot(rotation_matrix_2d(60), v)
         if i >= 4:
             break
-    return Polygon(np.array([0., 0.]), verticies)
+    return Polygon(np.array(translate), verticies)
 
 
 class SignedDistance2DMap(DifferentiableMap):

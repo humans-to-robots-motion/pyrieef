@@ -35,9 +35,26 @@ import itertools
 phi = AnalyticCircle()
 phi.set_alpha(alpha_f, beta_inv_f)
 phi.circle.origin = np.array([.1, .0])
+p1 = phi.object()
+
+p1 = ellipse_polygon(.2, .1, [-.15, .0], [.1, .0], 46)
+# p1 = ConvexPolygon(
+#     origin=np.array([.0, .0]),
+#     verticies=hexagon(scale=.1, translate=[.0, .1]).verticies())
+phi = AnalyticConvexPolygon(polygon=p1)
+
+# p1 = ellipse_polygon(.2, .1, [.0, .0], [-.1, .1], 46)
+# p2 = ellipse_polygon(.2, .1, [.0, .0], [.2, .0], 30)
+# # polygon = ConvexPolygon(
+# #     origin=np.array([.0, .1]),
+# #     verticies=hexagon(scale=.2, translate=[.1, .0]).verticies())
+# phi = ComposeDiffeo(
+#     AnalyticConvexPolygon(polygon=p2),
+#     AnalyticConvexPolygon(polygon=p1))
 
 workspace = Workspace()
-workspace.obstacles.append(phi.object())
+workspace.obstacles.append(p1)
+# workspace.obstacles.append(p2)
 points = workspace.all_points()
 X = np.array(points)[:, 0]
 Y = np.array(points)[:, 1]

@@ -51,13 +51,13 @@ def check_inverse(obstacle):
     success = True
     o = obstacle.object()
     print(("center : ", o.origin))
-    print(("radius : ", o.radius))
+    # print(("radius : ", o.radius))
     # np.random.seed(0)
     if success:
         success = False
         for i in range(1000):
             x = 5. * np.random.rand(2) + o.origin
-            if np.linalg.norm(x - o.origin) < o.radius:
+            if o.is_inside(x):
                 continue
             p = obstacle.forward(x)
             x_new = obstacle.inverse(p)
@@ -99,6 +99,13 @@ def test_inverse_functions():
     assert check_jacobian_against_finite_difference(obstacle)
     assert check_inverse(obstacle)
 
+    print("Test AnalyticConvexPolygon")
+    obstacle = AnalyticConvexPolygon(
+        polygon=ellipse_polygon(.2, .1, [.0, .0], [.1, .0], 0.))
+    obstacle.set_alpha(alpha_f, beta_inv_f)
+    assert check_jacobian_against_finite_difference(obstacle)
+    assert check_inverse(obstacle)
+
     # obstacle = AnalyticEllipse()
     # obstacle.set_alpha(alpha_f, beta_inv_f)
     # if check_inverse(obstacle):
@@ -107,10 +114,6 @@ def test_inverse_functions():
     #     print "Analytic Ellipse Error !!!"
 
     print("Done.")
-
-
-def test_convex_polygon():
-    box = ConvexPolygon()
 
 
 if __name__ == "__main__":

@@ -27,7 +27,7 @@ env = EnvBox(
     dim=np.array([2., 2.]))
 
 # polygon = ConvexPolygon(origin=env.origin + np.array([-.2, -.2]))
-polygon = ellipse_polygon(.7, .3, [-.1, -.1], .7)
+polygon = ellipse_polygon(.7, .3, [-.2, .0], [-.1, -.1], .7)
 
 workspace = Workspace(env)
 workspace.obstacles.append(polygon)
