@@ -215,6 +215,49 @@ def test_constant_acceleration_trajectory():
     #     assert_allclose(q_1, q_2)
 
 
+def test_spline_trajectory():
+    dt = 0.1
+    T = 10
+    n = 2
+    q_init = np.random.random(n)
+    q_goal = np.random.random(n)
+    trajectory_1 = linear_interpolation_trajectory(q_init, q_goal, T)
+    trajectory_2 = CubicSplineTrajectory(T, n, dt)
+    trajectory_2.set(trajectory_1.x())
+    trajectory_2.initialize_spline()
+    time = trajectory_2.time_index()
+    for i, t in enumerate(time):
+        q_1 = trajectory_2.config_at_time(t)
+        q_2 = trajectory_1.configuration(i)
+        assert_allclose(q_1, q_2)
+
+    trajectory = CubicSplineTrajectory(T, 1, dt)
+    trajectory.x()[:-1] = np.sin(time)
+    trajectory.initialize_spline()
+    epsilon = 1e-3
+    for t in np.linspace(epsilon, T * dt - epsilon, 1000):
+        q1 = trajectory.config_at_time(t)
+        q2 = np.sin(t)
+        assert np.fabs(q1 - q2) < 1e-5
+        v1 = trajectory.velocity(t)
+        v2 = np.cos(t)
+        assert np.fabs(v1 - v2) < 1e-3
+
+    trajectory = CubicSplineTrajectory(T, n, dt)
+    for i, t in enumerate(time):
+        trajectory.configuration(i)[0] = np.sin(t)
+        trajectory.configuration(i)[1] = np.cos(t)
+    trajectory.initialize_spline()
+    epsilon = 1e-3
+    for t in np.linspace(epsilon, T * dt - epsilon, 100):
+        q1 = trajectory.config_at_time(t)
+        q2 = np.array([np.sin(t), np.cos(t)])
+        assert_allclose(q_1, q_2, 1e-5)
+        v1 = trajectory.velocity(t)
+        v2 = np.array([np.cos(t), -np.sin(t)]) 
+        assert_allclose(v1, v2, atol=1e-3)
+
+
 def test_center_of_clique():
     config_dim = 2
     nb_way_points = 10
@@ -549,7 +592,8 @@ if __name__ == "__main__":
     # test_cliques()
     # test_trajectory()
     # test_continuous_trajectory()
-    test_constant_acceleration_trajectory()
+    # test_constant_acceleration_trajectory()
+    test_spline_trajectory()
     # test_squared_norm_derivatives()
     # test_log_barrier()
     # test_bound_barrier()

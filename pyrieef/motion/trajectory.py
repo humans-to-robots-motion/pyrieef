@@ -19,6 +19,7 @@
 
 from .__init__ import *
 from geometry.differentiable_geometry import *
+from scipy.interpolate import interp1d
 
 
 class FunctionNetwork(DifferentiableMap):
@@ -447,6 +448,59 @@ class ConstantAccelerationTrajectory(ContinuousTrajectory):
         v_t = self.velocity(i, self._dt)
         a_t = self.acceleration(i, self._dt)
         return q_t + v_t * t_0 + .5 * a_t * t_0 * (t_0 - self._dt)
+
+
+class CubicSplineTrajectory(ContinuousTrajectory):
+    """ Implements a trajectory that can be continously interpolated """
+
+    def __init__(self, T=0, n=2, dt=0.1, q_init=None, x=None):
+        Trajectory.__init__(self, T=T, n=n, q_init=q_init, x=x)
+        self._dt = float(dt)
+        self._f = []
+        self._epsilon = 1e-6
+
+    def time_index(self):
+        return np.linspace(0., self._T * self._dt, self._T + 1)
+
+    def initialize_spline(self):
+        time = self.time_index()
+        configurations = np.array(self.list_configurations())
+        self._f = []
+        for d in range(self._n):
+            self._f.append(interp1d(
+                time, configurations[:, d], kind='cubic'))
+
+    def __call__(self, t):
+        return self.config_at_time(t)
+
+    def config_at_time(self, t):
+        assert self._n == len(self._f)
+        assert t >= 0.
+        assert t <= self._dt * (self._T + 1)
+        q = np.zeros((self._n))
+        for d in range(self._n):
+            q[d] = self._f[d](t)
+        return q
+
+    def velocity(self, t):
+        assert t >= 0.
+        assert t <= self._dt * (self._T + 1)
+        if t > (self._dt * (self._T + 1) - self._epsilon):
+            return np.zeros(self._n)
+        q0 = self.config_at_time(t)
+        q1 = self.config_at_time(t + self._epsilon)
+        v = (q1 - q0) / self._epsilon
+        return v
+
+    def acceleration(self, t):
+        assert t >= 0.
+        assert t <= self._dt * (self._T + 1)
+        if t < self._epsilon or t > self._dt * (self._T + 1) - self._epsilon:
+            return np.zeros(self._n)
+        q0 = self.config_at_time(t - self._epsilon)
+        q1 = self.config_at_time(t)
+        q2 = self.config_at_time(t + self._epsilon)
+        return (q2 - 2 * q1 + q0) / (self._epsilon**2)
 
 
 def linear_interpolation_trajectory(q_init, q_goal, T):
