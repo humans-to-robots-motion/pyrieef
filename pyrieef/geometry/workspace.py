@@ -715,6 +715,30 @@ def hexagon(scale=1., translate=[0., 0.]):
     return Polygon(np.array(translate), verticies)
 
 
+class Complex(Shape):
+
+    def __init__(self, origin=np.array([0., 0.]), shapes=None):
+        """" 
+            FOR NOW ASSUMES THAT THE COMPLEX IS NON INTERSECTING
+        """
+        Shape.__init__(self)
+        self.origin = origin
+        self._shapes = shapes
+
+    def dist_from_border(self, x):
+        d = [None] * len(self._shapes)
+        for i, shape in enumerate(self._shapes):
+            d[i] = shape.dist_from_border(x)
+        d = np.min(np.array(d), axis=0)
+        return np.asscalar(d) if d.size == 1 else d
+
+    def is_inside(self, x):
+        inside = [None] * len(self._shapes)
+        for i, shape in enumerate(self._shapes):
+            inside[i] = shape.is_inside(x)
+        return np.any(inside)
+
+
 class SignedDistance2DMap(DifferentiableMap):
     """
         This class of wraps the shape class in a differentiable map

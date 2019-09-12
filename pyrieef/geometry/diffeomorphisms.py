@@ -399,51 +399,38 @@ class AnalyticCircle(AnalyticPlaneDiffeomoprhism):
 class AnalyticMultiCircle(AnalyticPlaneDiffeomoprhism):
 
     def __init__(self, circles):
-        self.circles_ = circles
+        self._circles = circles
         self.gamma = 20.
 
     def object(self):
-        self.circles_
+        circles = [circle.object() for circle in self._circles]
+        return Complex(np.array([0., 0.]), circles)
 
-    def Additiveforward(self, x):
-        dx = np.array([0., 0.])
-        for i, obj in enumerate(self.circles_):
-            dx += obj.Deformationforward(x)
-        return x - dx
-
-    def Additiveinverse(self, y):
-        dy = np.array([0., 0.])
-        for i, obj in enumerate(self.circles_):
-            dy += obj.Deformationinverse(y)
-        return y + dy
-
-    # This activation function is implemented through
-    # a softmax function.
     def GetActivation(self, i, x):
+        """
+         This activation function is implemented through
+         a softmax function.
+        """
         part = 0.
-        for circle in self.circles_:
+        for circle in self._circles:
             d = circle.object().dist_from_border(x)
             part += np.exp(-self.gamma * d)
-        d = self.circles_[i].object().dist_from_border(x)
+        d = self._circles[i].object().dist_from_border(x)
         return np.exp(-self.gamma * d) / part
-
-    def OneCircle(self, i, x):
-        x_center = x - self.circles_[i].circle.origin
-        d_1 = np.linalg.norm(x_center)
-        activation = self.GetActivation(i, x)
-        alpha = (activation * self.circles_[i].eta *
-                 np.exp(self.circles_[i].gamma *
-                        (-d_1 + self.circles_[i].circle.radius)))
-        return alpha * normalize(x_center)
 
     def forward(self, x):
         dx = np.array([0., 0.])
-        for i, obj in enumerate(self.circles_):
-            dx += self.OneCircle(i, x)
+        for i, obj in enumerate(self._circles):
             activation = self.GetActivation(i, x)
-            # print ("activation[", i ,"] : ", activation, " , ",
-            #     self.circles_[i].origin, " dx :", dx)
+            dx += activation * obj.Deformationforward(x)
         return x - dx
+
+    def inverse(self, x):
+        dx = np.array([0., 0.])
+        for i, obj in enumerate(self._circles):
+            activation = self.GetActivation(i, x)
+            dx += activation * obj.Deformationinverse(x)
+        return x + dx
 
 
 def InterpolationGeodescis(obj, x_1, x_2):

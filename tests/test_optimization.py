@@ -38,7 +38,7 @@ def test_optimization_module():
     print(res)
     assert_allclose(res.jac, np.array(
         [9.93918700e-07,   4.21980188e-07, 2.23775033e-07,
-         -6.10304485e-07,   1.34057054e-07]), atol=1e-10)
+         -6.10304485e-07,   1.34057054e-07]), atol=1e-12)
     return res.fun
 
 
