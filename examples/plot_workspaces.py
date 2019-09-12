@@ -38,6 +38,6 @@ workspace.obstacles.append(polygon)
 viewer = WorkspaceDrawer(workspace, wait_for_keyboard=True)
 sdf = SignedDistanceWorkspaceMap(workspace)
 viewer.draw_ws_obstacles()
-# viewer.background_matrix_eval = False
+viewer.background_matrix_eval = True
 viewer.draw_ws_background(sdf, nb_points=200)
 viewer.show_once()
