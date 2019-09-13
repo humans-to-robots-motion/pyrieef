@@ -110,7 +110,7 @@ def test_inverse_functions():
 
     print("Test AnalyticCircle")
     obstacle = AnalyticCircle()
-    obstacle.set_alpha(alpha_f, beta_inv_f)
+    # obstacle.set_alpha(alpha_f, beta_inv_f)
     assert check_jacobian_against_finite_difference(obstacle)
     assert check_obstacle_inverse(obstacle)
 
@@ -127,20 +127,20 @@ def test_inverse_functions():
     # TODO !!!
 
     test_points = np.random.rand(1000, 5)
-    softmax = SoftmaxWithInverse()
+    softmax = SoftmaxWithInverse(gamma = -1.2)
     check_diffeo_inverse(softmax, test_points)
 
-    # circles = []
-    # circles.append(AnalyticCircle(origin=[.1, .0], radius=0.1))
-    # circles.append(AnalyticCircle(origin=[.1, .25], radius=0.05))
-    # circles.append(AnalyticCircle(origin=[.2, .25], radius=0.05))
-    # circles.append(AnalyticCircle(origin=[.0, .25], radius=0.05))
+    circles = []
+    circles.append(AnalyticCircle(origin=[.1, .0], radius=0.1))
+    circles.append(AnalyticCircle(origin=[.1, .25], radius=0.05))
+    circles.append(AnalyticCircle(origin=[.2, .25], radius=0.05))
+    circles.append(AnalyticCircle(origin=[.0, .25], radius=0.05))
 
     # print("Test AnalyticMultiCircle")
     # obstacle = AnalyticMultiCircle(circles)
 
     # assert check_jacobian_against_finite_difference(obstacle)
-    # assert check_inverse(obstacle)
+    # assert check_obstacle_inverse(obstacle)
 
     print("Done.")
 
