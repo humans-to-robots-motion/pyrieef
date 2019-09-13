@@ -396,19 +396,24 @@ class AnalyticCircle(AnalyticPlaneDiffeomoprhism):
         return x
 
 
-class SoftmaxDiffeomorphism(Diffeomoprhism):
+class Softmax(Diffeomoprhism):
+    """ 
+    Maps a vector to the softmax value:
+
+            f_i (x) = exp(x_i) / sum_j exp(x_j)
+    """
 
     def __init__(self):
         self._gamma = None
 
     def forward(self, x):
         """Compute the softmax of vector x."""
-        exps =  np.exp(x)
+        exps = np.exp(x)
         return x / np.sum(exps)
 
     def inverse(self, y):
-        """inverse of the softmax of vector x."""
-        return np.log(y)
+        """Inverse of the softmax of vector y."""
+        return np.log(y) + constant
 
 
 class AnalyticMultiCircle(AnalyticPlaneDiffeomoprhism):
