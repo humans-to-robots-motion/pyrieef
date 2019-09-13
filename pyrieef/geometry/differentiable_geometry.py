@@ -489,6 +489,29 @@ class ExpTestFunction(DifferentiableMap):
         return np.exp(-(2 * p[0])**2 - (p[1] / 2)**2)
 
 
+class SoftMax(DifferentiableMap):
+    """ Soft max 
+            f(x) = exp(x_i) / sum_j exp(x_j)
+    """
+
+    def __init__(self, n, i, gamma):
+        self._n = n
+        self._i = i
+        self._gamma = gamma
+
+    def output_dimension(self):
+        return 1
+
+    def input_dimension(self):
+        return self._n
+
+    def forward(self, x):
+        partition = 0.
+        for i in range(x):
+            partition += np.exp(self._gamma * x[i])
+        return np.exp(self._gamma * x[self._i]) / partition
+
+
 def finite_difference_jacobian(f, q):
     """ Takes an object f that has a forward method returning
     a numpy array when querried. """

@@ -396,6 +396,21 @@ class AnalyticCircle(AnalyticPlaneDiffeomoprhism):
         return x
 
 
+class SoftmaxDiffeomorphism(Diffeomoprhism):
+
+    def __init__(self):
+        self._gamma = None
+
+    def forward(self, x):
+        """Compute the softmax of vector x."""
+        exps =  np.exp(x)
+        return x / np.sum(exps)
+
+    def inverse(self, y):
+        """inverse of the softmax of vector x."""
+        return np.log(y)
+
+
 class AnalyticMultiCircle(AnalyticPlaneDiffeomoprhism):
 
     def __init__(self, circles):
@@ -425,11 +440,11 @@ class AnalyticMultiCircle(AnalyticPlaneDiffeomoprhism):
             dx += activation * obj.Deformationforward(x)
         return x - dx
 
-    def inverse(self, x):
+    def inverse(self, y):
         dx = np.array([0., 0.])
         for i, obj in enumerate(self._circles):
-            activation = self.GetActivation(i, x)
-            dx += activation * obj.Deformationinverse(x)
+            activation = self.GetActivation(i, y)
+            dx += activation * obj.Deformationinverse(y)
         return x + dx
 
 
