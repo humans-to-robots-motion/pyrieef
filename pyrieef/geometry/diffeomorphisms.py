@@ -396,7 +396,7 @@ class AnalyticCircle(AnalyticPlaneDiffeomoprhism):
         return x
 
 
-class Softmax(Diffeomoprhism):
+class SoftmaxWithInverse(Diffeomoprhism):
     """ 
     Maps a vector to the softmax value:
 
@@ -405,22 +405,24 @@ class Softmax(Diffeomoprhism):
 
     def __init__(self):
         self._gamma = None
+        self._partition = 1.
 
     def forward(self, x):
-        """Compute the softmax of vector x."""
+        """ Compute the softmax of vector x."""
         exps = np.exp(x)
-        return x / np.sum(exps)
+        # self._partition = np.sum(exps)
+        return exps / self._partition
 
     def inverse(self, y):
-        """Inverse of the softmax of vector y."""
-        return np.log(y) + constant
+        """ Inverse of softmax for vector y."""
+        return np.log(y) + np.log(self._partition)
 
 
 class AnalyticMultiCircle(AnalyticPlaneDiffeomoprhism):
 
     def __init__(self, circles):
         self._circles = circles
-        self.gamma = 20.
+        self.gamma = 1.
 
     def object(self):
         circles = [circle.object() for circle in self._circles]
@@ -431,12 +433,12 @@ class AnalyticMultiCircle(AnalyticPlaneDiffeomoprhism):
          This activation function is implemented through
          a softmax function.
         """
-        part = 0.
-        for circle in self._circles:
-            d = circle.object().dist_from_border(x)
-            part += np.exp(-self.gamma * d)
+        # part = 0.
+        # for circle in self._circles:
+        #     d = circle.object().dist_from_border(x)
+        #     partition += np.exp(-self.gamma * d)
         d = self._circles[i].object().dist_from_border(x)
-        return np.exp(-self.gamma * d) / part
+        return np.exp(-self.gamma * d)
 
     def forward(self, x):
         dx = np.array([0., 0.])

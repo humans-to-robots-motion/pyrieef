@@ -126,9 +126,9 @@ def test_inverse_functions():
     # -------------------------------------------------------------------------
     # TODO !!!
 
-    # test_points = np.random.rand(1000, 5)
-    # softmax = SoftmaxDiffeomorphism()
-    # check_diffeo_inverse(softmax, test_points)
+    test_points = np.random.rand(1000, 5)
+    softmax = SoftmaxWithInverse()
+    check_diffeo_inverse(softmax, test_points)
 
     # circles = []
     # circles.append(AnalyticCircle(origin=[.1, .0], radius=0.1))
