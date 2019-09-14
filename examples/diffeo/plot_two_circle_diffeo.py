@@ -45,16 +45,18 @@ y = np.linspace(-.5, -.1, ny)
 
 analytical_circles = AnalyticMultiCircle(circles)
 
+alpha = .2
 for i, j in itertools.product(list(range(nx)), list(range(ny))):
+    alpha += .05
     x_init = np.array([x[i], y[j]])
     print("x_init : ", x_init)
 
     # Does not have an inverse.
-    # [line, line_inter] = InterpolationMultiGeodescis(
-    #     analytical_circles, x_init, x_goal)
+    [line, line_inter] = InterpolationGeodescis(
+        analytical_circles, x_init, x_goal)
 
-    line = NaturalGradientGeodescis(analytical_circles, x_init, x_goal)
-    renderer.draw_ws_line(line)
+    # line = NaturalGradientGeodescis(analytical_circles, x_init, x_goal)
+    renderer.draw_ws_line(line, color=(alpha, alpha, 0))
 renderer.draw_ws_obstacles()
 renderer.draw_ws_point([x_goal[0], x_goal[1]], color='k', shape='o')
 renderer.show()

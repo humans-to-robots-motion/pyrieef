@@ -432,7 +432,7 @@ class AnalyticMultiCircle(AnalyticPlaneDiffeomoprhism):
 
     def __init__(self, circles):
         self._circles = circles
-        self._softmax = SoftmaxWithInverse(gamma=-20)
+        self._softmax = SoftmaxWithInverse(gamma=-12)
 
     def object(self):
         circles = [circle.object() for circle in self._circles]
@@ -454,12 +454,13 @@ class AnalyticMultiCircle(AnalyticPlaneDiffeomoprhism):
          This activation function is implemented through
          a softmax function.
         """
-        # part = 0.
-        # for circle in self._circles:
-        #     d = circle.object().dist_from_border(x)
-        #     partition += np.exp(-self.gamma * d)
-        d = self._circles[i].object().dist_from_border(x)
-        return self._softmax.inverse(i, d)
+        part = 0.
+        distances = np.array([0.] * len(self._circles))
+        for j, circle in enumerate(self._circles):
+            o = circle.object()
+            # distances[j] = o.dist_from_border(y) + o.radius
+            distances[j] = o.dist_from_border(y)
+        return self._softmax.forward(distances)[i]
 
     def forward(self, x):
         dx = np.array([0., 0.])
@@ -471,11 +472,13 @@ class AnalyticMultiCircle(AnalyticPlaneDiffeomoprhism):
         return x - dx
 
     def inverse(self, y):
-        dx = np.array([0., 0.])
+        dy = np.array([0., 0.])
         for i, obj in enumerate(self._circles):
-            alpha = self._softmax.inverse(i, y)
+            alpha = self.activation_inv(i, y)
             dy += alpha * obj.Deformationinverse(y)
-        return y + dy
+        x = y + dy
+        # print("inverse y : {} is {}".format(y, x))
+        return x
 
 
 def InterpolationGeodescis(obj, x_1, x_2):
@@ -484,7 +487,7 @@ def InterpolationGeodescis(obj, x_1, x_2):
     line.append(x_1)
     p_init = obj.forward(x_1)
     p_goal = obj.forward(x_2)
-    for s in np.linspace(0., 1., 1000):
+    for s in np.linspace(0., 1., 100):
         p = (1. - s) * p_init + s * p_goal
         x_new = obj.inverse(p)
         line.append(x_new)
