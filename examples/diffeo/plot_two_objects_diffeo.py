@@ -31,14 +31,18 @@ import matplotlib.pyplot as plt
 
 cmap = plt.get_cmap('viridis')
 
-circles = []
-circles.append(AnalyticCircle(origin=[.1, .0], radius=0.1))
-circles.append(AnalyticCircle(origin=[.1, .25], radius=0.05))
-circles.append(AnalyticCircle(origin=[.2, .25], radius=0.05))
-circles.append(AnalyticCircle(origin=[.0, .25], radius=0.05))
+p1 = ellipse_polygon(
+    a=.2,
+    b=.1,
+    focus=[.0, .0],
+    translation=[.1, .25],
+    orientation=0.)
+obstacles = []
+obstacles.append(AnalyticConvexPolygon(polygon=p1))
+obstacles.append(AnalyticCircle(origin=[.1, .0], radius=0.1))
 
 workspace = Workspace()
-workspace.obstacles = [circle.object() for circle in circles]
+workspace.obstacles = [phi.object() for phi in obstacles]
 renderer = WorkspaceDrawer(workspace)
 
 x_goal = np.array([0.4, 0.4])
@@ -46,7 +50,7 @@ nx, ny = (5, 4)
 x = np.linspace(-.2, -.05, nx)
 y = np.linspace(-.5, -.1, ny)
 
-analytical_circles = AnalyticMultiDiffeo(circles)
+analytical_circles = AnalyticMultiDiffeo(obstacles)
 
 sclar_color = 0.
 for i, j in itertools.product(list(range(nx)), list(range(ny))):

@@ -245,8 +245,7 @@ class AnalyticConvexPolygon(AnalyticPlaneDiffeomoprhism):
     def Deformationforward(self, x):
         """ squishes points inside the circle """
         x_center = x - self._object.origin
-        r = np.linalg.norm(
-            self._object.intersection_point(x) - self._object.origin)
+        r = self.radius(x)
         d_1 = np.linalg.norm(x_center)
         alpha = self.alpha_(r, r, self.gamma, d_1)
         return alpha * normalize(x_center)
@@ -254,12 +253,19 @@ class AnalyticConvexPolygon(AnalyticPlaneDiffeomoprhism):
     def Deformationinverse(self, y):
         """ maps them back outside of the circle """
         y_center = y - self._object.origin
-        r = np.linalg.norm(
-            self._object.intersection_point(y) - self._object.origin)
+        r = self.radius(y)
         d_2 = np.linalg.norm(y_center)
-        d_1 = self.beta_inv_(r, r, self.gamma, d_2)
+        d_1 = self.distance_before_contraction(y, d_2)
         alpha = d_1 - d_2
         return alpha * normalize(y_center)
+
+    def radius(self, x):
+        return np.linalg.norm(
+            self._object.intersection_point(x) - self._object.origin)
+
+    def distance_before_contraction(self, x, d_2):
+        r = self.radius(x)
+        return self.beta_inv_(r, r, self.gamma, d_2)
 
     def forward(self, x):
         """ squishes points inside the circle """
@@ -373,6 +379,9 @@ class AnalyticCircle(AnalyticPlaneDiffeomoprhism):
         self.alpha_ = a
         self.beta_inv_ = b
 
+    def radius(self, x):
+        return self.circle.radius
+
     def Deformationforward(self, x):
         """ squishes points inside the circle """
         x_center = x - self.circle.origin
@@ -382,15 +391,20 @@ class AnalyticCircle(AnalyticPlaneDiffeomoprhism):
             -self.gamma * d_1 + self.circle.radius)
         return alpha * normalize(x_center)
 
-    def Deformationinverse(self, y):
-        """  maps them back outside of the circle """
-        y_center = y - self.circle.origin
-        d_2 = np.linalg.norm(y_center)
+    def distance_before_contraction(self, x, d_2):
         # d_1 = self.beta_inv_(self.eta, self.circle.radius, self.gamma, d_2)
         l = lambertw(
             self.eta * self.gamma *
             np.exp(self.circle.radius - self.gamma * d_2)).real
         d_1 = l/self.gamma + d_2
+        return d_1
+
+
+    def Deformationinverse(self, y):
+        """  maps them back outside of the circle """
+        y_center = y - self.circle.origin
+        d_2 = np.linalg.norm(y_center)
+        d_1 = self.distance_before_contraction(y, d_2)
         alpha = d_1 - d_2
         return alpha * normalize(y_center)
 
@@ -428,56 +442,54 @@ class SoftmaxWithInverse(Diffeomoprhism):
         return np.log(y) / self._gamma + np.log(self._partition)
 
 
-class AnalyticMultiCircle(AnalyticPlaneDiffeomoprhism):
+class AnalyticMultiDiffeo(AnalyticPlaneDiffeomoprhism):
 
-    def __init__(self, circles):
-        self._circles = circles
-        self._softmax = SoftmaxWithInverse(gamma=-12)
+    def __init__(self, diffeomorphisms):
+        self._diffeomorphisms = diffeomorphisms
+        self._softmax = SoftmaxWithInverse(gamma=-14)
 
     def object(self):
-        circles = [circle.object() for circle in self._circles]
-        return Complex(np.array([0., 0.]), circles)
+        objects = [phi.object() for phi in self._diffeomorphisms]
+        return Complex(np.array([0., 0.]), objects)
 
-    def activation(self, i, x):
+    def activations(self, x):
         """
          This activation function is implemented through
          a softmax function.
         """
         part = 0.
-        distances = np.array([0.] * len(self._circles))
-        for j, circle in enumerate(self._circles):
-            distances[j] = circle.object().dist_from_border(x)
-        return self._softmax.forward(distances)[i]
+        distances = np.array([0.] * len(self._diffeomorphisms))
+        for j, phi in enumerate(self._diffeomorphisms):
+            distances[j] = phi.object().dist_from_border(x)
+        return self._softmax.forward(distances)
 
-    def activation_inv(self, i, y):
+    def activations_inv(self, y):
         """
          This activation function is implemented through
          a softmax function.
         """
         part = 0.
-        distances = np.array([0.] * len(self._circles))
-        for j, circle in enumerate(self._circles):
-            o = circle.object()
-            # distances[j] = o.dist_from_border(y) + o.radius
-            distances[j] = o.dist_from_border(y)
-        return self._softmax.forward(distances)[i]
+        distances = np.array([0.] * len(self._diffeomorphisms))
+        for j, phi in enumerate(self._diffeomorphisms):
+            o = phi.object()
+            distances[j] = phi.distance_before_contraction(
+                y, np.linalg.norm(y - phi.object().origin)) - phi.radius(y)
+        return self._softmax.forward(distances)
 
     def forward(self, x):
         dx = np.array([0., 0.])
-        for i, obj in enumerate(self._circles):
-            # d = self._circles[i].object().dist_from_border(x)
-            # alpha = self._softmax.forward(d)
-            alpha = self.activation(i, x)
-            dx += alpha * obj.Deformationforward(x)
+        alpha = self.activations( x)
+        for i, phi in enumerate(self._diffeomorphisms):
+            dx += alpha[i] * phi.Deformationforward(x)
         return x - dx
 
     def inverse(self, y):
+        """ This is not really the inverse, it is an approximation """
         dy = np.array([0., 0.])
-        for i, obj in enumerate(self._circles):
-            alpha = self.activation_inv(i, y)
-            dy += alpha * obj.Deformationinverse(y)
+        alpha = self.activations_inv(y)
+        for i, phi in enumerate(self._diffeomorphisms):
+            dy += alpha[i] * phi.Deformationinverse(y)
         x = y + dy
-        # print("inverse y : {} is {}".format(y, x))
         return x
 
 

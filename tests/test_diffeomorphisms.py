@@ -136,8 +136,8 @@ def test_inverse_functions():
     circles.append(AnalyticCircle(origin=[.2, .25], radius=0.05))
     circles.append(AnalyticCircle(origin=[.0, .25], radius=0.05))
 
-    # print("Test AnalyticMultiCircle")
-    # obstacle = AnalyticMultiCircle(circles)
+    # print("Test AnalyticMultiDiffeo")
+    # obstacle = AnalyticMultiDiffeo(circles)
 
     # assert check_jacobian_against_finite_difference(obstacle)
     # assert check_obstacle_inverse(obstacle)
