@@ -451,7 +451,22 @@ class ConstantAccelerationTrajectory(ContinuousTrajectory):
 
 
 class CubicSplineTrajectory(ContinuousTrajectory):
-    """ Implements a trajectory that can be continously interpolated """
+    """ 
+    Implements a trajectory that can be continously interpolated
+
+    Velocities and accelerations are computed using finite differences
+        which is why we set an epsilon parameter.
+
+    The trajectory is defined for a time interval
+        t \in [0., dt * (T + 1)]
+        
+    A trajectory is always defined from index 0 to T included
+    The final configuration of the trajectory is thus the
+    one indexed T and there an extra one for convinience in trajectory
+    optimization algorithm (for finite differences).
+    Hence when we define a spline we need to specify T configurations
+    over a time interval that finishes at dt * (T+1).
+    """
 
     def __init__(self, T=0, n=2, dt=0.1, q_init=None, x=None):
         Trajectory.__init__(self, T=T, n=n, q_init=q_init, x=x)
@@ -469,6 +484,9 @@ class CubicSplineTrajectory(ContinuousTrajectory):
         for d in range(self._n):
             self._f.append(interp1d(
                 time, configurations[:, d], kind='cubic'))
+
+    def time_indices(self):
+        return np.linspace(0., self._T * self._dt, self._T + 1)
 
     def __call__(self, t):
         return self.config_at_time(t)

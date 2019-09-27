@@ -22,9 +22,7 @@ import demos_common_imports
 import time
 import numpy as np
 import matplotlib.pyplot as plt
-from pyrieef.motion.objective import ConstantAccelerationTrajectory
 from pyrieef.motion.trajectory import CubicSplineTrajectory
-from scipy.interpolate import interp1d
 
 T = 10
 dt = 1.
@@ -33,7 +31,6 @@ epsilon = 1e-6
 time_index_1 = np.linspace(0., T * dt, T + 1)
 time_index_2 = np.linspace(epsilon, T * dt - epsilon, 1000)
 
-f = interp1d(time_index_1, np.sin(time_index_1), kind='cubic')
 trajectory = CubicSplineTrajectory(T, 1, dt)
 for i, t in enumerate(time_index_1):
     trajectory.configuration(i)[:] = np.sin(t)
