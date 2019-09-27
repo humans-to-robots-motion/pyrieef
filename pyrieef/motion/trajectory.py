@@ -473,20 +473,17 @@ class CubicSplineTrajectory(ContinuousTrajectory):
         self._dt = float(dt)
         self._f = []
         self._epsilon = 1e-6
-
-    def time_index(self):
+    
+    def time_indices(self):
         return np.linspace(0., self._T * self._dt, self._T + 1)
 
     def initialize_spline(self):
-        time = self.time_index()
+        time = self.time_indices()
         configurations = np.array(self.list_configurations())
         self._f = []
         for d in range(self._n):
             self._f.append(interp1d(
                 time, configurations[:, d], kind='cubic'))
-
-    def time_indices(self):
-        return np.linspace(0., self._T * self._dt, self._T + 1)
 
     def __call__(self, t):
         return self.config_at_time(t)

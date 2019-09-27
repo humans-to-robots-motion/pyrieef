@@ -225,7 +225,7 @@ def test_spline_trajectory():
     trajectory_2 = CubicSplineTrajectory(T, n, dt)
     trajectory_2.set(trajectory_1.x())
     trajectory_2.initialize_spline()
-    time = trajectory_2.time_index()
+    time = trajectory_2.time_indices()
     for i, t in enumerate(time):
         q_1 = trajectory_2.config_at_time(t)
         q_2 = trajectory_1.configuration(i)
