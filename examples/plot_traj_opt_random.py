@@ -31,9 +31,9 @@ from pyrieef.graph.shortest_path import *
 from pyrieef.motion.trajectory import *
 from pyrieef.utils.collision_checking import *
 
-DRAW_MODE = "matplotlib"  # None, pyglet2d, pyglet3d or matplotlib
+DRAW_MODE = "pyglet2d"  # None, pyglet2d, pyglet3d or matplotlib
 VERBOSE = True
-BOXES = False
+BOXES = True
 demonstrations.TRAJ_LENGTH = 20
 
 
@@ -47,7 +47,6 @@ def optimize_path(objective, workspace, path):
         objective.viewer.workspace_id += 1
         objective.viewer.image_id = 0
         objective.viewer.draw_ws_obstacles()
-
     algorithms.newton_optimize_trajectory(
         objective, path, verbose=VERBOSE, maxiter=20)
     return path
@@ -87,7 +86,7 @@ motion_objective = MotionOptimization2DCostMap(
 objective = TrajectoryOptimizationViewer(
     motion_objective,
     draw=DRAW_MODE is not None,
-    draw_gradient=False,
+    draw_gradient=True,
     use_3d=DRAW_MODE == "pyglet3d",
     use_gl=DRAW_MODE == "pyglet2d")
 
