@@ -506,8 +506,8 @@ class SoftMax(DifferentiableMap):
         return self._n
 
     def forward(self, x):
-        exps = np.exp(self._gamma * x)
-        return exps / np.sum(exps)
+        z = np.exp(self._gamma * x)
+        return z / np.sum(z)
 
     def jacobian(self, q):
         s = self.forward(q)
@@ -527,11 +527,16 @@ class LogSumExp(SoftMax):
         return 1
 
     def forward(self, x):
-        partition = np.sum(np.exp(self._gamma * x))
-        return np.log(partition)
+        z = np.exp(self._gamma * x)
+        return np.log(np.sum(z))
 
-    def jacobian(self, q):
-        return SoftMax.forward(self, q)
+    def jacobian(self, x):
+        return SoftMax.forward(self, x)
+
+    def hessian(self, x):
+        z = np.exp(self._gamma * x)
+        p_inv = 1 / np.sum(z)
+        return p_inv * np.diag(z) - (p_inv ** 2) * np.outer(z, z)
 
 
 def finite_difference_jacobian(f, q):

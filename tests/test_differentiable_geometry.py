@@ -282,6 +282,9 @@ def test_softmax():
     print("Check LogSumExp (J implementation) : ")
     assert check_jacobian_against_finite_difference(f)
 
+    print("Check LogSumExp (H implementation) : ")
+    assert check_hessian_against_finite_difference(f)
+
 
 if __name__ == "__main__":
     # test_finite_difference()
