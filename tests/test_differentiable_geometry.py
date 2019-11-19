@@ -277,7 +277,20 @@ def test_softmax():
     print("Check SoftMax (J implementation) : ")
     assert check_jacobian_against_finite_difference(f)
 
+    f = SoftMax(dim, 10)
+
+    print("Check SoftMax (J implementation) : ")
+    assert check_jacobian_against_finite_difference(f)
+
     f = LogSumExp(dim, 1)
+
+    print("Check LogSumExp (J implementation) : ")
+    assert check_jacobian_against_finite_difference(f)
+
+    print("Check LogSumExp (H implementation) : ")
+    assert check_hessian_against_finite_difference(f)
+
+    f = LogSumExp(dim, 10)
 
     print("Check LogSumExp (J implementation) : ")
     assert check_jacobian_against_finite_difference(f)
