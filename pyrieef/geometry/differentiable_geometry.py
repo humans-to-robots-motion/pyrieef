@@ -490,26 +490,48 @@ class ExpTestFunction(DifferentiableMap):
 
 
 class SoftMax(DifferentiableMap):
-    """ Soft max 
+    """ Softmax 
+
             f(x) = exp(x_i) / sum_j exp(x_j)
     """
 
-    def __init__(self, n, i, gamma):
+    def __init__(self, n, gamma):
         self._n = n
-        self._i = i
         self._gamma = gamma
 
     def output_dimension(self):
-        return 1
+        return self._n
 
     def input_dimension(self):
         return self._n
 
     def forward(self, x):
-        partition = 0.
-        for i in range(x):
-            partition += np.exp(self._gamma * x[i])
-        return np.exp(self._gamma * x[self._i]) / partition
+        exps = np.exp(self._gamma * x)
+        return exps / np.sum(exps)
+
+    def jacobian(self, q):
+        s = self.forward(q)
+        return np.diag(s) - np.outer(s, s)
+
+
+class LogSumExp(SoftMax):
+    """ Log of softmax (smooth max)
+
+            f(x) = log[ sum_j exp(x_j) ]
+    """
+
+    def __init__(self, n, gamma):
+        SoftMax.__init__(self, n, gamma)
+
+    def output_dimension(self):
+        return 1
+
+    def forward(self, x):
+        partition = np.sum(np.exp(self._gamma * x))
+        return np.log(partition)
+
+    def jacobian(self, q):
+        return SoftMax.forward(self, q)
 
 
 def finite_difference_jacobian(f, q):

@@ -268,15 +268,31 @@ def test_product():
     assert check_hessian_against_finite_difference(f)
 
 
+def test_softmax():
+
+    dim = 3
+
+    f = SoftMax(dim, 1)
+
+    print("Check SoftMax (J implementation) : ")
+    assert check_jacobian_against_finite_difference(f)
+
+    f = LogSumExp(dim, 1)
+
+    print("Check LogSumExp (J implementation) : ")
+    assert check_jacobian_against_finite_difference(f)
+
+
 if __name__ == "__main__":
-    test_finite_difference()
-    test_zero()
-    test_square_norm()
-    test_affine()
-    test_scale()
-    test_sum_of_terms()
-    test_quadric()
-    test_composition()
-    test_pullback()
-    test_rangesubspace()
-    test_product()
+    # test_finite_difference()
+    # test_zero()
+    # test_square_norm()
+    # test_affine()
+    # test_scale()
+    # test_sum_of_terms()
+    # test_quadric()
+    # test_composition()
+    # test_pullback()
+    # test_rangesubspace()
+    # test_product()
+    test_softmax()
