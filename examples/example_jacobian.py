@@ -1,7 +1,6 @@
-
 #!/usr/bin/env python
 
-# Copyright (c) 2018, University of Stuttgart
+# Copyright (c) 2019, University of Stuttgart
 # All rights reserved.
 #
 # Permission to use, copy, modify, and distribute this software for any purpose
@@ -25,7 +24,7 @@ import time
 
 # connect to pybullet
 # new direct client, GUI for graphic
-p = bc.BulletClient(connection_mode=pybullet.GUI)
+p = bc.BulletClient(connection_mode=pybullet.DIRECT)
 
 # load robot
 robot = p.loadURDF("../data/r2_robot.urdf")
@@ -50,8 +49,4 @@ t = time.time() - t_0
 
 print("pos jacobian:")
 print(np.array(J[0]))
-
 print("Done. ({} sec., {:0.0} Hz)".format(t, len(configurations) / t))
-for i in range(10000):
-    p.stepSimulation()
-    time.sleep(1. / 240.)
