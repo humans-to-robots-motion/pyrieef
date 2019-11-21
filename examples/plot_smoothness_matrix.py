@@ -25,7 +25,7 @@ dim = 1
 trajectory = linear_interpolation_trajectory(
     q_init=np.zeros(dim),
     q_goal=np.ones(dim),
-    T=20
+    T=10
 )
 objective = MotionOptimization2DCostMap(
     T=trajectory.T(),
@@ -39,15 +39,18 @@ objective.create_objective()
 
 H1 = objective.objective.hessian(trajectory.active_segment())
 np.set_printoptions(suppress=True, linewidth=200, precision=0,
-                    formatter={'float_kind': '{:8.0f}'.format})
-print(H1[dim * 10:, dim * 10:])
+                    formatter={'float_kind': '{:2.0f}'.format})
+print(H1.shape)
+print(H1/200000)
 
-H2 = objective.create_smoothness_metric()
+H2 = objective.create_smoothness_metric() / 10000
+# H2 = np.loadtxt("tmp.txt")
 np.set_printoptions(suppress=True, linewidth=200, precision=0,
-                    formatter={'float_kind': '{:8.0f}'.format})
+                    formatter={'float_kind': '{:2.0f}'.format})
 
 
-A_inv = np.linalg.inv(H2)
+print(H1)
+A_inv = np.linalg.inv(H1)
 print(np.max(A_inv))
 A_inv /= np.max(A_inv)
 plt.plot(A_inv)
