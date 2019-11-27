@@ -299,6 +299,32 @@ def test_softmax():
     assert check_hessian_against_finite_difference(f)
 
 
+def test_activations():
+
+    f = Sigmoid(1)
+
+    print("Check Sigmoid (J implementation) : ")
+    assert check_jacobian_against_finite_difference(f)
+
+    print("Check Sigmoid (H implementation) : ")
+    assert check_hessian_against_finite_difference(f)
+
+    f = Sigmoid(10)
+
+    print("Check Sigmoid (J implementation) : ")
+    assert check_jacobian_against_finite_difference(f)
+
+    f = Tanh(1)
+
+    print("Check Tanh (J implementation) : ")
+    assert check_jacobian_against_finite_difference(f)
+
+    f = Tanh(10)
+
+    print("Check Tanh (J implementation) : ")
+    assert check_jacobian_against_finite_difference(f)
+
+
 if __name__ == "__main__":
     # test_finite_difference()
     # test_zero()
@@ -311,4 +337,5 @@ if __name__ == "__main__":
     # test_pullback()
     # test_rangesubspace()
     # test_product()
-    test_softmax()
+    # test_softmax()
+    test_activations()

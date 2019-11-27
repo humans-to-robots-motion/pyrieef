@@ -540,6 +540,78 @@ class LogSumExp(SoftMax):
         return self._gamma ** 2 * M
 
 
+class Sigmoid(DifferentiableMap):
+    """ 
+        f(x) = 1 / (1 + e^-x)
+    """
+
+    def __init__(self, n):
+        self._n = n
+
+    def input_dimension(self):
+        return self._n
+
+    def output_dimension(self):
+        return self._n
+
+    def forward(self, x):
+        y = np.zeros(self._n)
+        for i in range(self._n):
+            if x[i] > 0:
+                y[i] = 1. / (1. + np.exp(-x[i]))
+            else:
+                expx = np.exp(x)
+                y[i] = expx / (1. + expx)
+        return y
+
+    def jacobian(self, x):
+        J = np.matrix(np.zeros((self._n, self._n)))
+        s = self.forward(x)
+        for i in range(self._n):
+            J[i, i] = s[i] * (1 - s[i])
+        return J
+
+    def hessian(self, x):
+        assert self.output_dimension() == 1
+        H = np.matrix(np.zeros((self._n, self._n)))
+        s = self.forward(x)[0]
+        H[0, 0] = s * (1 - s) * (1 - 2 * s)
+        return H
+
+
+class Tanh(DifferentiableMap):
+    """ 
+        f(x) = (1 - e^-2x) / (1 + e^-2x)
+    """
+
+    def __init__(self, n):
+        self._n = n
+
+    def input_dimension(self):
+        return self._n
+
+    def output_dimension(self):
+        return self._n
+
+    def forward(self, x):
+        y = np.zeros(self._n)
+        for i in range(self._n):
+            exp2x = np.exp(-2. * x[i])
+            y[i] = (1. - exp2x) / (1. + exp2x)
+        return y
+
+    def jacobian(self, x):
+        J = np.matrix(np.zeros((self._n, self._n)))
+        tanh = self.forward(x)
+        for i in range(self._n):
+            J[i, i] = 1 - tanh[i] ** 2
+        return J
+
+    def hessian(self, x):
+        """ TODO """
+        assert self.output_dimension() == 1
+
+
 def finite_difference_jacobian(f, q):
     """ Takes an object f that has a forward method returning
     a numpy array when querried. """
