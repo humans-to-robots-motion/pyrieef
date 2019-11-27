@@ -27,9 +27,9 @@ import pyrieef.rendering.workspace_renderer as render
 from utils import timer
 import time
 
-show_result = False
+show_result = True
 radius = .1
-nb_points = 24
+nb_points = 100
 average_cost = False
 
 workspace = Workspace()
@@ -56,9 +56,11 @@ for i in range(100):
     # path = converter.shortest_path(predecessors, s[0], s[1], t[0], t[1])
     # path = converter.dijkstra(graph, s[0], s[1], t[0], t[1])
     try:
+        print("planning...")
         path = converter.dijkstra_on_map(costmap, s[0], s[1], t[0], t[1])
     except:
         continue
+    print("took t : {} sec.".format(time.time() - time_0))
 
     if show_result:
         trajectory = [None] * len(path)
@@ -71,5 +73,5 @@ for i in range(100):
         viewer.draw_ws_point(s_w)
         viewer.draw_ws_point(t_w)
         viewer.show_once()
-print("took t : {} sec.".format(time.time() - time_0))
+
 print(path)
