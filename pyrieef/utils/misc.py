@@ -25,6 +25,13 @@ import math
 import operator
 
 
+def row_major(i, dim):
+    """
+    Returns coordinates in a matrix with row major indexing
+    """
+    return int(i % dim), int(math.floor(i / dim))
+
+
 def dict_to_object(d):
     """
     Converts a dictionary to an object

@@ -490,7 +490,7 @@ class ExpTestFunction(DifferentiableMap):
 
 
 class SoftMax(DifferentiableMap):
-    """ Softmax 
+    """ Softmax
 
             f(x) = exp(x_i) / sum_j exp(x_j)
     """
@@ -541,7 +541,7 @@ class LogSumExp(SoftMax):
 
 
 class Sigmoid(DifferentiableMap):
-    """ 
+    """
         f(x) = 1 / (1 + e^-x)
     """
 
@@ -580,7 +580,7 @@ class Sigmoid(DifferentiableMap):
 
 
 class Tanh(DifferentiableMap):
-    """ 
+    """
         f(x) = (1 - e^-2x) / (1 + e^-2x)
     """
 
