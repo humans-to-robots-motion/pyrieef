@@ -517,7 +517,10 @@ class SoftMax(DifferentiableMap):
 class LogSumExp(SoftMax):
     """ Log of softmax (smooth max)
 
-            f(x) = log[ sum_j exp(x_j) ]
+            f(x) = (1 / gamma) * log[ sum_j exp(gamma * x_j) ]
+
+        A normalized version can be defined when all the monoids
+        are positive f(x) =  log( sum(z) - (1-n))
     """
 
     def __init__(self, n, gamma):
@@ -528,16 +531,16 @@ class LogSumExp(SoftMax):
 
     def forward(self, x):
         z = np.exp(self._gamma * x)
-        return np.log(np.sum(z))
+        return (1. / self._gamma) * np.log(np.sum(z))
 
     def jacobian(self, x):
-        return self._gamma * SoftMax.forward(self, x)
+        return SoftMax.forward(self, x)
 
     def hessian(self, x):
         z = np.exp(self._gamma * x)
         p_inv = 1 / np.sum(z)
         M = p_inv * np.diag(z) - (p_inv ** 2) * np.outer(z, z)
-        return self._gamma ** 2 * M
+        return self._gamma * M
 
 
 class Sigmoid(DifferentiableMap):
