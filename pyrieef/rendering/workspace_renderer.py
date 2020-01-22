@@ -111,9 +111,10 @@ class WorkspaceDrawer(WorkspaceRender):
             self._fig = plt.figure(figsize=self.size)
         if self._ax is not None:
             self._ax.clear()
-        self._axes = self._fig.add_subplot(rows, cols, 1)
+        self._axes = self._fig.subplots(nrows=rows, ncols=cols)
+        print(type(self._axes))
         if rows > 1 or cols > 1:
-            for ax in self._axes.flatten():
+            for ax in self._axes.flat:
                 ax.axis('equal')
                 ax.axis(self._workspace.box.box_extent())
             self.set_drawing_axis(0)

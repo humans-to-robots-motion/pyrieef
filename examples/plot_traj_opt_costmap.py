@@ -74,17 +74,17 @@ def plot_costmaps():
     extent = workspace.box.box_extent()
     sdf = SignedDistanceWorkspaceMap(workspace)
 
-    viewer = WorkspaceDrawer(workspace, wait_for_keyboard=True, 
-        rows=1, cols=2, scale=1.)
+    viewer = WorkspaceDrawer(workspace, wait_for_keyboard=True,
+                             rows=1, cols=2, scale=1.)
 
     viewer.set_drawing_axis(0)
     viewer.set_workspace(workspace)
-    viewer.draw_ws_img(sdf(grid_dense))
+    viewer.draw_ws_img(sdf(grid_dense).T)
     viewer.draw_ws_obstacles()
 
     viewer.set_drawing_axis(1)
     viewer.set_workspace(workspace)
-    viewer.draw_ws_img(sdf(grid_sparse))
+    viewer.draw_ws_img(sdf(grid_sparse).T)
     viewer.draw_ws_obstacles()
 
     viewer.show_once()
@@ -94,5 +94,5 @@ if __name__ == "__main__":
 
     while True:
         plot_costmaps()
-        # if raw_input("Press [q] to quit or enter to continue : ") == "q":
-        #     break
+        if input("Press [q] to quit or enter to continue : ") == "q":
+            break
