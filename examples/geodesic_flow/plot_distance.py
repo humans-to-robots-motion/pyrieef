@@ -32,54 +32,78 @@ import matplotlib.pyplot as plt
 
 
 NB_POINTS = 20
+VERBOSE = False
+ROWS = 3
+COLS = 3
 
 
-def heat_diffusion(workspace, source):
-    # sdf = SignedDistanceWorkspaceMap(workspace)
+def heat_diffusion(workspace, source, iterations):
     extent = workspace.box.extent()
     dx = (extent.x_max - extent.x_min) / NB_POINTS
     dy = (extent.y_max - extent.y_min) / NB_POINTS
-    X, Y = workspace.box.meshgrid(NB_POINTS)
+    occupancy = occupancy_map(NB_POINTS, workspace).T
+    grid = PixelMap(dx, extent)
+    print("Max t size : ", (dx ** 2))
     assert dx == dy
     dim = NB_POINTS ** 2
     M = np.zeros((dim, dim))
     I = np.eye(dim)
-    k = 1000.
-    h = 1. / NB_POINTS
+    h = dx
+    t = .0003  # (dx ** 2) (ideal)
     d = 1. / (h ** 2)
-    # c = k * d
-    # a = 4. * c
-    c = -k / (2. * (h ** 2))
-    a = 2. * k / (h ** 2)
+
+    # Euler
+    c = t * d
+    a = 4. * c
+
+    #  Crank-Nicholson
+    # c = -t / (2. * (h ** 2))
+    # a = 2. * t / (h ** 2)
+    if VERBOSE:
+        print("a : ", a)
+        print("c : ", c)
+    print("fill matrix...")
+    # U(i,j,m+1) = U(i,j,m) + k*Discrete-2D-Laplacian(U)(i,j,m)
+    #                  k
+    #            = (1 - 4*---) * U(i,j,m) +
+    #                 h^2
+    #           k
+    #          ---*(U(i-1,j,m) + U(i+1,j,m) + U(i,j-1,m) + U(i,j+1,m))
+    #          h^2
     # we use a row major representation of the matrix
     for p, q in itertools.product(range(dim), range(dim)):
         i0, j0 = row_major(p, NB_POINTS)
         i1, j1 = row_major(q, NB_POINTS)
         if p == q:
             M[p, q] = a
-        elif (i0 == j0 - 1 or i0 + 1 == j0 or i0 == j0 - 1 or i0 == j0 + 1 or
-              i1 == j1 - 1 or i1 + 1 == j1 or i1 == j1 - 1 or i1 == j1 + 1):
-            # p0 = np.array([X[i0, j0], Y[i0, j0]])
-            # p1 = np.array([X[i1, j1], Y[i1, j1]])
+
+        elif (
+                i0 == i1 - 1) and (j0 == j1) or (
+                i0 == i1 + 1) and (j0 == j1) or (
+                i0 == i1) and (j0 == j1 - 1) or (
+                i0 == i1) and (j0 == j1 + 1):
             M[p, q] = c
+        if occupancy[i0, j0] == 1. or occupancy[i1, j1] == 1.:
+            M[p, q] = 0.
+    if VERBOSE:
+        with np.printoptions(
+                formatter={'float': '{: 0.1f}'.format},
+                linewidth=200):
+            print("M : \n", M)
     u_0 = np.zeros((dim))
-    u_0[source[0] + source[1] * NB_POINTS] = 1.
-    print(u_0)
+    source_grid = grid.world_to_grid(source)
+    u_0[source_grid[0] + source_grid[1] * NB_POINTS] = 1.
+    if VERBOSE:
+        print(" - I.shape : ", I.shape)
+        print(" - M.shape : ", M.shape)
+        print(" - u_0.shape : ", u_0.shape)
     print("solve...")
-    print(" - I.shape : ", I.shape)
-    print(" - M.shape : ", M.shape)
-    print(" - u_0.shape : ", u_0.shape)
     costs = []
     u_t = u_0
-    for i in range(1):
-        print("solve : ", i)
-        # u_t = (I + M).dot(u_t)
-        u_t = np.linalg.solve(I + M, u_t)
-        print(u_t)
+    for i in range(iterations):
+        u_t = np.linalg.solve(I - M, u_t)
         costs.append(np.reshape(u_t, (-1, NB_POINTS)).copy())
     print("solved!")
-    print(" - u_t.shape : ", u_t.shape)
-    # print(" - cost.shape : ", cost.shape)
     return costs
 
 
@@ -93,36 +117,22 @@ circles.append(AnalyticCircle(origin=[.0, .25], radius=0.05))
 
 workspace = Workspace()
 workspace.obstacles = [circle.object() for circle in circles]
-renderer = WorkspaceDrawer(workspace)
+renderer = WorkspaceDrawer(workspace, rows=ROWS, cols=COLS)
 
-x_goal = np.array([0.4, 0.4])
+x_source = np.array([0.2, 0.15])
 nx, ny = (5, 4)
 x = np.linspace(-.2, -.05, nx)
 y = np.linspace(-.5, -.1, ny)
 
 analytical_circles = AnalyticMultiDiffeo(circles)
 
-U = heat_diffusion(workspace, [7, 7])
-
-sclar_color = 0.
-for i, j in itertools.product(list(range(nx)), list(range(ny))):
-    sclar_color += 1. / (nx * ny)
-    x_init = np.array([x[i], y[j]])
-    print("x_init : ", x_init)
-
-    # Does not have an inverse.
-    # [line, line_inter] = InterpolationGeodescis(
-    #     analytical_circles, x_init, x_goal)
-
-    # line = NaturalGradientGeodescis(analytical_circles, x_init, x_goal)
-    # renderer.draw_ws_line(line, color=cmap(sclar_color))
-    # renderer.draw_ws_point([x_init[0], x_init[1]], color='r', shape='o')
-sdf = SignedDistanceWorkspaceMap(workspace)
-for i in range(1):
+# ------------------------------------------------------------------------------
+iterations = ROWS * COLS
+U = heat_diffusion(workspace, x_source, iterations)
+for i in range(iterations):
     renderer.set_drawing_axis(i)
     renderer.draw_ws_obstacles()
-    renderer.draw_ws_point([x_goal[0], x_goal[1]], color='r', shape='o')
+    renderer.draw_ws_point([x_source[0], x_source[1]], color='r', shape='o')
     renderer.background_matrix_eval = False
-    # renderer.draw_ws_background(sdf, nb_points=200)
-    renderer.draw_ws_img(U[i])
+    renderer.draw_ws_img(U[i], interpolate="bicubic")
 renderer.show()
