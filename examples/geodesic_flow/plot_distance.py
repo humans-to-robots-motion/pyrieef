@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Copyright (c) 2018, University of Stuttgart
+# Copyright (c) 2019, University of Stuttgart
 # All rights reserved.
 #
 # Permission to use, copy, modify, and distribute this software for any purpose
@@ -15,16 +15,13 @@
 # OTHER TORTIOUS ACTION,   ARISING OUT OF OR IN    CONNECTION WITH THE USE   OR
 # PERFORMANCE OF THIS SOFTWARE.
 #
-#                                        Jim Mainprice on Sunday June 13 2018
+#                                         Jim Mainprice on Wed January 22 2019
 
 from demos_common_imports import *
 import numpy as np
 from pyrieef.geometry.workspace import *
-from pyrieef.geometry.charge_simulation import *
 from pyrieef.geometry.pixel_map import *
 from pyrieef.geometry.geodesics import *
-from pyrieef.geometry.diffeomorphisms import *
-from pyrieef.geometry.utils import *
 from pyrieef.rendering.workspace_renderer import WorkspaceDrawer
 from pyrieef.utils.misc import *
 import itertools
@@ -106,25 +103,16 @@ def heat_diffusion(workspace, source, iterations):
     print("solved!")
     return costs
 
-
-cmap = plt.get_cmap('viridis')
-
 circles = []
-circles.append(AnalyticCircle(origin=[.1, .0], radius=0.1))
-circles.append(AnalyticCircle(origin=[.1, .25], radius=0.05))
-circles.append(AnalyticCircle(origin=[.2, .25], radius=0.05))
-circles.append(AnalyticCircle(origin=[.0, .25], radius=0.05))
+circles.append(Circle(origin=[.1, .0], radius=0.1))
+circles.append(Circle(origin=[.1, .25], radius=0.05))
+circles.append(Circle(origin=[.2, .25], radius=0.05))
+circles.append(Circle(origin=[.0, .25], radius=0.05))
 
 workspace = Workspace()
-workspace.obstacles = [circle.object() for circle in circles]
+workspace.obstacles = circles
 renderer = WorkspaceDrawer(workspace, rows=ROWS, cols=COLS)
-
 x_source = np.array([0.2, 0.15])
-nx, ny = (5, 4)
-x = np.linspace(-.2, -.05, nx)
-y = np.linspace(-.5, -.1, ny)
-
-analytical_circles = AnalyticMultiDiffeo(circles)
 
 # ------------------------------------------------------------------------------
 iterations = ROWS * COLS
@@ -134,5 +122,6 @@ for i in range(iterations):
     renderer.draw_ws_obstacles()
     renderer.draw_ws_point([x_source[0], x_source[1]], color='r', shape='o')
     renderer.background_matrix_eval = False
-    renderer.draw_ws_img(U[i], interpolate="bicubic")
+    renderer.draw_ws_img(U[i], interpolate="bicubic",
+                         color_style=plt.cm.hsv)
 renderer.show()

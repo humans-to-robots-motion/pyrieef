@@ -157,13 +157,12 @@ class WorkspaceDrawer(WorkspaceRender):
             Z = two_dimension_function_evaluation(X, Y, phi).T
         self.draw_ws_img(Z, "bilinear")
 
-    def draw_ws_img(self, Z, interpolate="nearest"):
+    def draw_ws_img(self, Z, interpolate="nearest", color_style=plt.cm.magma):
         """
         Examples of coloring are : [viridis, hot, bone, magma]
             see page :
             https://matplotlib.org/examples/color/colormaps_reference.html
         """
-        color_style = plt.cm.magma
         im = self._ax.imshow(
             Z.T,
             extent=self._workspace.box.box_extent(),
