@@ -55,24 +55,21 @@ def heat_diffusion(workspace, source, iterations):
     dim = NB_POINTS ** 2
     M = np.zeros((dim, dim))
     h = dx
-    t = .0003  # (dx ** 2) (ideal)
+    t = .0002  # (dx ** 2) (ideal)
     d = 1. / (h ** 2)
 
-    # Euler
-    c = t * d
-    a = 4. * c
+    # Crank-Nicholson
+    a = 2. * t * d
+    c = - t * d
 
-    #  Crank-Nicholson
-    # c = -t / (2. * (h ** 2))
-    # a = 2. * t / (h ** 2)
     if VERBOSE:
         print("a : ", a)
         print("c : ", c)
     print("fill matrix...")
     # U(i,j,m+1) = U(i,j,m) + k*Discrete-2D-Laplacian(U)(i,j,m)
-    #                  k
+    #                      k
     #            = (1 - 4*---) * U(i,j,m) +
-    #                 h^2
+    #                     h^2
     #           k
     #          ---*(U(i-1,j,m) + U(i+1,j,m) + U(i,j-1,m) + U(i,j+1,m))
     #          h^2
@@ -105,9 +102,12 @@ def heat_diffusion(workspace, source, iterations):
     print("solve...")
     costs = []
     u_t = u_0
-    for i in range(iterations):
-        u_t = np.linalg.solve(np.eye(dim) - M, u_t)
-        costs.append(np.reshape(u_t, (-1, NB_POINTS)).copy())
+    for i in range(iterations * 10):
+        u_t = (np.eye(dim) - M).dot(u_t)
+        u_t = np.linalg.solve(np.eye(dim) + M, u_t)
+        # print(max(u_t))
+        if i % 10 == 0:
+            costs.append(np.reshape(u_t, (-1, NB_POINTS)).copy())
     print("solved!")
     return costs
 
