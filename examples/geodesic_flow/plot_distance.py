@@ -35,6 +35,16 @@ COLS = 3
 
 
 def heat_diffusion(workspace, source, iterations):
+    """
+    Diffuses heat from a source point on a 2D grid defined
+    over a workspace populated by obstacles.
+
+        The function was implemented by following
+        https://people.eecs.berkeley.edu/~demmel/\
+            cs267/lecture17/lecture17.html#link_1.5
+
+    TODO test it agains the heat kernel
+    """
     extent = workspace.box.extent()
     dx = (extent.x_max - extent.x_min) / NB_POINTS
     dy = (extent.y_max - extent.y_min) / NB_POINTS
@@ -44,7 +54,6 @@ def heat_diffusion(workspace, source, iterations):
     assert dx == dy
     dim = NB_POINTS ** 2
     M = np.zeros((dim, dim))
-    I = np.eye(dim)
     h = dx
     t = .0003  # (dx ** 2) (ideal)
     d = 1. / (h ** 2)
@@ -73,7 +82,6 @@ def heat_diffusion(workspace, source, iterations):
         i1, j1 = row_major(q, NB_POINTS)
         if p == q:
             M[p, q] = a
-
         elif (
                 i0 == i1 - 1) and (j0 == j1) or (
                 i0 == i1 + 1) and (j0 == j1) or (
@@ -98,10 +106,11 @@ def heat_diffusion(workspace, source, iterations):
     costs = []
     u_t = u_0
     for i in range(iterations):
-        u_t = np.linalg.solve(I - M, u_t)
+        u_t = np.linalg.solve(np.eye(dim) - M, u_t)
         costs.append(np.reshape(u_t, (-1, NB_POINTS)).copy())
     print("solved!")
     return costs
+
 
 circles = []
 circles.append(Circle(origin=[.1, .0], radius=0.1))
