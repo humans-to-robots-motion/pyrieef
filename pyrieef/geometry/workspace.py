@@ -718,7 +718,7 @@ def hexagon(scale=1., translate=[0., 0.]):
 class Complex(Shape):
 
     def __init__(self, origin=np.array([0., 0.]), shapes=None):
-        """" 
+        """"
             FOR NOW ASSUMES THAT THE COMPLEX IS NON INTERSECTING
         """
         Shape.__init__(self)

@@ -25,48 +25,67 @@ import itertools
 
 NB_POINTS = 20
 VERBOSE = False
+ALGORITHM = "forward"
+# ALGORITHM = "crank-nicholson"
+TIME_FACTOR = 10
 
 
-def heat_diffusion(workspace, source, iterations):
+def forward_euler_2d(dt, h, source_grid, iterations, occupancy):
     """
-    Diffuses heat from a source point on a 2D grid defined
-    over a workspace populated by obstacles.
+    Forward Euler Integration of the heat equation
 
-        The function was implemented by following
-        https://people.eecs.berkeley.edu/~demmel/\
-            cs267/lecture17/lecture17.html#link_1.5
-
-    TODO test it agains the heat kernel
+        h : space discretization
+        t : time discretization
     """
-    extent = workspace.box.extent()
-    dx = (extent.x_max - extent.x_min) / NB_POINTS
-    dy = (extent.y_max - extent.y_min) / NB_POINTS
-    occupancy = occupancy_map(NB_POINTS, workspace).T
-    grid = PixelMap(dx, extent)
-    print("Max t size : ", (dx ** 2))
-    assert dx == dy
+    U = []
+    Zero = np.zeros((NB_POINTS, NB_POINTS))
+    u_t = Zero.copy()
+    u_0 = Zero.copy()
+    d = 1. / (h ** 2)
+    u_0[source_grid[0], source_grid[1]] = 1.
+    u_0 = np.where(occupancy.T > 0, Zero, u_0)
+    for i in range(iterations * TIME_FACTOR):
+        # Propagate with forward-difference in time
+        # central-difference in space
+        u_t[1:-1, 1:-1] = u_0[1:-1, 1:-1] + dt * (
+            (u_0[2:, 1:-1] - 2 * u_0[1:-1, 1:-1] + u_0[:-2, 1:-1]) * d +
+            (u_0[1:-1, 2:] - 2 * u_0[1:-1, 1:-1] + u_0[1:-1, :-2]) * d)
+        u_t = np.where(occupancy.T > 0, Zero, u_t)
+        u_0 = u_t.copy()
+        if i % TIME_FACTOR == 0:
+            print(u_t.max())
+            U.append(u_t.copy())
+    return U
+
+
+def crank_nicholson_2d(dt, h, source_grid, iterations, occupancy):
+    """
+    Crank-Nicholson algorithm with matrix inversion
+    we use a row major representation of the matrix
+
+        h : space discretization
+        t : time discretization
+
+    U(i,j,m+1) = U(i,j,m) + k*Discrete-2D-Laplacian(U)(i,j,m)
+                          k
+               = (1 - 4*---) * U(i,j,m) +
+                         h^2
+                   k
+                  ---*(U(i-1,j,m) + U(i+1,j,m) + U(i,j-1,m) + U(i,j+1,m))
+                  h^2
+    """
+    d = 1. / (h ** 2)
     dim = NB_POINTS ** 2
     M = np.zeros((dim, dim))
-    h = dx
-    t = .0002  # (dx ** 2) (ideal)
-    d = 1. / (h ** 2)
 
-    # Crank-Nicholson
-    a = 2. * t * d
-    c = - t * d
+    a = 2. * dt * d
+    c = - dt * d
 
     if VERBOSE:
         print("a : ", a)
         print("c : ", c)
     print("fill matrix...")
-    # U(i,j,m+1) = U(i,j,m) + k*Discrete-2D-Laplacian(U)(i,j,m)
-    #                      k
-    #            = (1 - 4*---) * U(i,j,m) +
-    #                     h^2
-    #           k
-    #          ---*(U(i-1,j,m) + U(i+1,j,m) + U(i,j-1,m) + U(i,j+1,m))
-    #          h^2
-    # we use a row major representation of the matrix
+
     for p, q in itertools.product(range(dim), range(dim)):
         i0, j0 = row_major(p, NB_POINTS)
         i1, j1 = row_major(q, NB_POINTS)
@@ -86,7 +105,6 @@ def heat_diffusion(workspace, source, iterations):
                 linewidth=200):
             print("M : \n", M)
     u_0 = np.zeros((dim))
-    source_grid = grid.world_to_grid(source)
     u_0[source_grid[0] + source_grid[1] * NB_POINTS] = 1.
     if VERBOSE:
         print(" - I.shape : ", I.shape)
@@ -110,3 +128,31 @@ def heat_diffusion(workspace, source, iterations):
             costs.append(np.reshape(u_t, (-1, NB_POINTS)).copy())
     print("solved!")
     return costs
+
+
+def heat_diffusion(workspace, source, iterations):
+    """
+    Diffuses heat from a source point on a 2D grid defined
+    over a workspace populated by obstacles.
+
+        The function was implemented by following
+        https://people.eecs.berkeley.edu/~demmel/\
+            cs267/lecture17/lecture17.html#link_1.5
+
+    TODO test it agains the heat kernel
+    """
+    extent = workspace.box.extent()
+    dx = (extent.x_max - extent.x_min) / NB_POINTS
+    dy = (extent.y_max - extent.y_min) / NB_POINTS
+    occupancy = occupancy_map(NB_POINTS, workspace).T
+    grid = PixelMap(dx, extent)
+    print("Max t size : ", (dx ** 2))
+    assert dx == dy
+    h = dx
+    t = .0002  # (dx ** 2) (ideal)
+    source_grid = grid.world_to_grid(source)
+
+    if ALGORITHM == "crank-nicholson":
+        return crank_nicholson_2d(t, h, source_grid, iterations, occupancy)
+    else:
+        return forward_euler_2d(t, h, source_grid, iterations, occupancy)
