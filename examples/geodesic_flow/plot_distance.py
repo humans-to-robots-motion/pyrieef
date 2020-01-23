@@ -19,97 +19,14 @@
 
 from demos_common_imports import *
 import numpy as np
+from pyrieef.geometry.heat_diffusion import *
 from pyrieef.geometry.workspace import *
-from pyrieef.geometry.pixel_map import *
-from pyrieef.geometry.geodesics import *
 from pyrieef.rendering.workspace_renderer import WorkspaceDrawer
-from pyrieef.utils.misc import *
-import itertools
 import matplotlib.pyplot as plt
 
 
-NB_POINTS = 20
-VERBOSE = False
 ROWS = 3
 COLS = 3
-
-
-def heat_diffusion(workspace, source, iterations):
-    """
-    Diffuses heat from a source point on a 2D grid defined
-    over a workspace populated by obstacles.
-
-        The function was implemented by following
-        https://people.eecs.berkeley.edu/~demmel/\
-            cs267/lecture17/lecture17.html#link_1.5
-
-    TODO test it agains the heat kernel
-    """
-    extent = workspace.box.extent()
-    dx = (extent.x_max - extent.x_min) / NB_POINTS
-    dy = (extent.y_max - extent.y_min) / NB_POINTS
-    occupancy = occupancy_map(NB_POINTS, workspace).T
-    grid = PixelMap(dx, extent)
-    print("Max t size : ", (dx ** 2))
-    assert dx == dy
-    dim = NB_POINTS ** 2
-    M = np.zeros((dim, dim))
-    h = dx
-    t = .0002  # (dx ** 2) (ideal)
-    d = 1. / (h ** 2)
-
-    # Crank-Nicholson
-    a = 2. * t * d
-    c = - t * d
-
-    if VERBOSE:
-        print("a : ", a)
-        print("c : ", c)
-    print("fill matrix...")
-    # U(i,j,m+1) = U(i,j,m) + k*Discrete-2D-Laplacian(U)(i,j,m)
-    #                      k
-    #            = (1 - 4*---) * U(i,j,m) +
-    #                     h^2
-    #           k
-    #          ---*(U(i-1,j,m) + U(i+1,j,m) + U(i,j-1,m) + U(i,j+1,m))
-    #          h^2
-    # we use a row major representation of the matrix
-    for p, q in itertools.product(range(dim), range(dim)):
-        i0, j0 = row_major(p, NB_POINTS)
-        i1, j1 = row_major(q, NB_POINTS)
-        if p == q:
-            M[p, q] = a
-        elif (
-                i0 == i1 - 1) and (j0 == j1) or (
-                i0 == i1 + 1) and (j0 == j1) or (
-                i0 == i1) and (j0 == j1 - 1) or (
-                i0 == i1) and (j0 == j1 + 1):
-            M[p, q] = c
-        if occupancy[i0, j0] == 1. or occupancy[i1, j1] == 1.:
-            M[p, q] = 0.
-    if VERBOSE:
-        with np.printoptions(
-                formatter={'float': '{: 0.1f}'.format},
-                linewidth=200):
-            print("M : \n", M)
-    u_0 = np.zeros((dim))
-    source_grid = grid.world_to_grid(source)
-    u_0[source_grid[0] + source_grid[1] * NB_POINTS] = 1.
-    if VERBOSE:
-        print(" - I.shape : ", I.shape)
-        print(" - M.shape : ", M.shape)
-        print(" - u_0.shape : ", u_0.shape)
-    print("solve...")
-    costs = []
-    u_t = u_0
-    for i in range(iterations * 10):
-        u_t = (np.eye(dim) - M).dot(u_t)
-        u_t = np.linalg.solve(np.eye(dim) + M, u_t)
-        # print(max(u_t))
-        if i % 10 == 0:
-            costs.append(np.reshape(u_t, (-1, NB_POINTS)).copy())
-    print("solved!")
-    return costs
 
 
 circles = []
