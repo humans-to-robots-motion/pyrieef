@@ -96,10 +96,17 @@ def heat_diffusion(workspace, source, iterations):
     costs = []
     u_t = u_0
     for i in range(iterations * 10):
+        for j in range(u_t.size):
+            i0, j0 = row_major(j, NB_POINTS)
+            if (i0 == 0 or i0 == NB_POINTS - 1 or
+                    j0 == 0 or j0 == NB_POINTS - 1):
+                u_t[j] = 0
+            elif occupancy[i0, j0] == 1.:
+                u_t[j] = 0
         u_t = (np.eye(dim) - M).dot(u_t)
         u_t = np.linalg.solve(np.eye(dim) + M, u_t)
         if i % 10 == 0:
-            print(max(u_t))
+            print(u_t.max())
             costs.append(np.reshape(u_t, (-1, NB_POINTS)).copy())
     print("solved!")
     return costs
