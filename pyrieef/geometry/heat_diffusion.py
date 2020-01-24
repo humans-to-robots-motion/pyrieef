@@ -181,7 +181,6 @@ def heat_diffusion(workspace, source, iterations):
     print(" -- h : ", h)
     print(" -- t : ", t)
     source_grid = grid.world_to_grid(source)
-
     if ALGORITHM == "crank-nicholson":
         return crank_nicholson_2d(t, h, source_grid, iterations, occupancy)
     else:
