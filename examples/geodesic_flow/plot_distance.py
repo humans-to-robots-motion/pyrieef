@@ -19,15 +19,17 @@
 
 from demos_common_imports import *
 import numpy as np
-from pyrieef.geometry.heat_diffusion import *
+import pyrieef.geometry.heat_diffusion as hd
 from pyrieef.geometry.workspace import *
 from pyrieef.rendering.workspace_renderer import WorkspaceDrawer
 import matplotlib.pyplot as plt
 
 
-ROWS = 3
-COLS = 3
+ROWS = 1
+COLS = 1
 
+hd.NB_POINTS = 101
+hd.TIME_FACTOR = 200
 
 circles = []
 circles.append(Circle(origin=[.1, .0], radius=0.1))
@@ -41,13 +43,14 @@ renderer = WorkspaceDrawer(workspace, rows=ROWS, cols=COLS)
 x_source = np.array([0.2, 0.15])
 
 # ------------------------------------------------------------------------------
-iterations = ROWS * COLS
-U = heat_diffusion(workspace, x_source, iterations)
+# iterations = ROWS * COLS
+iterations = 10
+U = hd.heat_diffusion(workspace, x_source, iterations)
 for i in range(iterations):
     renderer.set_drawing_axis(i)
     renderer.draw_ws_obstacles()
     renderer.draw_ws_point([x_source[0], x_source[1]], color='r', shape='o')
     renderer.background_matrix_eval = False
-    renderer.draw_ws_img(U[i], interpolate="bicubic",
+    renderer.draw_ws_img(U[i], interpolate="nearest",
                          color_style=plt.cm.hsv)
 renderer.show()

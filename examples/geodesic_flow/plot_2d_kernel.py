@@ -24,19 +24,23 @@ from pyrieef.rendering.workspace_renderer import WorkspaceDrawer
 import matplotlib.pyplot as plt
 
 
-ROWS = 3
-COLS = 3
-
-heat_diffusion.NB_POINTS = 21
-iterations = ROWS * COLS
+ROWS = 1
+COLS = 1
+heat_diffusion.NB_POINTS = 101
+heat_diffusion.TIME_FACTOR = 10
+heat_diffusion.ALGORITHM = "forward"
+# heat_diffusion.ALGORITHM = "crank-nicholson"
+# iterations = ROWS * COLS
+iterations = 10
 workspace = Workspace()
 source = [0, 0]
 renderer = WorkspaceDrawer(workspace, rows=ROWS, cols=COLS)
 U = heat_diffusion.heat_diffusion(workspace, source, iterations)
+heat_diffusion.compare_with_kernel(U[-1], 0.00182, workspace)
 for i in range(iterations):
     renderer.set_drawing_axis(i)
     renderer.draw_ws_obstacles()
     renderer.draw_ws_point(source, color='k', shape='o')
     renderer.background_matrix_eval = False
-    renderer.draw_ws_img(U[i], interpolate="bicubic", color_style=plt.cm.hsv)
+    renderer.draw_ws_img(U[i], interpolate="none", color_style=plt.cm.gray)
 renderer.show()

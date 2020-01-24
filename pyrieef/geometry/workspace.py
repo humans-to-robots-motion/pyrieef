@@ -840,11 +840,24 @@ class EnvBox(Box):
         extent.y_max = box_extent[3]
         return extent
 
+    def pixelmap(self, nb_points=100):
+        """
+            Create a pixelmap from EnvBox
+            TODO: check consistency wuth meshgrid
+        """
+        extent = self.extent()
+        dx = (extent.x_max - extent.x_min) / nb_points
+        dy = (extent.y_max - extent.y_min) / nb_points
+        assert dx == dy
+        return PixelMap(dx, extent)
+
     def meshgrid(self, nb_points=100):
-        """ This mesh grid definition matches the one in the PixelMap class
+        """
+        Mesh grid definition matches the one in the PixelMap class
             Note that it is only defined for squared boxes.
             simply takes as input the number of points which corresponds
-            to the number of cells for the PixelMap"""
+            to the number of cells for the PixelMap
+        """
         assert self.dim[0] == self.dim[1]
         resolution = self.dim[0] / nb_points
         extent = self.extent()

@@ -22,12 +22,32 @@ from .workspace import *
 from .pixel_map import *
 from utils.misc import *
 import itertools
+import scipy
 
 NB_POINTS = 20
 VERBOSE = False
 ALGORITHM = "forward"
 # ALGORITHM = "crank-nicholson"
 TIME_FACTOR = 10
+
+
+def kernel(t, d, dim=2):
+    return np.exp(-(d**2) / (4 * t)) / pow(4 * np.pi * t, .5 * dim)
+
+
+def compare_with_kernel(u_t, t, workspace):
+    grid = workspace.box.pixelmap()
+    u_e = np.zeros((u_t.shape))
+    for i, j in itertools.product(range(u_e.shape[0]), range(u_e.shape[1])):
+        p = grid.grid_to_world(np.array([i, j]))
+        u_e[i, j] = kernel(t, np.linalg.norm(p))
+    print(" -- diff with kernel : abs {}, max {}, min {}".format(
+        abs(u_e - u_t).max(),
+          (u_e - u_t).max(),
+          (u_e - u_t).min()))
+    print(" -- shape u_t : ", u_t.shape)
+    print(" -- shape u_e : ", u_e.shape)
+    return u_e
 
 
 def forward_euler_2d(dt, h, source_grid, iterations, occupancy):
@@ -38,22 +58,26 @@ def forward_euler_2d(dt, h, source_grid, iterations, occupancy):
         t : time discretization
     """
     U = []
+    t = 0.
+    dh2 = h ** 2
+    # dt = dh2 * dh2 / (2 * (dh2 + dh2))
     Zero = np.zeros((NB_POINTS, NB_POINTS))
     u_t = Zero.copy()
     u_0 = Zero.copy()
-    d = 1. / (h ** 2)
-    u_0[source_grid[0], source_grid[1]] = 1.
+    d = 1. / dh2
+    u_0[source_grid[0], source_grid[1]] = 1.e4
     u_0 = np.where(occupancy.T > 0, Zero, u_0)
     for i in range(iterations * TIME_FACTOR):
         # Propagate with forward-difference in time
         # central-difference in space
-        u_t[1:-1, 1:-1] = u_0[1:-1, 1:-1] + dt * (
-            (u_0[2:, 1:-1] - 2 * u_0[1:-1, 1:-1] + u_0[:-2, 1:-1]) * d +
-            (u_0[1:-1, 2:] - 2 * u_0[1:-1, 1:-1] + u_0[1:-1, :-2]) * d)
+        u_t[1:-1, 1:-1] = u_0[1:-1, 1:-1] + dt * d * (
+            (u_0[2:, 1:-1] - 2 * u_0[1:-1, 1:-1] + u_0[:-2, 1:-1]) +
+            (u_0[1:-1, 2:] - 2 * u_0[1:-1, 1:-1] + u_0[1:-1, :-2]))
         u_t = np.where(occupancy.T > 0, Zero, u_t)
         u_0 = u_t.copy()
+        t += dt
         if i % TIME_FACTOR == 0:
-            print(u_t.max())
+            print("t : {:.3E} , u_t.max() : {:.3E}".format(t, u_t.max()))
             U.append(u_t.copy())
     return U
 
@@ -150,9 +174,13 @@ def heat_diffusion(workspace, source, iterations):
     assert dx == dy
     h = dx
     t = .0002  # (dx ** 2) (ideal)
+    t = 2e-5
+    print(" -- h : ", h)
+    print(" -- t : ", t)
     source_grid = grid.world_to_grid(source)
 
     if ALGORITHM == "crank-nicholson":
         return crank_nicholson_2d(t, h, source_grid, iterations, occupancy)
     else:
-        return forward_euler_2d(t, h, source_grid, iterations, occupancy)
+        return forward_euler_2d(
+            t, h, source_grid, iterations, occupancy)
