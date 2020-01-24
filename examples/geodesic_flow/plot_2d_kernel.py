@@ -33,8 +33,7 @@ workspace = Workspace()
 source = [0, 0]
 renderer = WorkspaceDrawer(workspace, rows=ROWS, cols=COLS)
 U = heat_diffusion.heat_diffusion(workspace, source, iterations)
-U_e = heat_diffusion.compare_with_kernel(
-    U[-1], 9.020E-03, workspace)
+U_e = heat_diffusion.compare_with_kernel(U[-1], 9.020E-03, workspace)
 for i in range(2):
     renderer.set_drawing_axis(i)
     renderer.draw_ws_obstacles()

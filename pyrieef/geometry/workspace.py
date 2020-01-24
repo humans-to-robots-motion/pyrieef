@@ -840,17 +840,6 @@ class EnvBox(Box):
         extent.y_max = box_extent[3]
         return extent
 
-    def pixelmap(self, nb_points=100):
-        """
-            Create a pixelmap from EnvBox
-            TODO: check consistency wuth meshgrid
-        """
-        extent = self.extent()
-        dx = (extent.x_max - extent.x_min) / nb_points
-        dy = (extent.y_max - extent.y_min) / nb_points
-        assert dx == dy
-        return PixelMap(dx, extent)
-
     def meshgrid(self, nb_points=100):
         """
         Mesh grid definition matches the one in the PixelMap class
@@ -959,7 +948,7 @@ class Workspace:
             points += o.sampled_points()
         return points
 
-    def pixel_map(self, nb_points):
+    def pixel_map(self, nb_points=100):
         extent = self.box.extent()
         assert extent.x() == extent.y()
         resolution = extent.x() / nb_points

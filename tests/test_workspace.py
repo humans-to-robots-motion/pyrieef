@@ -258,6 +258,20 @@ def test_meshgrid():
         assert_allclose(p_meshgrid, p_world)
 
 
+def test_pixelmap():
+    nb_points = 10
+    workspace = Workspace()
+    pixel_map = workspace.pixel_map(nb_points)
+    X, Y = workspace.box.meshgrid(nb_points)
+    print("pm -- resolution : {}".format(pixel_map.resolution))
+    print("pm -- origin : {}".format(pixel_map.origin))
+    for i, j in product(list(range(nb_points)), list(range(nb_points))):
+        p_meshgrid = np.array([X[i, j], Y[i, j]])
+        p_grid = pixel_map.world_to_grid(p_meshgrid)
+        p_world = pixel_map.grid_to_world(p_grid)
+        assert_allclose(p_meshgrid, p_world)
+
+
 def test_sdf_grid():
     nb_points = 24
     workspace = sample_circle_workspaces(nb_circles=10)

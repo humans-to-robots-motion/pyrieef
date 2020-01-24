@@ -85,7 +85,7 @@ class PixelMap:
         return np.floor((x - self.origin_minus) / self.resolution).astype(int)
 
     def grid_to_world(self, p):
-        """world coorindates of the center of a grid cell"""
+        """ world coorindates of the center of a grid cell """
         return self.resolution * p.astype(float) + self.origin
 
 

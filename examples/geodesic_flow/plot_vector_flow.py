@@ -33,6 +33,7 @@ hd.NB_POINTS = 101
 hd.TIME_FACTOR = 200
 hd.TIME_STEP = 2e-5
 hd.ALGORITHM = "forward"
+hd.CONSTANT_SOURCE = True
 
 circles = []
 circles.append(Circle(origin=[.1, .0], radius=0.1))
@@ -49,7 +50,7 @@ x_source = np.array([0.2, 0.15])
 # iterations = ROWS * COLS
 iterations = 9
 u_t = hd.heat_diffusion(workspace, x_source, iterations)
-grid = workspace.box.pixelmap(101)
+grid = workspace.pixel_map(101)
 X, Y = workspace.box.meshgrid(30)
 U, V = np.zeros(X.shape), np.zeros(Y.shape)
 
@@ -70,7 +71,6 @@ for i in range(iterations):
     renderer.draw_ws_obstacles()
     renderer.draw_ws_point([x_source[0], x_source[1]], color='r', shape='o')
     renderer.background_matrix_eval = False
-    renderer.draw_ws_img(u_t[i], interpolate="none",
-                         color_style=plt.cm.hsv)
+    renderer.draw_ws_img(u_t[i], interpolate="none", color_style=plt.cm.hsv)
     renderer._ax.quiver(X, Y, U, V, units='width')
 renderer.show()

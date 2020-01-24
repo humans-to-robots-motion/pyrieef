@@ -31,6 +31,7 @@ ALGORITHM = "forward"
 TIME_FACTOR = 10
 # TIME_STEP =  .0002  # (dx ** 2) (ideal)
 TIME_STEP = 2e-5
+CONSTANT_SOURCE = False
 
 
 def kernel(t, d, dim=2):
@@ -38,22 +39,20 @@ def kernel(t, d, dim=2):
 
 
 def compare_with_kernel(u_t, t, workspace):
-    grid = workspace.box.pixelmap()
+    grid = workspace.pixel_map(NB_POINTS)
     u_e = np.zeros(u_t.shape)
     for i, j in itertools.product(range(u_e.shape[0]), range(u_e.shape[1])):
         p = grid.grid_to_world(np.array([i, j]))
         u_e[i, j] = kernel(t, np.linalg.norm(p))
     u_e /= u_e.max()
     u_t /= u_t.max()
+    error = abs(u_e - u_t).max()
     print(" -- diff with kernel : abs {}, max {}, min {}".format(
-        abs(u_e - u_t).max(),
-          (u_e - u_t).max(),
-          (u_e - u_t).min()))
+        error, (u_e - u_t).max(), (u_e - u_t).min()))
     print(" -- shape u_t : ", u_t.shape)
     print(" -- shape u_e : ", u_e.shape)
-    error = abs(u_e - u_t).max()
     print(" -- error : ", error)
-    assert error < 0.08
+    assert error < 0.01   # Error is smaller that 1%
     return u_e
 
 
@@ -75,7 +74,8 @@ def forward_euler_2d(dt, h, source_grid, iterations, occupancy):
     u_0[source_grid[0], source_grid[1]] = 1.e4
     u_0 = np.where(occupancy.T > 0, Zero, u_0)
     for i in range(iterations * TIME_FACTOR):
-        u_0[source_grid[0], source_grid[1]] = 1.e4
+        if CONSTANT_SOURCE:
+            u_0[source_grid[0], source_grid[1]] = 1.e4
         # Propagate with forward-difference in time
         # central-difference in space
         u_t[1:-1, 1:-1] = u_0[1:-1, 1:-1] + dt * d * (
@@ -173,14 +173,10 @@ def heat_diffusion(workspace, source, iterations):
 
     TODO test it agains the heat kernel
     """
-    extent = workspace.box.extent()
-    dx = (extent.x_max - extent.x_min) / NB_POINTS
-    dy = (extent.y_max - extent.y_min) / NB_POINTS
+    grid = workspace.pixel_map(NB_POINTS)
+    h = grid.resolution
     occupancy = occupancy_map(NB_POINTS, workspace).T
-    grid = PixelMap(dx, extent)
-    print("Max t size : ", (dx ** 2))
-    assert dx == dy
-    h = dx
+    print("Max t size : ", (h ** 2))
     t = TIME_STEP
     print(" -- h : ", h)
     print(" -- t : ", t)

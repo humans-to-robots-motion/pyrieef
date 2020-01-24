@@ -25,8 +25,8 @@ from pyrieef.rendering.workspace_renderer import WorkspaceDrawer
 import matplotlib.pyplot as plt
 
 
-ROWS = 1
-COLS = 1
+ROWS = 3
+COLS = 3
 
 hd.NB_POINTS = 21
 hd.TIME_FACTOR = 100
@@ -45,8 +45,7 @@ renderer = WorkspaceDrawer(workspace, rows=ROWS, cols=COLS)
 x_source = np.array([0.2, 0.15])
 
 # ------------------------------------------------------------------------------
-# iterations = ROWS * COLS
-iterations = 10
+iterations = ROWS * COLS
 U = hd.heat_diffusion(workspace, x_source, iterations)
 for i in range(iterations):
     renderer.set_drawing_axis(i)
