@@ -7,4 +7,4 @@ pyyaml
 pytest
 pyglet
 scikit-image
-tensorflow==1.0
+tensorflow==1.15.0
