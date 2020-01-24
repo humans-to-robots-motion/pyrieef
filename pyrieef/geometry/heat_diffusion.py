@@ -22,13 +22,15 @@ from .workspace import *
 from .pixel_map import *
 from utils.misc import *
 import itertools
-import scipy
+# import scipy
 
 NB_POINTS = 20
 VERBOSE = False
 ALGORITHM = "forward"
 # ALGORITHM = "crank-nicholson"
 TIME_FACTOR = 10
+# TIME_STEP =  .0002  # (dx ** 2) (ideal)
+TIME_STEP = 2e-5
 
 
 def kernel(t, d, dim=2):
@@ -37,16 +39,21 @@ def kernel(t, d, dim=2):
 
 def compare_with_kernel(u_t, t, workspace):
     grid = workspace.box.pixelmap()
-    u_e = np.zeros((u_t.shape))
+    u_e = np.zeros(u_t.shape)
     for i, j in itertools.product(range(u_e.shape[0]), range(u_e.shape[1])):
         p = grid.grid_to_world(np.array([i, j]))
         u_e[i, j] = kernel(t, np.linalg.norm(p))
+    u_e /= u_e.max()
+    u_t /= u_t.max()
     print(" -- diff with kernel : abs {}, max {}, min {}".format(
         abs(u_e - u_t).max(),
           (u_e - u_t).max(),
           (u_e - u_t).min()))
     print(" -- shape u_t : ", u_t.shape)
     print(" -- shape u_e : ", u_e.shape)
+    error = abs(u_e - u_t).max()
+    print(" -- error : ", error)
+    assert error < 0.08
     return u_e
 
 
@@ -68,6 +75,7 @@ def forward_euler_2d(dt, h, source_grid, iterations, occupancy):
     u_0[source_grid[0], source_grid[1]] = 1.e4
     u_0 = np.where(occupancy.T > 0, Zero, u_0)
     for i in range(iterations * TIME_FACTOR):
+        u_0[source_grid[0], source_grid[1]] = 1.e4
         # Propagate with forward-difference in time
         # central-difference in space
         u_t[1:-1, 1:-1] = u_0[1:-1, 1:-1] + dt * d * (
@@ -173,8 +181,7 @@ def heat_diffusion(workspace, source, iterations):
     print("Max t size : ", (dx ** 2))
     assert dx == dy
     h = dx
-    t = .0002  # (dx ** 2) (ideal)
-    t = 2e-5
+    t = TIME_STEP
     print(" -- h : ", h)
     print(" -- t : ", t)
     source_grid = grid.world_to_grid(source)

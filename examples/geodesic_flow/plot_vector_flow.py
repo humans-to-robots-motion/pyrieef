@@ -23,15 +23,16 @@ import pyrieef.geometry.heat_diffusion as hd
 from pyrieef.geometry.workspace import *
 from pyrieef.rendering.workspace_renderer import WorkspaceDrawer
 import matplotlib.pyplot as plt
+import itertools
 
 
 ROWS = 1
 COLS = 1
 
-hd.NB_POINTS = 21
-hd.TIME_FACTOR = 100
-hd.TIME_STEP = .0001
-hd.ALGORITHM = "crank-nicholson"
+hd.NB_POINTS = 101
+hd.TIME_FACTOR = 200
+hd.TIME_STEP = 2e-5
+hd.ALGORITHM = "forward"
 
 circles = []
 circles.append(Circle(origin=[.1, .0], radius=0.1))
@@ -46,13 +47,30 @@ x_source = np.array([0.2, 0.15])
 
 # ------------------------------------------------------------------------------
 # iterations = ROWS * COLS
-iterations = 10
-U = hd.heat_diffusion(workspace, x_source, iterations)
+iterations = 9
+u_t = hd.heat_diffusion(workspace, x_source, iterations)
+grid = workspace.box.pixelmap(101)
+X, Y = workspace.box.meshgrid(30)
+U, V = np.zeros(X.shape), np.zeros(Y.shape)
+
+print(u_t[-1].shape)
+print(X.shape)
+print(Y.shape)
+f = RegressedPixelGridSpline(u_t[-1], grid.resolution, grid.extent)
+for i, j in itertools.product(range(X.shape[0]), range(X.shape[1])):
+    g = f.gradient(np.array([X[i, j], Y[i, j]]))
+    g /= np.linalg.norm(g)
+    U[i, j] = g[0]
+    V[i, j] = g[1]
+
 for i in range(iterations):
+    if ROWS * COLS == 1 and i < iterations - 1:
+        continue
     renderer.set_drawing_axis(i)
     renderer.draw_ws_obstacles()
     renderer.draw_ws_point([x_source[0], x_source[1]], color='r', shape='o')
     renderer.background_matrix_eval = False
-    renderer.draw_ws_img(U[i], interpolate="bicubic",
+    renderer.draw_ws_img(u_t[i], interpolate="none",
                          color_style=plt.cm.hsv)
+    renderer._ax.quiver(X, Y, U, V, units='width')
 renderer.show()
