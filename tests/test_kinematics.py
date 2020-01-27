@@ -62,8 +62,21 @@ def test_homogeneous_jacobian():
 
 
 def test_freeflyer():
+    robot = Freeflyer()
+    assert_allclose(robot.shape[0], [0, 0])
+    assert_allclose(robot.shape[1], [0, 1])
+    assert_allclose(robot.shape[2], [1, 1])
+    assert_allclose(robot.shape[3], [1, 0])
+
+    robot = Freeflyer(scale=.2)
+    assert_allclose(robot.shape[0], [0, 0])
+    assert_allclose(robot.shape[1], [0, .2])
+    assert_allclose(robot.shape[2], [.2, .2])
+    assert_allclose(robot.shape[3], [.2, 0])
+
     robot = create_robot_from_file()
     assert robot.name == "freeflyer"
+
 
 if __name__ == "__main__":
     test_planar_rotation()

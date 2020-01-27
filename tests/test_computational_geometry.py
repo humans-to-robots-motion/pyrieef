@@ -84,7 +84,6 @@ def test_line_line_intersection():
     assert np.linalg.norm(p - pr) < 1e-6
 
 
-
 if __name__ == "__main__":
     test_line_parameters()
     test_line_line_intersection()

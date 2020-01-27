@@ -600,7 +600,11 @@ class AxisAlignedBox(Box):
 
 
 def line_side(a, b, p):
-    """ Compute the side of a line AB that the point P is on
+    """
+    Compute the side of a line AB that the point P is on
+
+        True if the point p is on the left side of the line
+        when the observer travels along the line from a -> b.
 
      Parameters
          ----------
@@ -614,8 +618,22 @@ def line_side(a, b, p):
                    [p[0] - a[0], p[1] - a[1]]])
     return np.linalg.det(m) > 0
     """
+    print("a : ", a.transpose())
+    print("b : ", b.transpose())
+    print("p : ", p.transpose())
+
+    # Vertical line
+    if np.fabs(a[0] - b[0]) < 1e-6:
+        return p[0] < a[0] if a[1] < b[1] else p[0] > a[0]
+
+    # Horizontal line
+    if np.fabs(a[1] - b[1]) < 1e-6:
+        return p[1] < a[1] if a[0] > b[0] else p[1] > a[1]
+
+    # Others
     m = (b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0])
-    return m < 0
+    print("det : ", m)
+    return m >= 0
 
 
 class Polygon(Shape):
@@ -623,15 +641,16 @@ class Polygon(Shape):
         A Polygon class
             - origin    : its center
             - verticies : stored and passed in a counter-clockwise order
+        TODO: TEST
     """
 
     def __init__(self,
                  origin=np.array([0., 0.]),
                  verticies=[
                      np.array([1., 1.]),
-                     np.array([1., 0.]),
+                     np.array([0., 1.]),
                      np.array([0., 0.]),
-                     np.array([0., 1.])]):
+                     np.array([1., 0.])]):
         Shape.__init__(self)
         self.origin = origin
         self._verticies = verticies
@@ -659,12 +678,18 @@ class Polygon(Shape):
         x : numpy array with
             arbitrary dimensions, 2d and 3d
             or meshgrid data shape = (2 or 3, n, n)
+
+        Computes inside by checking that the point is on the
+        "right side" of all edges of the polygon
         """
         single = x.shape == (2,) or x.shape == (3,)
         shape = 1 if single else (x.shape[1], x.shape[2])
         inside = np.full(shape, True)
+        print(" point : ", x.T)
+        print(inside)
         for e in self._edges:
-            inside = np.where(line_side(e.p1(), e.p2(), x), False, inside)
+            print(line_side(e.p1(), e.p2(), x))
+            inside = np.where(line_side(e.p1(), e.p2(), x), inside, False)
         return inside
 
     def closest_edge(self, x):
@@ -712,6 +737,8 @@ def hexagon(scale=1., translate=[0., 0.]):
         verticies[i + 1] = np.dot(rotation_matrix_2d(60), v)
         if i >= 4:
             break
+    for v in verticies:
+        print(v)
     return Polygon(np.array(translate), verticies)
 
 

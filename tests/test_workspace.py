@@ -211,6 +211,30 @@ def test_line_side():
 
 
 def test_polygon():
+    box = Polygon()
+    assert not box.is_inside(np.array([2., 0.]))
+    assert not box.is_inside(np.array([0., 2.]))
+    assert not box.is_inside(np.array([-2., 0.]))
+    assert not box.is_inside(np.array([-0., -2.]))
+    assert box.is_inside(np.array([.5, .1]))
+    assert box.is_inside(np.array([.5, .5]))
+    assert box.is_inside(np.array([.1, .1]))
+    assert box.is_inside(np.array([.1, .5]))
+
+
+def test_hexagon():
+    h = hexagon(scale=.5)
+    assert not h.is_inside(np.array([2., 0.]))
+    assert not h.is_inside(np.array([0., 2.]))
+    assert not h.is_inside(np.array([-2., 0.]))
+    assert not h.is_inside(np.array([-0., -2.]))
+    assert h.is_inside(np.array([.1, 0.]))
+    assert h.is_inside(np.array([0., .1]))
+    assert h.is_inside(np.array([-.1, 0.]))
+    assert h.is_inside(np.array([0., -.1]))
+
+
+def test_hexagon_jac():
     environment = EnvBox()
     polygon = hexagon(scale=.5)
     f = SignedDistance2DMap(polygon)
@@ -309,7 +333,9 @@ if __name__ == "__main__":
     # test_polygon()
     # test_axis_aligned_box()
     # test_inside_box()
-    test_ellipse()
+    # test_ellipse()
+    test_polygon()
+    # test_hexagon()
     # test_sdf_derivatives()
     # test_sdf_workspace()
     # test_meshgrid()
