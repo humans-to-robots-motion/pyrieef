@@ -15,33 +15,31 @@
 # OTHER TORTIOUS ACTION,   ARISING OUT OF OR IN    CONNECTION WITH THE USE   OR
 # PERFORMANCE OF THIS SOFTWARE.
 #
-#                                    Jim Mainprice on Friday January 23 2020
+#                                        Jim Mainprice on Sunday June 13 2020
 
-from abc import abstractmethod
-
-
-class Robot:
-    """
-    Abstract robot class
-    """
-
-    def __init__(self):
-        return
-
-    @abstractmethod
-    def forward_kinematics_map(self):
-        raise NotImplementedError()
+import __init__
+from kinematics.homogenous_transform import *
+from numpy.testing import assert_allclose
 
 
-class PlanarFreeFloater(Robot):
-    """
-    3 Dof robot
-    """
+def test_homogenous_transform():
 
-    def __init__(self, keypoints=[0., 0.]):
-        return
+    kinematic_map = HomogenousTransform()
+    assert_allclose(kinematic_map(np.zeros(3)), np.zeros(2))
 
-    def keypoint_map(self, i):
+    kinematic_map = HomogenousTransform(np.ones(2))
+    assert_allclose(kinematic_map(np.zeros(3)), np.ones(2))
 
-    def _create_maps(self, keypoints):
-        self._base_map = 
+    kinematic_map = HomogenousTransform(np.ones(2))
+    p1 = kinematic_map(np.array([1., 1., 0.]))
+    p2 = np.array([2., 2.])
+    assert_allclose(p1, p2)
+
+    kinematic_map = HomogenousTransform(np.ones(2))
+    p1 = kinematic_map(np.array([1., 1., 0.785398]))
+    p2 = np.array([1., 2.41421])
+    assert_allclose(p1, p2, 1e-4)
+
+
+if __name__ == "__main__":
+    test_homogenous_transform()

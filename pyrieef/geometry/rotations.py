@@ -29,6 +29,16 @@ def vectors_angle(v1, v2):
 
 
 def rotation_matrix_2d(degree):
+    """
+    Compose a rotation matrix using using a conversion from degrees
+    """
     theta = np.radians(degree)
+    return rotation_matrix_2d_radian(theta)
+
+
+def rotation_matrix_2d_radian(theta):
+    """
+    Compose a rotation matrix using radians
+    """
     c, s = np.cos(theta), np.sin(theta)
     return np.array(((c, -s), (s, c)))
