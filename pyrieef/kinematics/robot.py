@@ -18,6 +18,9 @@
 #                                    Jim Mainprice on Friday January 23 2020
 
 from abc import abstractmethod
+from .homogeneous_transform import *
+import json
+import os
 
 
 class Robot:
@@ -26,22 +29,42 @@ class Robot:
     """
 
     def __init__(self):
-        return
+        self.name = None
+        self.shape = None
+        self.keypoints = None
+        self._maps = []
 
     @abstractmethod
     def forward_kinematics_map(self):
         raise NotImplementedError()
 
 
-class PlanarFreeFloater(Robot):
+class Freeflyer(Robot):
     """
-    3 Dof robot
+    Planar 3DoFs robot
     """
 
     def __init__(self, keypoints=[0., 0.]):
-        return
+        Robot.__init__(self)
 
     def keypoint_map(self, i):
+        return self._maps[i]
 
     def _create_maps(self, keypoints):
-        self._base_map = 
+        for p in keypoints:
+            self._maps.append(HomogeneousTransform(p))
+
+
+def assets_data_dir():
+    return os.path.abspath(os.path.dirname(__file__)) + os.sep + "../../data"
+
+
+def create_robot_from_file(filename=assets_data_dir() + "/freeflyer.json"):
+    print(filename)
+    with open(filename, "r") as read_file:
+        config = json.loads(read_file.read())
+        robot = Freeflyer(None)
+        robot.name = config["name"]
+        # robot.name = config.name
+        # robot.shape = config.contour
+    return robot

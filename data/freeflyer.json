@@ -1,0 +1,16 @@
+{
+    "name": "freeflyer",
+    "lastName": "Doe",
+    "hobbies": ["running", "sky diving", "singing"],
+    "age": 35,
+    "children": [
+        {
+            "firstName": "Alice",
+            "age": 6
+        },
+        {
+            "firstName": "Bob",
+            "age": 8
+        }
+    ]
+}

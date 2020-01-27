@@ -18,7 +18,8 @@
 #                                       Jim Mainprice on Monday January 27 2020
 
 import __init__
-from kinematics.homogenous_transform import *
+from kinematics.homogeneous_transform import *
+from kinematics.robot import *
 from numpy.testing import assert_allclose
 
 
@@ -60,7 +61,12 @@ def test_homogeneous_jacobian():
         assert check_jacobian_against_finite_difference(kinematic_map)
 
 
+def test_freeflyer():
+    robot = create_robot_from_file()
+    assert robot.name == "freeflyer"
+
 if __name__ == "__main__":
     test_planar_rotation()
     test_homogeneous_transform()
     test_homogeneous_jacobian()
+    test_freeflyer()
