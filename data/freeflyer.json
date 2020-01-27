@@ -1,16 +1,8 @@
 {
     "name": "freeflyer",
-    "lastName": "Doe",
-    "hobbies": ["running", "sky diving", "singing"],
-    "age": 35,
-    "children": [
+    "keypoints":
         {
-            "firstName": "Alice",
-            "age": 6
-        },
-        {
-            "firstName": "Bob",
-            "age": 8
+            "base": [0.3, 0],
+            "first": [0, 0]
         }
-    ]
 }

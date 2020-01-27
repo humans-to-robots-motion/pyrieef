@@ -44,15 +44,19 @@ class Freeflyer(Robot):
     Planar 3DoFs robot
     """
 
-    def __init__(self, keypoints=[0., 0.]):
+    def __init__(self, keypoints={"base": [0., 0.]}):
         Robot.__init__(self)
+        self._names = {}
+        self._maps = [None] * len(keypoints)
+        for i, name in enumerate(keypoints.keys()):
+            self._create_map(i, name, np.array(keypoints[name]))
+
+    def _create_map(self, i, name, p):
+        self._maps[i] = HomogeneousTransform(p)
+        self._names[name] = i
 
     def keypoint_map(self, i):
         return self._maps[i]
-
-    def _create_maps(self, keypoints):
-        for p in keypoints:
-            self._maps.append(HomogeneousTransform(p))
 
 
 def assets_data_dir():
@@ -63,7 +67,8 @@ def create_robot_from_file(filename=assets_data_dir() + "/freeflyer.json"):
     print(filename)
     with open(filename, "r") as read_file:
         config = json.loads(read_file.read())
-        robot = Freeflyer(None)
+        print(config["keypoints"])
+        robot = Freeflyer(config["keypoints"])
         robot.name = config["name"]
         # robot.name = config.name
         # robot.shape = config.contour
