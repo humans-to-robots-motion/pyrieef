@@ -25,9 +25,11 @@ class HomogenousTransform(DifferentiableMap):
     """ HomeogenousTransform as DifferentiableMap """
 
     def __init__(self, p0=np.zeros(2)):
+        assert p0.size == 2
         self._n = 3
-        self._p0 = p0
-        assert self._p0.size == self._n - 1
+        self._T = np.eye(self.input_dimension())
+        self._p = np.ones(self.input_dimension())
+        self._p[:self.output_dimension()] = p0
 
     def output_dimension(self):
         return self._n - 1
@@ -36,17 +38,13 @@ class HomogenousTransform(DifferentiableMap):
         return self._n
 
     def forward(self, q):
-        T = np.eye(self.input_dimension())
-        p = np.ones(self.input_dimension())
         dim = self.output_dimension()
-        p[:dim] = self._p0
-        T[:dim, :dim] = rotation_matrix_2d_radian(q[dim])
-        T[:dim, dim] = q[:dim]
-        return np.dot(T, p)[:dim]
+        self._T[:dim, :dim] = rotation_matrix_2d_radian(q[dim])
+        self._T[:dim, dim] = q[:dim]
+        return np.dot(self._T, self._p)[:dim]
 
     def jacobian(self, q):
         """ Should return a matrix or single value of
                 m x n : ouput x input (dimensions)
             by default the method returns the finite difference jacobian.
             WARNING the object returned by this function is a numpy matrix."""
-
