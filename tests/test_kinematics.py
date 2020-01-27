@@ -22,6 +22,15 @@ from kinematics.homogenous_transform import *
 from numpy.testing import assert_allclose
 
 
+def test_planar_rotation():
+
+    kinematic_map = PlanarRotation(np.ones(2))
+    assert check_jacobian_against_finite_difference(kinematic_map)
+
+    kinematic_map = PlanarRotation(np.array([.23, 12.]))
+    assert check_jacobian_against_finite_difference(kinematic_map)
+
+
 def test_homogenous_transform():
 
     kinematic_map = HomogenousTransform()
@@ -41,5 +50,16 @@ def test_homogenous_transform():
     assert_allclose(p1, p2, 1e-4)
 
 
+def test_homogenous_jacobian():
+
+    kinematic_map = HomogenousTransform(np.random.rand(2))
+
+    print("----------------------")
+    print("Check identity (J implementation) : ")
+    assert check_jacobian_against_finite_difference(kinematic_map)
+
+
 if __name__ == "__main__":
+    test_planar_rotation()
     test_homogenous_transform()
+    test_homogenous_jacobian()
