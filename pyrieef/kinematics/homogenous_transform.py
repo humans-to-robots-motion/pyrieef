@@ -22,7 +22,16 @@ from geometry.rotations import *
 
 
 class PlanarRotation(DifferentiableMap):
-    """ Planar Rotation as DifferentiableMap """
+    """
+    Planar Rotation as DifferentiableMap
+
+        Takes an angle and rotates the point p0 by this angle
+
+            f(theta) = R(theta) * p_0
+
+        p0 can be defined as a keypoin, defined constant in a frame of
+        reference. Theta is a degree of freedom.
+    """
 
     def __init__(self, p0):
         assert p0.size == 2
@@ -40,16 +49,28 @@ class PlanarRotation(DifferentiableMap):
         return np.dot(rotation_matrix_2d_radian(q[0]), self._p)
 
     def jacobian(self, q):
+        assert q.size == 1
         J = np.zeros((2, 1))
-        theta = q[0]
-        c, s = np.cos(theta), np.sin(theta)
-        T = np.array(((-s, -c), (c, -s)))
-        J[:, 0] = np.dot(T, self._p)
+        c, s = np.cos(q[0]), np.sin(q[0])
+        J[:, 0] = np.dot(np.array(((-s, -c), (c, -s))), self._p)
         return J
 
 
-class HomogenousTransform(DifferentiableMap):
-    """ HomeogenousTransform as DifferentiableMap """
+class HomogeneousTransform(DifferentiableMap):
+    """
+    Homeogeneous transformation as DifferentiableMap
+
+        Takes an angle and rotates the point p0 by this angle
+
+            f(q) = T(q) * p_0
+
+        where T defines a rotation and translation (3DoFs)
+            q_{0:2}     => translation
+            q_{2}       => rotation
+
+                T = [ R(q)  p(q) ]
+                    [ 0 0    1   ]
+    """
 
     def __init__(self, p0=np.zeros(2)):
         assert p0.size == 2
@@ -65,6 +86,7 @@ class HomogenousTransform(DifferentiableMap):
         return self._n
 
     def forward(self, q):
+        assert q.size == 3
         dim = self.output_dimension()
         self._T[:dim, :dim] = rotation_matrix_2d_radian(q[dim])
         self._T[:dim, dim] = q[:dim]
@@ -72,13 +94,12 @@ class HomogenousTransform(DifferentiableMap):
 
     def jacobian(self, q):
         """ Should return a matrix or single value of
-                m x n : [output : 2 x input : 3] (dimensions)
-            by default the method returns the finite difference jacobian.
-            WARNING the object returned by this function is a numpy matrix."""
-        dim = self.output_dimension()
+                m x n : [output : 2 x input : 3] (dimensions)"""
+        assert q.size == 3
         J = np.zeros((self.output_dimension(), self.input_dimension()))
         J[0, 0] = 1.
         J[1, 1] = 1.
-        J[0, 2] = -np.sin(q[dim]) * self._p[0] - np.cos(q[dim]) * self._p[1]
-        J[1, 2] = np.cos(q[dim]) * self._p[0] - np.sin(q[dim]) * self._p[1]
+        dim = self.output_dimension()
+        c, s = np.cos(q[dim]), np.sin(q[dim])
+        J[:, 2] = np.dot(np.array(((-s, -c), (c, -s))), self._p[:dim])
         return J

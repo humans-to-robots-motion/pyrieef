@@ -15,7 +15,7 @@
 # OTHER TORTIOUS ACTION,   ARISING OUT OF OR IN    CONNECTION WITH THE USE   OR
 # PERFORMANCE OF THIS SOFTWARE.
 #
-#                                        Jim Mainprice on Sunday June 13 2020
+#                                       Jim Mainprice on Monday January 27 2020
 
 import __init__
 from kinematics.homogenous_transform import *
@@ -31,35 +31,36 @@ def test_planar_rotation():
     assert check_jacobian_against_finite_difference(kinematic_map)
 
 
-def test_homogenous_transform():
+def test_homogeneous_transform():
 
-    kinematic_map = HomogenousTransform()
+    kinematic_map = HomogeneousTransform()
     assert_allclose(kinematic_map(np.zeros(3)), np.zeros(2))
 
-    kinematic_map = HomogenousTransform(np.ones(2))
+    kinematic_map = HomogeneousTransform(np.ones(2))
     assert_allclose(kinematic_map(np.zeros(3)), np.ones(2))
 
-    kinematic_map = HomogenousTransform(np.ones(2))
+    kinematic_map = HomogeneousTransform(np.ones(2))
     p1 = kinematic_map(np.array([1., 1., 0.]))
     p2 = np.array([2., 2.])
     assert_allclose(p1, p2)
 
-    kinematic_map = HomogenousTransform(np.ones(2))
+    kinematic_map = HomogeneousTransform(np.ones(2))
     p1 = kinematic_map(np.array([1., 1., 0.785398]))
     p2 = np.array([1., 2.41421])
     assert_allclose(p1, p2, 1e-4)
 
 
-def test_homogenous_jacobian():
+def test_homogeneous_jacobian():
 
-    kinematic_map = HomogenousTransform(np.random.rand(2))
+    kinematic_map = HomogeneousTransform(np.random.rand(2))
 
     print("----------------------")
     print("Check identity (J implementation) : ")
-    assert check_jacobian_against_finite_difference(kinematic_map)
+    for i in range(4):
+        assert check_jacobian_against_finite_difference(kinematic_map)
 
 
 if __name__ == "__main__":
     test_planar_rotation()
-    test_homogenous_transform()
-    test_homogenous_jacobian()
+    test_homogeneous_transform()
+    test_homogeneous_jacobian()
