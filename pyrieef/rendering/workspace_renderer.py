@@ -21,6 +21,7 @@ from .common_imports import *
 from .plannar_gl import *
 from learning import random_environment
 from geometry.workspace import *
+from geometry.utils import *
 from utils import timer
 from utils.misc import *
 import random
@@ -153,6 +154,16 @@ class WorkspaceDrawer(WorkspaceRender):
         Y = np.array(points)[:, 1]
         self._ax.plot(X, Y, color=color, linewidth=2.0)
 
+    def draw_ws_polygon(self, vertices, origin, rotation, color=(1, 0, 0)):
+        self._ax.plot(origin[0], origin[1], 'kx')
+        R = rotation_matrix_2d_radian(rotation)
+        vertices = np.vstack([vertices, vertices[0]])
+        for k, v in enumerate(vertices):
+            vertices[k] = np.dot(R, v) + origin
+        X = np.array(vertices)[:, 0]
+        Y = np.array(vertices)[:, 1]
+        self._ax.plot(X, Y, color=color, linewidth=2.0)
+
     def draw_ws_background(self, phi, nb_points=100):
         X, Y = self._workspace.box.stacked_meshgrid(nb_points)
         if self.background_matrix_eval:
@@ -247,7 +258,6 @@ class WorkspaceOpenGl(WorkspaceRender):
         p2_ws = self._scale * (p2 - corner)
         self.gl.draw_line(p1_ws, p2_ws, linewidth=7, color=(1, 0, 0))
 
-    @abstractmethod
     def draw_ws_polygon(self, vertices, origin, rotation, color=(1, 0, 0)):
         t = Transform(
             translation=self._scale * (

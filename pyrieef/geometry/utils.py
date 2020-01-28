@@ -19,6 +19,7 @@
 
 import numpy as np
 from scipy.optimize import fsolve
+from .rotations import *
 
 
 def normalize(v):
@@ -28,6 +29,16 @@ def normalize(v):
         print("norm is 0")
         norm = np.finfo(v.dtype).eps
     return v / norm
+
+
+def make_transformation(translation, rotation):
+    """
+    Create a homogeneous matrix
+    """
+    T = np.eye(3)
+    T[:2, :2] = rotation_matrix_2d_radian(rotation)
+    T[:2, 2] = translation
+    return T
 
 
 def line_parameters(p1, p2):

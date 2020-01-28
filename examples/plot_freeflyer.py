@@ -22,18 +22,18 @@ from pyrieef.geometry.workspace import *
 from pyrieef.kinematics.robot import *
 from pyrieef.rendering.workspace_renderer import WorkspaceDrawer
 
-robot = create_robot_from_file()
-env = EnvBox()
-box = Box(origin=np.array([-.5, -.5]), dim=np.array([.5, .5]))
-workspace = Workspace(env)
+robot = create_robot_from_file(scale=.02)
+workspace = Workspace()
 workspace.obstacles.append(
-    Polygon(origin=np.array([0., 0.]), verticies=robot.shape))
-viewer = WorkspaceDrawer(workspace, wait_for_keyboard=True)
+    Polygon(origin=np.array([0, 0]), verticies=robot.shape))
 sdf = SignedDistanceWorkspaceMap(workspace)
-viewer.draw_ws_obstacles()
+
+viewer = WorkspaceDrawer(workspace, wait_for_keyboard=True)
+q = np.array([.1, .1, -.5])
 for name, i in robot.keypoint_names.items():
-    p = robot.keypoint_map(i)(np.zeros(3))
+    p = robot.keypoint_map(i)(q)
     viewer.draw_ws_point(p, color='r', shape='o')
+viewer.draw_ws_polygon(robot.shape, q[:2], q[2])
 viewer.background_matrix_eval = True
 viewer.draw_ws_background(sdf, nb_points=200)
 viewer.show_once()
