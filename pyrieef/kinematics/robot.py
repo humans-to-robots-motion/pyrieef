@@ -19,6 +19,7 @@
 
 from abc import abstractmethod
 from .homogeneous_transform import *
+from pyrieef.geometry.workspace import *
 import json
 import os
 
@@ -85,17 +86,24 @@ def create_robot_from_file(
 
 
 def create_robot_with_even_keypoints(
-        nb_keypoints=10,
+        nb_keypoints=20,
         filename=assets_data_dir() + "/freeflyer.json",
         scale=None):
     print(filename)
     with open(filename, "r") as read_file:
         config = json.loads(read_file.read())
-        body = Polygon(config["keypoints"])
-        dl = body.perimeter() / nb_keypoints
+        body = Polygon(
+            origin=np.array([0, 0]),
+            verticies=np.array(config["shape"]))
+        s = np.linspace(0., body.perimeter(), nb_keypoints, endpoint=False)
+        points = [body.point_along_perimieter(dl) for dl in s]
+        keypoints = {}
+        for i, p in enumerate(points):
+            keypoints["p{}".format(i)] = p.tolist()
+            print("add -> ", p)
         robot = Freeflyer(
             config["name"],
-            config["keypoints"],
+            keypoints,
             config["shape"],
             config["scale"] if scale is None else scale)
     return robot

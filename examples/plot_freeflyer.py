@@ -24,24 +24,17 @@ from pyrieef.kinematics.robot import *
 from pyrieef.rendering.workspace_renderer import WorkspaceDrawer
 
 
-robot = create_robot_from_file(scale=.02)
+robot = create_robot_with_even_keypoints(scale=.03)
 workspace = Workspace()
 body = Polygon(origin=np.array([0, 0]), verticies=robot.shape)
 workspace.obstacles.append(body)
 sdf = SignedDistanceWorkspaceMap(workspace)
-body.nb_points = 20
-points = body.sampled_points()
 viewer = WorkspaceDrawer(workspace, wait_for_keyboard=True)
-q = np.array([.1, .1, -.5])
+q = np.array([.0, .0, .2])
 viewer.draw_ws_polygon(robot.shape, q[:2], q[2])
-# for name, i in robot.keypoint_names.items():
-#     p = robot.keypoint_map(i)(q)
-#     viewer.draw_ws_point(p, color='b', shape='o')
-
-R = rotation_matrix_2d_radian(q[2])
-print(len(points))
-for p in points:
-    viewer.draw_ws_point(np.dot(R, p) + q[:2], color='b', shape='o')
+for name, i in robot.keypoint_names.items():
+    p = robot.keypoint_map(i)(q)
+    viewer.draw_ws_point(p, color='b', shape='o')
 viewer.background_matrix_eval = True
-viewer.draw_ws_background(sdf, nb_points=200)
+viewer.draw_ws_background(sdf, nb_points=100)
 viewer.show_once()

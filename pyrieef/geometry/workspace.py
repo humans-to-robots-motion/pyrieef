@@ -26,6 +26,7 @@ from .pixel_map import *
 from abc import abstractmethod
 from .differentiable_geometry import *
 from .rotations import *
+from .utils import *
 
 
 def vector_norm(x):
@@ -734,14 +735,19 @@ class Polygon(Shape):
         """ The trajectory is indexed by s \in [0, 1] """
         p_prev = self._edges[0].p1()
         dist = 0.
-        for i in range(1, len(self._edges)):
-            p_curr = self._edges[i].p1()
+        for i in range(1, len(self._edges) + 1):
+
+            if i != len(self._edges):
+                p_curr = self._edges[i].p1()
+            else:
+                p_curr = self._edges[i - 1].p2()
+
             d = np.linalg.norm(p_curr - p_prev)
             if s <= (d + dist):
-                return self.interpolate(p_prev, p_curr, l - dist, d)
+                return interpolate(p_prev, p_curr, s - dist, d)
             dist += d
             p_prev = p_curr
-        return None
+        return self._edges[-1].p2()
 
 
 def hexagon(scale=1., translate=[0., 0.]):
