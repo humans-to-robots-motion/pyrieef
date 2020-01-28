@@ -174,40 +174,40 @@ def test_ellipse():
 
 
 def test_line_side():
-    assert not line_side([1, 0], [0, 0], [-1, -1])
-    assert not line_side([25, 0], [0, 0], [-1, -14])
-    assert not line_side([25, 20], [0, 20], [-1, 6])
-    assert not line_side([24, 20], [-1, 20], [-2, 6])
+    assert line_side([1, 0], [0, 0], [-1, -1])
+    assert line_side([25, 0], [0, 0], [-1, -14])
+    assert line_side([25, 20], [0, 20], [-1, 6])
+    assert line_side([24, 20], [-1, 20], [-2, 6])
 
-    assert line_side([1, 0], [0, 0], [1, 1])
-    assert line_side([12, 0], [0, 0], [2, 1])
-    assert line_side([-25, 0], [0, 0], [-1, -14])
-    assert line_side([1, 0.5], [0, 0], [1, 1])
+    assert not line_side([1, 0], [0, 0], [1, 1])
+    assert not line_side([12, 0], [0, 0], [2, 1])
+    assert not line_side([-25, 0], [0, 0], [-1, -14])
+    assert not line_side([1, 0.5], [0, 0], [1, 1])
 
-    assert line_side([0, 5], [1, 10], [10, 20])
-    assert not line_side([0, 9.1], [1, 10], [10, 20])
-    assert line_side([0, 5], [1, 10], [20, 10])
-    assert line_side([0, 9.1], [1, 10], [20, 10])
+    assert not line_side([0, 5], [1, 10], [10, 20])
+    assert line_side([0, 9.1], [1, 10], [10, 20])
+    assert not line_side([0, 5], [1, 10], [20, 10])
+    assert not line_side([0, 9.1], [1, 10], [20, 10])
 
-    assert not line_side([1, 1], [1, 10], [0, 0])
-    assert line_side([1, 10], [1, 1], [0, 0])
-    assert line_side([1, 1], [1, 10], [5, 0])
-    assert not line_side([1, 10], [1, 1], [5, 0])
+    assert line_side([1, 1], [1, 10], [0, 0])
+    assert not line_side([1, 10], [1, 1], [0, 0])
+    assert not line_side([1, 1], [1, 10], [5, 0])
+    assert line_side([1, 10], [1, 1], [5, 0])
 
-    assert not line_side([1, -1], [10, -1], [0, 0])
-    assert line_side([10, -1], [1, -1], [0, 0])
-    assert line_side([1, -1], [10, -1], [0, -9])
-    assert not line_side([10, -1], [1, -1], [0, -9])
+    assert line_side([1, -1], [10, -1], [0, 0])
+    assert not line_side([10, -1], [1, -1], [0, 0])
+    assert not line_side([1, -1], [10, -1], [0, -9])
+    assert line_side([10, -1], [1, -1], [0, -9])
 
-    assert not line_side([0, 0], [10, 10], [1, 2])
-    assert line_side([10, 10], [0, 0], [1, 2])
-    assert line_side([0, 0], [10, 10], [1, 0])
-    assert not line_side([10, 10], [0, 0], [1, 0])
+    assert line_side([0, 0], [10, 10], [1, 2])
+    assert not line_side([10, 10], [0, 0], [1, 2])
+    assert not line_side([0, 0], [10, 10], [1, 0])
+    assert line_side([10, 10], [0, 0], [1, 0])
 
-    assert line_side([0, 0], [-10, 10], [1, 2])
-    assert line_side([0, 0], [-10, 10], [1, 2])
-    assert not line_side([0, 0], [-10, 10], [-1, -2])
-    assert line_side([-10, 10], [0, 0], [-1, -2])
+    assert not line_side([0, 0], [-10, 10], [1, 2])
+    assert not line_side([0, 0], [-10, 10], [1, 2])
+    assert line_side([0, 0], [-10, 10], [-1, -2])
+    assert not line_side([-10, 10], [0, 0], [-1, -2])
 
 
 def test_polygon():

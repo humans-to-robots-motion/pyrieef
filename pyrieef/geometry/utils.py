@@ -31,6 +31,13 @@ def normalize(v):
     return v / norm
 
 
+def interpolate(p_1, p_2, d_param, dist):
+    """ interpolate between points """
+    alpha = min(d_param / dist, 1.)
+    assert alpha >= 0 and alpha <= 1., "alpha : {}".format(alpha)
+    return (1. - alpha) * p_1 + alpha * p_2
+
+
 def make_transformation(translation, rotation):
     """
     Create a homogeneous matrix

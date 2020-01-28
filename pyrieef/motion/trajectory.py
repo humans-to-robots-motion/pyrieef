@@ -19,6 +19,7 @@
 
 from .__init__ import *
 from geometry.differentiable_geometry import *
+from geometry.utils import *
 from scipy.interpolate import interp1d
 
 
@@ -396,7 +397,7 @@ class ContinuousTrajectory(Trajectory):
             q_curr = self.configuration(i)
             d = np.linalg.norm(q_curr - q_prev)
             if d_param <= (d + dist):
-                return self.interpolate(q_prev, q_curr, d_param - dist, d)
+                return interpolate(q_prev, q_curr, d_param - dist, d)
             dist += d
             q_prev = q_curr
         return None
@@ -410,14 +411,6 @@ class ContinuousTrajectory(Trajectory):
             length += np.linalg.norm(q_curr - q_prev)
             q_prev = q_curr
         return length
-
-    @staticmethod
-    def interpolate(q_1, q_2, d_param, dist):
-        """ interpolate between configurations """
-        # assert d_param / dist <= 1.
-        alpha = min(d_param / dist, 1.)
-        assert alpha >= 0 and alpha <= 1., "alpha : {}".format(alpha)
-        return (1. - alpha) * q_1 + alpha * q_2
 
 
 class ConstantAccelerationTrajectory(ContinuousTrajectory):
@@ -451,7 +444,7 @@ class ConstantAccelerationTrajectory(ContinuousTrajectory):
 
 
 class CubicSplineTrajectory(ContinuousTrajectory):
-    """ 
+    """
     Implements a trajectory that can be continously interpolated
 
     Velocities and accelerations are computed using finite differences
@@ -459,7 +452,7 @@ class CubicSplineTrajectory(ContinuousTrajectory):
 
     The trajectory is defined for a time interval
         t \in [0., dt * (T + 1)]
-        
+
     A trajectory is always defined from index 0 to T included
     The final configuration of the trajectory is thus the
     one indexed T and there an extra one for convinience in trajectory
@@ -473,7 +466,7 @@ class CubicSplineTrajectory(ContinuousTrajectory):
         self._dt = float(dt)
         self._f = []
         self._epsilon = 1e-6
-    
+
     def time_indices(self):
         return np.linspace(0., self._T * self._dt, self._T + 1)
 

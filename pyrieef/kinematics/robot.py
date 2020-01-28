@@ -82,3 +82,20 @@ def create_robot_from_file(
             config["shape"],
             config["scale"] if scale is None else scale)
     return robot
+
+
+def create_robot_with_even_keypoints(
+        nb_keypoints=10,
+        filename=assets_data_dir() + "/freeflyer.json",
+        scale=None):
+    print(filename)
+    with open(filename, "r") as read_file:
+        config = json.loads(read_file.read())
+        body = Polygon(config["keypoints"])
+        dl = body.perimeter() / nb_keypoints
+        robot = Freeflyer(
+            config["name"],
+            config["keypoints"],
+            config["shape"],
+            config["scale"] if scale is None else scale)
+    return robot

@@ -275,6 +275,9 @@ class Segment(Shape):
     def p2(self):
         return self._p2
 
+    def length(self):
+        return self._length
+
     def sampled_points(self):
         return sample_line(self._p1, self._p2, self.nb_points)
 
@@ -618,10 +621,6 @@ def line_side(a, b, p):
                    [p[0] - a[0], p[1] - a[1]]])
     return np.linalg.det(m) > 0
     """
-    print("a : ", a.transpose())
-    print("b : ", b.transpose())
-    print("p : ", p.transpose())
-
     # Vertical line
     if np.fabs(a[0] - b[0]) < 1e-6:
         return p[0] < a[0] if a[1] < b[1] else p[0] > a[0]
@@ -632,7 +631,6 @@ def line_side(a, b, p):
 
     # Others
     m = (b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0])
-    print("det : ", m)
     return m >= 0
 
 
@@ -685,10 +683,7 @@ class Polygon(Shape):
         single = x.shape == (2,) or x.shape == (3,)
         shape = 1 if single else (x.shape[1], x.shape[2])
         inside = np.full(shape, True)
-        print(" point : ", x.T)
-        print(inside)
         for e in self._edges:
-            print(line_side(e.p1(), e.p2(), x))
             inside = np.where(line_side(e.p1(), e.p2(), x), inside, False)
         return inside
 
@@ -729,6 +724,25 @@ class Polygon(Shape):
                 sample_line(edge.p1(), edge.p2(), nb_points_per_edge))
         return points
 
+    def perimeter(self):
+        length = 0.
+        for edge in self._edges:
+            length += edge.length()
+        return length
+
+    def point_along_perimieter(self, s):
+        """ The trajectory is indexed by s \in [0, 1] """
+        p_prev = self._edges[0].p1()
+        dist = 0.
+        for i in range(1, len(self._edges)):
+            p_curr = self._edges[i].p1()
+            d = np.linalg.norm(p_curr - p_prev)
+            if s <= (d + dist):
+                return self.interpolate(p_prev, p_curr, l - dist, d)
+            dist += d
+            p_prev = p_curr
+        return None
+
 
 def hexagon(scale=1., translate=[0., 0.]):
     verticies = [None] * 6
@@ -737,8 +751,6 @@ def hexagon(scale=1., translate=[0., 0.]):
         verticies[i + 1] = np.dot(rotation_matrix_2d(60), v)
         if i >= 4:
             break
-    for v in verticies:
-        print(v)
     return Polygon(np.array(translate), verticies)
 
 
