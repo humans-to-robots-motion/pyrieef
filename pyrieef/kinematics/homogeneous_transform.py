@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Copyright (c) 2018, University of Stuttgart
+# Copyright (c) 2020, University of Stuttgart
 # All rights reserved.
 #
 # Permission to use, copy, modify, and distribute this software for any purpose
@@ -15,7 +15,7 @@
 # OTHER TORTIOUS ACTION,   ARISING OUT OF OR IN    CONNECTION WITH THE USE   OR
 # PERFORMANCE OF THIS SOFTWARE.
 #
-#                                        Jim Mainprice on Sunday June 13 2018
+#                                      Jim Mainprice on Sunday January 13 2020
 
 from geometry.differentiable_geometry import *
 from geometry.rotations import *
