@@ -26,15 +26,6 @@ robot = create_robot_from_file()
 env = EnvBox()
 box = Box(origin=np.array([-.5, -.5]), dim=np.array([.5, .5]))
 workspace = Workspace(env)
-# workspace.obstacles.append(box)
-# workspace.obstacles.append(hexagon(.1))
-# workspace.obstacles.append(Polygon(
-#     origin=[-.5, -.5],
-#     verticies=[
-#         np.array([.3, .3]),
-#         np.array([.0, .3]),
-#         np.array([.0, .0]),
-#         np.array([.3, .0])]))
 workspace.obstacles.append(
     Polygon(origin=np.array([0., 0.]), verticies=robot.shape))
 viewer = WorkspaceDrawer(workspace, wait_for_keyboard=True)

@@ -32,6 +32,7 @@ class FreeflyerObjective:
                  q_goal=None,
                  embedding=None,
                  robot=None):
+        self.robot = robot
         self.verbose = False
         self.config_space_dim = n       # nb of dofs
         self.q_init = q_init            # start configuration
@@ -42,8 +43,7 @@ class FreeflyerObjective:
         self.embedding = embedding
         self._init_potential_scalar = 0.
         self._term_potential_scalar = 100000.
-        self._velocity_scalar = 10.
-        self._robot = robot
+        self._velocity_scalar = 100.
 
     def add_terminal_term(self):
         terminal_potential = Pullback(
@@ -53,22 +53,25 @@ class FreeflyerObjective:
             Scale(terminal_potential, self._term_potential_scalar))
 
     def add_smoothness_terms(self):
-        clique_l = Pullback(
-            self._robot.keypoint_map(0),
-            self.function_network.left_most_of_clique_map())
-        clique_c = Pullback(
-            self._robot.keypoint_map(0),
-            self.function_network.center_of_clique_map())
-        ws_map_l = Compose(self.embedding, clique_l)
-        ws_map_c = Compose(self.embedding, clique_c)
-        fd = FiniteDifferencesVelocity(
-            self.embedding.output_dimension(),
-            self.dt)
-        ws_vel_map = Compose(fd, CombinedOutputMap([ws_map_l, ws_map_c]))
-        geodesic_term = Pullback(
-            SquaredNorm(np.zeros(ws_vel_map.output_dimension())), ws_vel_map)
-        self.function_network.register_function_for_all_cliques(
-            Scale(geodesic_term, self._velocity_scalar))
+        for name, i in self.robot.keypoint_names.items():
+            print("add kepoint : ", name)
+            clique_l = Pullback(
+                self.robot.keypoint_map(i),
+                self.function_network.left_most_of_clique_map())
+            clique_c = Pullback(
+                self.robot.keypoint_map(i),
+                self.function_network.center_of_clique_map())
+            ws_map_l = Compose(self.embedding, clique_l)
+            ws_map_c = Compose(self.embedding, clique_c)
+            fd = FiniteDifferencesVelocity(
+                self.embedding.output_dimension(),
+                self.dt)
+            ws_vel_map = Compose(fd, CombinedOutputMap([ws_map_l, ws_map_c]))
+            geodesic_term = Pullback(
+                SquaredNorm(np.zeros(ws_vel_map.output_dimension())),
+                ws_vel_map)
+            self.function_network.register_function_for_all_cliques(
+                Scale(geodesic_term, self._velocity_scalar))
 
     def create_clique_network(self):
         self.function_network = CliquesFunctionNetwork(

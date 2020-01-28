@@ -56,7 +56,6 @@ class Freeflyer(Robot):
         self.keypoint_names = {}
         self._kinematics_maps = [None] * len(keypoints)
         for i, name in enumerate(sorted(keypoints.keys())):
-            print("create key point : ", name)
             self._create_map(i, name, scale * np.array(keypoints[name]))
 
     def _create_map(self, i, name, p):
@@ -72,7 +71,8 @@ def assets_data_dir():
 
 
 def create_robot_from_file(
-        filename=assets_data_dir() + "/freeflyer.json"):
+        filename=assets_data_dir() + "/freeflyer.json",
+        scale=None):
     print(filename)
     with open(filename, "r") as read_file:
         config = json.loads(read_file.read())
@@ -80,5 +80,5 @@ def create_robot_from_file(
             config["name"],
             config["keypoints"],
             config["shape"],
-            config["scale"])
+            config["scale"] if scale is None else scale)
     return robot

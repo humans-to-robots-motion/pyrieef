@@ -87,7 +87,6 @@ class TrajectoryOptimizationViewer:
         return self.objective.objective.hessian(x)
 
     def draw(self, trajectory, g_traj=None):
-
         if self.viewer is None:
             self.init_viewer()
         if self._use_3d:
@@ -98,19 +97,21 @@ class TrajectoryOptimizationViewer:
                 self.viewer.draw_ws_background(
                     self.objective.obstacle_potential)
                 self.viewer.draw_ws_obstacles()
-
-        q_init = self.objective.q_init
+        if hasattr(self.objective, 'robot'):
+            draw_robot = True
+            verticies = self.objective.robot.shape
         for k in range(self.objective.T + 1):
             q = trajectory.configuration(k)
             color = (0, 0, 1) if k == 0 else (0, 1, 0)
             color = (1, 0, 0) if k == trajectory.T() else color
             if not self._use_3d:
                 self.viewer.draw_ws_circle(.01, q[:2], color)
+                if draw_robot:
+                    self.viewer.draw_ws_polygon(verticies, q[:2], q[2], color)
             else:
                 cost = self.objective.obstacle_potential(q)
                 self.viewer.draw_ws_sphere(
                     q, height=self.viewer.normalize_height(cost))
             if g_traj is not None:
                 self.viewer.draw_ws_line([q[:2], g_traj.configuration(k)[:2]])
-
         self.viewer.show()

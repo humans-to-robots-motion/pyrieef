@@ -77,6 +77,10 @@ class WorkspaceRender:
         raise NotImplementedError()
 
     @abstractmethod
+    def draw_ws_polygon(self, polygon, color=(1, 0, 0)):
+        raise NotImplementedError()
+
+    @abstractmethod
     def draw_ws_background(self, function):
         raise NotImplementedError()
 
@@ -242,6 +246,17 @@ class WorkspaceOpenGl(WorkspaceRender):
         p1_ws = self._scale * (p1 - corner)
         p2_ws = self._scale * (p2 - corner)
         self.gl.draw_line(p1_ws, p2_ws, linewidth=7, color=(1, 0, 0))
+
+    @abstractmethod
+    def draw_ws_polygon(self, vertices, origin, rotation, color=(1, 0, 0)):
+        t = Transform(
+            translation=self._scale * (
+                origin - np.array([self._extent.x_min, self._extent.y_min])),
+            rotation=rotation)
+        polygon = make_polygon(self._scale * vertices, filled=False)
+        polygon.add_attr(t)
+        polygon.set_color(*color)
+        self.gl.add_onetime(polygon)
 
     def draw_ws_background(self, function):
         Z = function(self._workspace.box.stacked_meshgrid())
