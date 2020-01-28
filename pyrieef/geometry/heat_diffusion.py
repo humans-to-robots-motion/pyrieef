@@ -32,6 +32,7 @@ TIME_FACTOR = 10
 # TIME_STEP =  .0002  # (dx ** 2) (ideal)
 TIME_STEP = 2e-5
 CONSTANT_SOURCE = False
+VECTORIZED = True
 
 
 def kernel(t, d, dim=2):
@@ -73,18 +74,27 @@ def forward_euler_2d(dt, h, source_grid, iterations, occupancy):
     d = 1. / dh2
     u_0[source_grid[0], source_grid[1]] = 1.e4
     u_0 = np.where(occupancy.T > 0, Zero, u_0)
-    for i in range(iterations * TIME_FACTOR):
+    for k in range(iterations * TIME_FACTOR):
         if CONSTANT_SOURCE:
             u_0[source_grid[0], source_grid[1]] = 1.e4
         # Propagate with forward-difference in time
         # central-difference in space
-        u_t[1:-1, 1:-1] = u_0[1:-1, 1:-1] + dt * d * (
-            (u_0[2:, 1:-1] - 2 * u_0[1:-1, 1:-1] + u_0[:-2, 1:-1]) +
-            (u_0[1:-1, 2:] - 2 * u_0[1:-1, 1:-1] + u_0[1:-1, :-2]))
+        if VECTORIZED:
+            u_t[1:-1, 1:-1] = u_0[1:-1, 1:-1] + dt * d * (
+                (u_0[2:, 1:-1] - 2 * u_0[1:-1, 1:-1] + u_0[:-2, 1:-1]) +
+                (u_0[1:-1, 2:] - 2 * u_0[1:-1, 1:-1] + u_0[1:-1, :-2]))
+        else:
+            for i, j in itertools.product(
+                    range(1, NB_POINTS - 1), range(1, NB_POINTS - 1)):
+                u_t[i, j] = u_0[i, j] + dt * d * (
+                    - 4 * u_0[i, j] +
+                    (u_0[i + 1, j] + u_0[i - 1, j]) +
+                    (u_0[i, j + 1] + u_0[i, j - 1]))
+
         u_t = np.where(occupancy.T > 0, Zero, u_t)
         u_0 = u_t.copy()
         t += dt
-        if i % TIME_FACTOR == 0:
+        if k % TIME_FACTOR == 0:
             print("t : {:.3E} , u_t.max() : {:.3E}".format(t, u_t.max()))
             U.append(u_t.copy())
     return U
