@@ -105,12 +105,12 @@ class TrajectoryOptimizationViewer:
             color = (0, 0, 1) if k == 0 else (0, 1, 0)
             color = (1, 0, 0) if k == trajectory.T() else color
             if not self._use_3d:
-                self.viewer.draw_ws_circle(.01, q, color)
+                self.viewer.draw_ws_circle(.01, q[:2], color)
             else:
                 cost = self.objective.obstacle_potential(q)
                 self.viewer.draw_ws_sphere(
                     q, height=self.viewer.normalize_height(cost))
             if g_traj is not None:
-                self.viewer.draw_ws_line([q, g_traj.configuration(k)])
+                self.viewer.draw_ws_line([q[:2], g_traj.configuration(k)[:2]])
 
         self.viewer.show()

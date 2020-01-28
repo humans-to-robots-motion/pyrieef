@@ -55,7 +55,8 @@ class Freeflyer(Robot):
         self.shape = scale * np.array(shape)
         self.keypoint_names = {}
         self._kinematics_maps = [None] * len(keypoints)
-        for i, name in enumerate(keypoints.keys()):
+        for i, name in enumerate(sorted(keypoints.keys())):
+            print("create key point : ", name)
             self._create_map(i, name, scale * np.array(keypoints[name]))
 
     def _create_map(self, i, name, p):

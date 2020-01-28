@@ -83,6 +83,7 @@ def beta_f(eta, r, gamma, x):
 # INVERSE OF BETA
 # neta * exp( gamma *(x + r) )
 
+
 def beta_inv_f(eta, r, gamma, y):
     l = lambertw(eta * gamma * np.exp(r - gamma * y)).real
     return l / gamma + y
@@ -374,7 +375,8 @@ class AnalyticCircle(AnalyticPlaneDiffeomoprhism):
 
     def set_alpha(self, a, b):
         """
-        To recover the distance scaling one should pass the alpha and beta inverse functions.
+        To recover the distance scaling one should pass
+        the alpha and beta inverse functions.
         """
         self.alpha_ = a
         self.beta_inv_ = b
@@ -396,9 +398,8 @@ class AnalyticCircle(AnalyticPlaneDiffeomoprhism):
         l = lambertw(
             self.eta * self.gamma *
             np.exp(self.circle.radius - self.gamma * d_2)).real
-        d_1 = l/self.gamma + d_2
+        d_1 = l / self.gamma + d_2
         return d_1
-
 
     def Deformationinverse(self, y):
         """  maps them back outside of the circle """
@@ -478,7 +479,7 @@ class AnalyticMultiDiffeo(AnalyticPlaneDiffeomoprhism):
 
     def forward(self, x):
         dx = np.array([0., 0.])
-        alpha = self.activations( x)
+        alpha = self.activations(x)
         for i, phi in enumerate(self._diffeomorphisms):
             dx += alpha[i] * phi.Deformationforward(x)
         return x - dx
