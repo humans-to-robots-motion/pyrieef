@@ -20,24 +20,7 @@
 import numpy as np
 
 
-def MahalanobisSquareDistance(x1, x2, D):
-    diff = (x1 - x2)
-    return diff.T * D * diff
-
-
-def MahalanobisDistance(x1, x2, D):
-    return np.sqrt(MahalanobisSquareDistance(x1, x2, D))
-
-
-def LwrWeightFromDist(square_distance):
-    return np.exp(-.5 * square_distance)
-
-
-def LwrWeight(x, x_data, D):
-    return LwrWeightFromDist(MahalanobisSquareDistance(x, x_data, D))
-
-
-def LocallyWeightedRegression(x_query, X, Y, D, ridge_lambda):
+def locally_weighted_regression(x_query, X, Y, D, ridge_lambda):
     """
     VectorXd & x_query
     MatrixXd & X
@@ -87,7 +70,7 @@ def LocallyWeightedRegression(x_query, X, Y, D, ridge_lambda):
     # WX, where W is the diagonal matrix of weights.
     WX = np.array(Xaug.shape[0], Xaug.shape[1])
     for i in range(X.shape[0]):
-        WX[i, :] = LwrWeight(X[i, :].T, x_query, D) * Xaug[i, :]  # check
+        WX[i, :] = lwr_weight(X[i, :].T, x_query, D) * Xaug[i, :]  # check
 
     # Fit plane to the weighted data
     diag = np.diag((ridge_lambda * np.ones(Xaug.shape[1])))
@@ -100,3 +83,20 @@ def LocallyWeightedRegression(x_query, X, Y, D, ridge_lambda):
     # beta=inv(X'WX + lambda I)WX'Y
     # Return inner product between plane and querrie point
     return np.dot(beta.T, x_query_aug)
+
+
+def mahalanobis_square_distance(x1, x2, D):
+    diff = (x1 - x2)
+    return diff.T * D * diff
+
+
+def mahalanobis_distance(x1, x2, D):
+    return np.sqrt(mahalanobis_square_distance(x1, x2, D))
+
+
+def lwr_weight_from_dist(square_distance):
+    return np.exp(-.5 * square_distance)
+
+
+def lwr_weight(x, x_data, D):
+    return lwr_weight_from_dist(mahalanobis_distance(x, x_data, D))
