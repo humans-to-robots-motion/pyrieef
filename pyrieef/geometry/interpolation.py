@@ -21,19 +21,20 @@ import numpy as np
 
 
 def MahalanobisSquareDistance(x1, x2, D):
-    return (x1 - x2).T * D * diff
+    diff = (x1 - x2)
+    return diff.T * D * diff
 
 
 def MahalanobisDistance(x1, x2, D):
-    return sqrt(MahalanobisSquareDistance(x1, x2, D))
+    return np.sqrt(MahalanobisSquareDistance(x1, x2, D))
 
 
-def LwrWeight(square_distance):
-    return exp(-.5 * square_distance)
+def LwrWeightFromDist(square_distance):
+    return np.exp(-.5 * square_distance)
 
 
 def LwrWeight(x, x_data, D):
-    return LwrWeight(MahalanobisSquareDistance(x, x_data, D))
+    return LwrWeightFromDist(MahalanobisSquareDistance(x, x_data, D))
 
 
 def LocallyWeightedRegression(x_query, X, Y, D, ridge_lambda):
@@ -69,16 +70,16 @@ def LocallyWeightedRegression(x_query, X, Y, D, ridge_lambda):
     # Default value is 0. The calculation uses ridge regression with a finite
     # regularizer, so the values should diminish smoothly to 0 away from the
     # data set anyway.
-    if Y.size() == 0:
+    if Y.size == 0:
         return 0.
 
     # The "augmented" version of X has an extra constant
     # feature to represent the bias.
-    Xaug = np.array(X.shape[0], X.shape[1] + 1)
-    Xaug[:-1] = X
-    Xaug[:-1] = np.ones(Xaug.rows())
+    Xaug = np.zeros((X.shape[0], X.shape[1] + 1))
+    Xaug[:, :-1] = X
+    Xaug[:, -1] = np.ones(Xaug.shape[0])
 
-    x_query_aug = np.array(x_query.size() + 1)
+    x_query_aug = np.zeros((x_query.size() + 1))
     x_query_aug[:-1] = x_query
     x_query_aug[-1] = 1
 
