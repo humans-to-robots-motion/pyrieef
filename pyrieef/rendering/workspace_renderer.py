@@ -164,7 +164,7 @@ class WorkspaceDrawer(WorkspaceRender):
         Y = np.array(vertices)[:, 1]
         self._ax.plot(X, Y, color=color, linewidth=2.0)
 
-    def draw_ws_background(self, phi, nb_points=100):
+    def draw_ws_background(self, phi, nb_points=100, color_style=plt.cm.magma):
         X, Y = self._workspace.box.stacked_meshgrid(nb_points)
         if self.background_matrix_eval:
             Z = phi(np.stack([X, Y])).T
