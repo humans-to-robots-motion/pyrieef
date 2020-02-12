@@ -18,15 +18,46 @@
 #                                 Jim Mainprice on Wednesday February 12 2020
 
 import numpy as np
+from .differentiable_geometry import *
+
+
+class LWR(DifferentiableMap):
+    """
+    Embeds the Locally Weighted Regressor
+
+    This allows it to be used for interpolation of derivatives
+    on multi dimensional output
+    """
+
+    def __init__(self, m, n):
+        self._m = m
+        self._n = n
+        self.X = None
+        self.Y = None
+        self.D = None
+        self.ridge_lambda = None
+
+    def output_dimension(self):
+        return self._m
+
+    def input_dimension(self):
+        return self._n
+
+    def forward(self, p):
+        v = np.empty(self._m)
+        for i in range(self._m):
+            v[i] = locally_weighted_regression(
+                p, self.X[i], self.Y[i], self.D[i], self.ridge_lambda[i])
+        return v
 
 
 def locally_weighted_regression(x_query, X, Y, D, ridge_lambda):
     """
-    VectorXd & x_query
-    MatrixXd & X
-    VectorXd & Y
-    MatrixXd & D
-    ridge_lambda
+    Vector x_query
+    Matrix X
+    Vector Y
+    Matrix D
+    Sacalar ridge_lambda
 
     Calculates the locally weighted regression at the query point.
      Parameters:

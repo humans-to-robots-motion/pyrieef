@@ -164,13 +164,14 @@ class WorkspaceDrawer(WorkspaceRender):
         Y = np.array(vertices)[:, 1]
         self._ax.plot(X, Y, color=color, linewidth=2.0)
 
-    def draw_ws_background(self, phi, nb_points=100, color_style=plt.cm.magma):
+    def draw_ws_background(self, phi, nb_points=100,
+                           color_style=plt.cm.magma, interpolate="bilinear"):
         X, Y = self._workspace.box.stacked_meshgrid(nb_points)
         if self.background_matrix_eval:
             Z = phi(np.stack([X, Y])).T
         else:
             Z = two_dimension_function_evaluation(X, Y, phi).T
-        self.draw_ws_img(Z, "bilinear")
+        self.draw_ws_img(Z, interpolate, color_style)
 
     def draw_ws_img(self, Z, interpolate="nearest", color_style=plt.cm.magma):
         """

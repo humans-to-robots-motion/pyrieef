@@ -146,6 +146,26 @@ def test_mahalanobis_tools_test_rescale_mahalanobis():
     assert np.abs(desired_weight - scaled_weight) < 1e-7
 
 
+# def test_signed_distance_interpolation():
+#     workspace = Workspace()
+#     workspace.obstacles = [Circle(origin=[.0, .0], radius=0.1)]
+#     sdf = SignedDistanceWorkspaceMap(workspace)
+#     grid = workspace.box.stacked_meshgrid(20)
+#     X = np.empty((20 ** 2, 2))
+#     Y = np.empty((20 ** 2))
+#     k = 0
+#     for i, j in itertools.product(range(grid.shape[1]),
+#                 range(grid.shape[2])):
+#         X[k, :] = grid[:, i, j]
+#         Y[k] = sdf(X[k, :])
+#         k += 1
+#     sdf_inter = LWR(1, 2)
+#     sdf_inter.X = [X]
+#     sdf_inter.Y = [Y]
+#     sdf_inter.D = [np.eye(2)]
+#     sdf_inter.ridge_lambda = [.1]
+
+
 if __name__ == "__main__":
     test_1d_solution()
     test_lwr()
