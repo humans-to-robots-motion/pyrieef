@@ -135,6 +135,7 @@ def test_breadth_first_search():
     path = converter.breadth_first_search(graph, s_i, s_j, t_i, t_j)
     assert len(path) > 0
 
+
 if __name__ == "__main__":
     test_symetrize()
     test_coordinates()

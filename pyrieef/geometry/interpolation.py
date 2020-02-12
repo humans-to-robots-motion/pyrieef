@@ -15,7 +15,7 @@
 # OTHER TORTIOUS ACTION,   ARISING OUT OF OR IN    CONNECTION WITH THE USE   OR
 # PERFORMANCE OF THIS SOFTWARE.
 #
-#                                    Jim Mainprice on Thursday January 23 2020
+#                                 Jim Mainprice on Wednesday February 12 2020
 
 import numpy as np
 
@@ -31,15 +31,15 @@ def locally_weighted_regression(x_query, X, Y, D, ridge_lambda):
     Calculates the locally weighted regression at the query point.
      Parameters:
       x_query is a column vector with the query point.
-      X's rows contain domain points. Y's entries contain
-      corresponding targets.
+      X's rows contain domain points.
+      Y's entries contain corresponding targets.
       D gives the Mahalanobis metric as:
       dist(x_query, x) = sqrt( (x_query - x)'D(x_query - x) )
       ridge_lambda is the regression regularizer, denoted lambda in the
       calculation below
 
       Calculates:
-          beta^* = \argmin 1/2 |Y - X beta|_W^2 + lambda/2 |w|^2
+          beta^* = argmin 1/2 |Y - X beta|_W^2 + lambda/2 |w|^2
 
           with W a diagonal matrix with elements
                         w_i = \exp{ -1/2 |x_query - x_i|_D^2
@@ -56,30 +56,30 @@ def locally_weighted_regression(x_query, X, Y, D, ridge_lambda):
     if Y.size == 0:
         return 0.
 
+    # Compatibility with 1 dim arrays
+    X.shape = (X.size, 1) if X.ndim == 1 else X.shape
+
     # The "augmented" version of X has an extra constant
     # feature to represent the bias.
-    Xaug = np.zeros((X.shape[0], X.shape[1] + 1))
+    Xaug = np.ones((X.shape[0], X.shape[1] + 1))
     Xaug[:, :-1] = X
-    Xaug[:, -1] = np.ones(Xaug.shape[0])
 
-    x_query_aug = np.zeros((x_query.size() + 1))
+    x_query_aug = np.ones((x_query.size + 1))
     x_query_aug[:-1] = x_query
-    x_query_aug[-1] = 1
 
     # Compute weighted points:
     # WX, where W is the diagonal matrix of weights.
-    WX = np.array(Xaug.shape[0], Xaug.shape[1])
+    WX = np.empty(Xaug.shape)
     for i in range(X.shape[0]):
-        WX[i, :] = lwr_weight(X[i, :].T, x_query, D) * Xaug[i, :]  # check
+        w = lwr_weight(X[i, :].T, x_query, D)
+        WX[i, :] = w * Xaug[i, :]
 
     # Fit plane to the weighted data
-    diag = np.diag((ridge_lambda * np.ones(Xaug.shape[1])))
+    diag = np.diag(ridge_lambda * np.ones(Xaug.shape[1]))
 
-    # Calculate Pinv=X'WX + lambda I. P = inv(Pinv) is then
-    # P = inv(X'WX + lambda I).
-    Pinv = np.dot(WX.T, Xaug) + diag
-    P = np.linalg.inv(Pinv)
-    beta = np.dot(np.dot(P * WX.T) * Y)
+    # Calculate Pinv=X'WX + lambda I.
+    # P = inv(Pinv) is then P = inv(X'WX + lambda I).
+    beta = np.dot(np.linalg.inv(np.dot(WX.T, Xaug) + diag), np.dot(WX.T, Y))
     # beta=inv(X'WX + lambda I)WX'Y
     # Return inner product between plane and querrie point
     return np.dot(beta.T, x_query_aug)
@@ -87,7 +87,7 @@ def locally_weighted_regression(x_query, X, Y, D, ridge_lambda):
 
 def mahalanobis_square_distance(x1, x2, D):
     diff = (x1 - x2)
-    return diff.T * D * diff
+    return np.dot(diff.T, np.dot(D, diff))
 
 
 def mahalanobis_distance(x1, x2, D):
@@ -99,4 +99,28 @@ def lwr_weight_from_dist(square_distance):
 
 
 def lwr_weight(x, x_data, D):
-    return lwr_weight_from_dist(mahalanobis_distance(x, x_data, D))
+    return lwr_weight_from_dist(mahalanobis_square_distance(x, x_data, D))
+
+
+def distance_at_weight_threshold(weight_threshold):
+    return np.sqrt(-2. * np.log(weight_threshold))
+
+
+def rescale_mahalanobis_metric(
+        distance_threshold,
+        corresponding_weight_threshold, D):
+    """
+     Rescale the Mahalanobis metric so that the weight
+     at the specified distance is the given threshold.
+     D is both an input parameter specifying the
+     Mahalanobis metric and an output parameter storing the scaled matrix.
+     It's assumed that distance_threshold
+     is in units given by the Mahalanobis metric.
+
+     Algebra: exp{ -s d^2/2} = w,
+     solve for s (d is the distance threshold, w is
+     the corresponding weight threshold).
+     Solution: s = -2/d^2 log(w)
+    """
+    d_squared = distance_threshold ** 2
+    return D * (-2. / d_squared) * np.log(corresponding_weight_threshold)
