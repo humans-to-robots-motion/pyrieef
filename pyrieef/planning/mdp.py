@@ -238,6 +238,7 @@ def value_iteration(mdp, epsilon=0.001):
 
     U1 = {s: 0 for s in mdp.states}
     R, T, gamma = mdp.R, mdp.T, mdp.gamma
+    iteration = 1
     while True:
         U = U1.copy()
         delta = 0
@@ -246,7 +247,10 @@ def value_iteration(mdp, epsilon=0.001):
                                        for a in mdp.actions(s))
             delta = max(delta, abs(U1[s] - U[s]))
         if delta <= epsilon * (1 - gamma) / gamma:
-            return U
+            break
+        iteration += 1
+    print("value iterations :", iteration)
+    return U
 
 
 def best_policy(mdp, U):
