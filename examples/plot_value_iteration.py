@@ -34,10 +34,12 @@ nb_points = 30
 workspace = Workspace()
 workspace.obstacles = [Circle(origin=[.1, .2], radius=0.1)]
 renderer = WorkspaceDrawer(workspace)
-sdf = SignedDistanceWorkspaceMap(workspace)
+grid = workspace.pixel_map(nb_points)
 occupany = occupancy_map(nb_points, workspace)
 reward = np.where(occupany > 0, -10., -.001)
 reward[0, 0] = 10
+
+# Calculate value function using value iteration
 mdp = GridMDP(reward.tolist(), terminals=[(0, 0)])
 X = value_iteration(mdp)
 value = np.zeros(reward.shape)
@@ -45,8 +47,8 @@ for x in X:
     value[x] = X[x]
 value = np.flip(value, 1).T
 
-grid = workspace.pixel_map(nb_points)
 if USE_LWR:
+    # Regress using LWR (Linear Weighted Regression)
     X_data = np.empty((nb_points ** 2, 2))
     Y_data = np.empty(nb_points ** 2)
     k = 0
@@ -54,20 +56,16 @@ if USE_LWR:
         X_data[k] = grid.grid_to_world(np.array([i, j]))
         Y_data[k] = value[i, j]
         k += 1
-    # Store the Data in a LWR (Linear Weighted Regression)
-    # object where dimension of the vector field are being abstracted
     f = LWR(1, 2)
     f.X = [X_data]
     f.Y = [Y_data]
     f.D = [8 * np.eye(2)]
     f.ridge_lambda = [.1, .1]
 else:
-    # Creates a vector field as the gradient of the signed distance field
+    # Regress using cubic-splines
     f = RegressedPixelGridSpline(value, grid.resolution, grid.extent)
 
 print("calculate gradient...")
-g = f.gradient(np.array([0, 0]))
-
 X, Y = workspace.box.meshgrid(15)
 U, V = np.zeros(X.shape), np.zeros(Y.shape)
 for i, j in itertools.product(range(X.shape[0]), range(X.shape[1])):
