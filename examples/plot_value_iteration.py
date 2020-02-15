@@ -27,6 +27,7 @@ from pyrieef.planning.mdp import value_iteration
 import matplotlib.pyplot as plt
 import itertools
 
+USE_LWR = True
 
 # Creates a workspace with just one circle
 nb_points = 30
@@ -44,10 +45,30 @@ for x in X:
     value[x] = X[x]
 value = np.flip(value, 1).T
 
-# Creates a vector field as the gradient of the signed distance field
 grid = workspace.pixel_map(nb_points)
-f = RegressedPixelGridSpline(value, grid.resolution, grid.extent)
-X, Y = workspace.box.meshgrid(20)
+if USE_LWR:
+    X_data = np.empty((nb_points ** 2, 2))
+    Y_data = np.empty(nb_points ** 2)
+    k = 0
+    for i, j in itertools.product(range(nb_points), range(nb_points)):
+        X_data[k] = grid.grid_to_world(np.array([i, j]))
+        Y_data[k] = value[i, j]
+        k += 1
+    # Store the Data in a LWR (Linear Weighted Regression)
+    # object where dimension of the vector field are being abstracted
+    f = LWR(1, 2)
+    f.X = [X_data]
+    f.Y = [Y_data]
+    f.D = [8 * np.eye(2)]
+    f.ridge_lambda = [.1, .1]
+else:
+    # Creates a vector field as the gradient of the signed distance field
+    f = RegressedPixelGridSpline(value, grid.resolution, grid.extent)
+
+print("calculate gradient...")
+g = f.gradient(np.array([0, 0]))
+
+X, Y = workspace.box.meshgrid(15)
 U, V = np.zeros(X.shape), np.zeros(Y.shape)
 for i, j in itertools.product(range(X.shape[0]), range(X.shape[1])):
     p = np.array([X[i, j], Y[i, j]])

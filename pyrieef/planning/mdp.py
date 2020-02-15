@@ -217,6 +217,7 @@ class GridMDP(MDP):
                  (-1, 0): '<', (0, -1): 'v', None: '.'}
         return self.to_grid({s: chars[a] for (s, a) in policy.items()})
 
+
 # ___________________________________________________________________________
 
 

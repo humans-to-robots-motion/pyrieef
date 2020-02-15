@@ -19,6 +19,7 @@
 
 import numpy as np
 from .differentiable_geometry import *
+from scipy.spatial import distance
 
 
 class LWR(DifferentiableMap):
@@ -100,10 +101,10 @@ def locally_weighted_regression(x_query, X, Y, D, ridge_lambda):
 
     # Compute weighted points:
     # WX, where W is the diagonal matrix of weights.
-    WX = np.empty(Xaug.shape)
-    for i in range(X.shape[0]):
-        w = lwr_weight(X[i, :].T, x_query, D)
-        WX[i, :] = w * Xaug[i, :]
+    X_query = x_query
+    X_query.shape = (1, x_query.size)
+    d = distance.cdist(X_query, X, 'mahalanobis', VI=D)
+    WX = np.exp(-.5 * np.square(d)).T * Xaug
 
     # Fit plane to the weighted data
     diag = np.diag(ridge_lambda * np.ones(Xaug.shape[1]))
