@@ -489,6 +489,32 @@ class ExpTestFunction(DifferentiableMap):
         return np.exp(-(2 * p[0])**2 - (p[1] / 2)**2)
 
 
+class Normalize(DifferentiableMap):
+    """
+        f(x) = x / |x|
+    """
+
+    def __init__(self, n):
+        self._n = n
+
+    def input_dimension(self):
+        return self._n
+
+    def output_dimension(self):
+        return self._n
+
+    def forward(self, x):
+        return x / np.linalg.norm(x)
+
+    def jacobian(self, x):
+        d = np.linalg.norm(x)
+        return (1 / d) * (np.eye(self._n) - np.outer(x, x) / (d ** 2))
+
+    def hessian(self, x):
+        """ TODO """
+        assert self.output_dimension() == 1
+
+
 class SoftMax(DifferentiableMap):
     """ Softmax
 

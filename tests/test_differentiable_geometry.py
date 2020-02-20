@@ -268,6 +268,14 @@ def test_product():
     assert check_hessian_against_finite_difference(f)
 
 
+def test_normalize():
+
+    f = Normalize(3)
+
+    print("Check Normalize (J implementation) : ")
+    assert check_jacobian_against_finite_difference(f)
+
+
 def test_softmax():
 
     dim = 3
@@ -346,4 +354,5 @@ if __name__ == "__main__":
     # test_rangesubspace()
     # test_product()
     # test_softmax()
-    test_activations()
+    # test_activations()
+    test_normalize()
