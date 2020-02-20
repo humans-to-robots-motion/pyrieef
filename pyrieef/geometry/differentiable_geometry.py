@@ -507,8 +507,9 @@ class Normalize(DifferentiableMap):
         return x / np.linalg.norm(x)
 
     def jacobian(self, x):
-        d = np.linalg.norm(x)
-        return (1 / d) * (np.eye(self._n) - np.outer(x, x) / (d ** 2))
+        dinv = 1. / np.linalg.norm(x)
+        s = np.full((self._n, ), dinv)
+        return np.diag(s) - np.outer(x, x) * (dinv ** 3)
 
 
 class SoftMax(DifferentiableMap):
