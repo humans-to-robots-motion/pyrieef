@@ -84,6 +84,39 @@ def test_square_norm():
     assert check_hessian_against_finite_difference(norm)
 
 
+def test_norm():
+    norm = Norm()
+
+    print("----------------------")
+    print("Check norm (1) (J implementation) : ")
+    assert check_jacobian_against_finite_difference(norm)
+
+    print("----------------------")
+    print("Check norm (1) (H implementation) : ")
+    assert check_hessian_against_finite_difference(norm)
+
+    for _ in range(10):
+        x = np.random.rand(norm.input_dimension())
+        H = norm.hessian(0.01 * x)
+        symmetric = np.allclose(H, H.T, atol=1e-8)
+        eig = np.linalg.eigvals(H)
+        posdef = np.all(np.linalg.eigvals(H) > -1e-10)
+        det = np.linalg.det(H)
+        print(" - x : symmetric : {} , posdef : {},\
+         eig : {}, det : {}".format(
+            symmetric, posdef, eig, det))
+
+    norm = Norm(np.random.rand(5))
+
+    print("----------------------")
+    print("Check norm (2) (J implementation) : ")
+    assert check_jacobian_against_finite_difference(norm)
+
+    print("----------------------")
+    print("Check norm (2) (H implementation) : ")
+    assert check_hessian_against_finite_difference(norm)
+
+
 def test_affine():
     dim = 3
     a = np.random.rand(dim, dim)
@@ -345,6 +378,7 @@ if __name__ == "__main__":
     # test_finite_difference()
     # test_zero()
     # test_square_norm()
+    test_norm()
     # test_affine()
     # test_scale()
     # test_sum_of_terms()
@@ -355,4 +389,4 @@ if __name__ == "__main__":
     # test_product()
     # test_softmax()
     # test_activations()
-    test_normalize()
+    # test_normalize()

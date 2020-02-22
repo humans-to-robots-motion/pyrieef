@@ -404,29 +404,17 @@ class QuadricFunction(DifferentiableMap):
             return 0.5 * (self._a + self._a.T)
 
 
-class SquaredNorm(DifferentiableMap):
-    """ Simple squared norm : f(x)= | x - x_0 | ^2 """
-
-    def __init__(self, x_0):
-        self.x_0 = x_0
+class ExpTestFunction(DifferentiableMap):
+    """ Test function that can be evaluated on a grid """
 
     def output_dimension(self):
         return 1
 
     def input_dimension(self):
-        return self.x_0.size
+        return 2
 
-    def forward(self, x):
-        delta_x = np.array(x).reshape(x.size) - self.x_0
-        return 0.5 * np.dot(delta_x, delta_x)
-
-    def jacobian(self, x):
-        delta_x = x - self.x_0
-        return np.matrix(delta_x)
-
-    def hessian(self, x):
-        assert self.output_dimension() == 1
-        return np.matrix(np.eye(self.x_0.size, self.x_0.size))
+    def forward(self, p):
+        return np.exp(-(2 * p[0])**2 - (p[1] / 2)**2)
 
 
 class IdentityMap(DifferentiableMap):
@@ -476,17 +464,60 @@ class ZeroMap(DifferentiableMap):
         return np.matrix(np.zeros((self._n, self._n)))
 
 
-class ExpTestFunction(DifferentiableMap):
-    """ Test function that can be evaluated on a grid """
+class SquaredNorm(DifferentiableMap):
+    """ Simple squared norm : f(x)= | x - x_0 | ^2 """
+
+    def __init__(self, x_0):
+        self.x_0 = x_0
 
     def output_dimension(self):
         return 1
 
     def input_dimension(self):
-        return 2
+        return self.x_0.size
 
-    def forward(self, p):
-        return np.exp(-(2 * p[0])**2 - (p[1] / 2)**2)
+    def forward(self, x):
+        delta_x = np.array(x).reshape(x.size) - self.x_0
+        return 0.5 * np.dot(delta_x, delta_x)
+
+    def jacobian(self, x):
+        delta_x = x - self.x_0
+        return np.matrix(delta_x)
+
+    def hessian(self, x):
+        assert self.output_dimension() == 1
+        return np.matrix(np.eye(self.x_0.size, self.x_0.size))
+
+
+class Norm(DifferentiableMap):
+    """
+        Simple norm f(x) = |x - x_0|
+    """
+
+    def __init__(self, x_0=None):
+        self.x_0 = x_0
+        self._n = 2 if x_0 is None else self.x_0.size
+
+    def output_dimension(self):
+        return 1
+
+    def input_dimension(self):
+        return self._n
+
+    def _xd(self, x):
+        return x - self.x_0 if self.x_0 is not None else x
+
+    def forward(self, x):
+        return np.linalg.norm(self._xd(x))
+
+    def gradient(self, x):
+        x_d = self._xd(x)
+        return x_d / np.linalg.norm(x_d)
+
+    def hessian(self, x):
+        x_d = self._xd(x)
+        d_inv = 1. / np.linalg.norm(x_d)
+        return d_inv * np.eye(x.size) - d_inv**3 * np.outer(x_d, x_d)
 
 
 class Normalize(DifferentiableMap):
