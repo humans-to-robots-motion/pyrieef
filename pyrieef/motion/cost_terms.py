@@ -312,5 +312,5 @@ class ObstaclePotential2D(DifferentiableMap):
         return J
 
     def hessian(self, x):
-        J_phi = self.jacobian().T
+        J_phi = self.jacobian(x)
         return J_phi.T * J_phi

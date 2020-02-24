@@ -30,9 +30,9 @@ import itertools
 
 circles = []
 circles.append(Circle(origin=[.1, .0], radius=0.1))
-circles.append(Circle(origin=[.1, .25], radius=0.05))
-circles.append(Circle(origin=[.2, .25], radius=0.05))
-circles.append(Circle(origin=[.0, .25], radius=0.05))
+# circles.append(Circle(origin=[.1, .25], radius=0.05))
+# circles.append(Circle(origin=[.2, .25], radius=0.05))
+# circles.append(Circle(origin=[.0, .25], radius=0.05))
 
 workspace = Workspace()
 workspace.obstacles = circles
