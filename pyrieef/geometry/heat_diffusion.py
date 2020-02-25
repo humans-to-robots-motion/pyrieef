@@ -100,6 +100,30 @@ def forward_euler_2d(dt, h, source_grid, iterations, occupancy):
     return U
 
 
+def discrete_2d_laplacian(M, N):
+    """
+    Efficient allocation of the Discrete-2D-Laplacian
+
+    TODOs
+        1) change allocation in crank_nicholson_2d
+        2) can do better with range instead of for loop!
+
+    """
+    A = np.zeros((M * N, M * N))
+    diagonal = np.ones(M)
+    Id = np.diag(-1 * diagonal)
+    D = np.diag(4 * diagonal)
+    D[range(1, M), range(M - 1)] = -1
+    D[range(M - 1), range(1, M)] = -1
+    for i in range(N):
+        A[i * M:(i + 1) * M, i * M:(i + 1) * M] = D
+        if i > 0:
+            A[(i - 1) * M:i * M, i * M:(i + 1) * M] = Id
+        if i < N - 1:
+            A[(i + 1) * M:(i + 2) * M, i * M:(i + 1) * M] = Id
+    return A
+
+
 def crank_nicholson_2d(dt, h, source_grid, iterations, occupancy):
     """
     Crank-Nicholson algorithm with matrix inversion
@@ -170,6 +194,24 @@ def crank_nicholson_2d(dt, h, source_grid, iterations, occupancy):
             costs.append(np.reshape(u_t, (-1, NB_POINTS)).copy())
     print("solved!")
     return costs
+
+
+def distance(field=None):
+    """
+    Find the distance of a gradient on a 2d grid
+
+    https://en.wikipedia.org/wiki/Discrete_Poisson_equation
+
+     gradient is given as
+        f_00_x
+        f_00_y
+        f_01_x
+        f_01_y
+        ...
+    """
+    # divergence = np.sum(np.gradient(field),axis=0)
+    A = discrete_2d_laplacian(100, 100)
+    print(A)
 
 
 def heat_diffusion(workspace, source, iterations):

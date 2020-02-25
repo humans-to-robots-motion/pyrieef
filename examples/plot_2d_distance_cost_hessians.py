@@ -56,13 +56,13 @@ sdf = SignedDistanceWorkspaceMap(workspace)
 cost = ObstaclePotential2D(sdf, 1., 10.)
 
 # Querries the hessian of the cost
-nb_points = 10
+nb_points = 11
 X, Y = workspace.box.meshgrid(nb_points)
 Sigma = []
 for i, j in itertools.product(range(X.shape[0]), range(X.shape[1])):
     p = np.array([X[i, j], Y[i, j]])
     H = cost.hessian(p)
-    Sigma.append([p, np.linalg.inv(H)])
+    Sigma.append([p, H])  # np.linalg.inv(H)])
 
 renderer.set_drawing_axis(i)
 renderer.background_matrix_eval = False
