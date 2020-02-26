@@ -44,7 +44,7 @@ circles.append(Circle(origin=[.0, .25], radius=0.05))
 workspace = Workspace()
 workspace.obstacles = circles
 renderer = WorkspaceDrawer(workspace, rows=ROWS, cols=COLS)
-x_source = np.array([0.2, 0.15])
+x_source = np.array([0.21666667, 0.15])
 
 # ------------------------------------------------------------------------------
 # iterations = ROWS * COLS
@@ -67,10 +67,16 @@ for i, j in itertools.product(range(X.shape[0]), range(X.shape[1])):
 for i in range(iterations):
     if ROWS * COLS == 1 and i < iterations - 1:
         continue
+    print("plot..")
+    grid_sparse = workspace.pixel_map(30)
+    p_source = grid_sparse.world_to_grid(x_source)
+    p = grid_sparse.grid_to_world(p_source)
+    print(p)
+    dist = hd.distance([U, V])
     renderer.set_drawing_axis(i)
     renderer.draw_ws_obstacles()
-    renderer.draw_ws_point([x_source[0], x_source[1]], color='r', shape='o')
+    renderer.draw_ws_point(p, color='r', shape='o')
     renderer.background_matrix_eval = False
-    renderer.draw_ws_img(u_t[i], interpolate="none", color_style=plt.cm.hsv)
+    renderer.draw_ws_img(dist, interpolate="none", color_style=plt.cm.hsv)
     renderer._ax.quiver(X, Y, U, V, units='width')
 renderer.show()

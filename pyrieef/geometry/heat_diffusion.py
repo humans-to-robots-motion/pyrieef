@@ -22,6 +22,7 @@ from .workspace import *
 from .pixel_map import *
 from utils.misc import *
 import itertools
+from functools import reduce
 # import scipy
 
 NB_POINTS = 20
@@ -100,7 +101,7 @@ def forward_euler_2d(dt, h, source_grid, iterations, occupancy):
     return U
 
 
-def discrete_2d_laplacian(M, N):
+def discrete_2d_laplacian(M, N, matrix_form=False):
     """
     Efficient allocation of the Discrete-2D-Laplacian
 
@@ -110,18 +111,33 @@ def discrete_2d_laplacian(M, N):
 
     """
     A = np.zeros((M * N, M * N))
-    diagonal = np.ones(M)
-    Id = np.diag(-1 * diagonal)
-    D = np.diag(4 * diagonal)
-    D[range(1, M), range(M - 1)] = -1
-    D[range(M - 1), range(1, M)] = -1
-    for i in range(N):
-        A[i * M:(i + 1) * M, i * M:(i + 1) * M] = D
-        if i > 0:
-            A[(i - 1) * M:i * M, i * M:(i + 1) * M] = Id
-        if i < N - 1:
-            A[(i + 1) * M:(i + 2) * M, i * M:(i + 1) * M] = Id
-    return A
+    if matrix_form:
+        diagonal = np.ones(M)
+        Id = np.diag(-1 * diagonal)
+        D = np.diag(4 * diagonal)
+        D[range(1, M), range(M - 1)] = -1
+        D[range(M - 1), range(1, M)] = -1
+        for i in range(N):
+            A[i * M:(i + 1) * M, i * M:(i + 1) * M] = D
+            if i > 0:
+                A[(i - 1) * M:i * M, i * M:(i + 1) * M] = Id
+            if i < N - 1:
+                A[(i + 1) * M:(i + 2) * M, i * M:(i + 1) * M] = Id
+        return A
+    else:
+        # This actually seems wrong...
+        for p, q in itertools.product(range(A.shape[0]), range(A.shape[1])):
+            i0, j0 = row_major(p, A.shape[0])
+            i1, j1 = row_major(q, A.shape[0])
+            if p == q:
+                A[p, q] = 4
+            elif (
+                    i0 == i1 - 1) and (j0 == j1) or (
+                    i0 == i1 + 1) and (j0 == j1) or (
+                    i0 == i1) and (j0 == j1 - 1) or (
+                    i0 == i1) and (j0 == j1 + 1):
+                A[p, q] = -1
+        return A
 
 
 def crank_nicholson_2d(dt, h, source_grid, iterations, occupancy):
@@ -196,6 +212,25 @@ def crank_nicholson_2d(dt, h, source_grid, iterations, occupancy):
     return costs
 
 
+def normalized_gradient(field):
+    """
+    Compute the discrete normalized gradient from scalar field
+    """
+    gradient = np.gradient(field)
+    norms = np.linalg.norm(gradient, axis=0)
+    gradient = np.array([np.where(norms == 0, 0, i / norms) for i in gradient])
+    return gradient
+
+
+def divergence(gradient):
+    """
+    Compute the discrete divergence of a vector field
+    """
+    D = reduce(np.add, gradient)
+    print("D : ", D.shape)
+    return D
+
+
 def distance(field=None):
     """
     Find the distance of a gradient on a 2d grid
@@ -209,9 +244,20 @@ def distance(field=None):
         f_01_y
         ...
     """
-    # divergence = np.sum(np.gradient(field),axis=0)
-    A = discrete_2d_laplacian(100, 100)
-    print(A)
+    field = np.array(field)
+    M = field.shape[1]
+    N = field.shape[2]
+    print("M : ")
+    A = discrete_2d_laplacian(M, N, True)
+    b = divergence(field).flatten()
+    print("A shape : ", A.shape)
+    print("b shape : ", b.shape)
+    A_inv = np.linalg.inv(A)
+    print("A_inv shape : ", A_inv.shape)
+    dist = np.dot(A_inv, b)
+    # dist = b
+    dist.shape = (M, N)
+    return dist
 
 
 def heat_diffusion(workspace, source, iterations):
