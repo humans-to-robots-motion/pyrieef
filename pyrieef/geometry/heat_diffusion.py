@@ -173,6 +173,33 @@ def crank_nicholson_2d(dt, h, source_grid, iterations, occupancy):
     return costs
 
 
+def discrete_2d_gradient(M, N, axis=0):
+    """
+    Efficient allocation of the Discrete-2D-Gradient
+    """
+    dim = M * N
+    if axis == 0:
+        A = np.identity(dim)
+        A[range(dim - 1), range(1, dim)] = -1
+        A[range(dim - 1), range(1, dim)] = -1
+
+        # every end of row left difference
+        A[range(M - 1, M * (N - 1), M), range(M, dim, M)] = 0
+        A[range(M - 1, dim, M), range(M - 1, dim, M)] = -1
+        A[range(M - 1, dim, M), range(M - 2, dim, M)] = 1
+
+    if axis == 1:
+        A = np.identity(dim)
+        A[range(M * (N - 1)), range(M, dim)] = -1
+
+        # every end of collumn left difference
+        last_block = range(M * (N - 1), dim)
+        A[last_block, last_block] = -1
+        A[last_block, range(M * (N - 2), M * (N - 1))] = 1
+
+    return A
+
+
 def discrete_2d_laplacian(M, N, matrix_form=False):
     """
     Efficient allocation of the Discrete-2D-Laplacian
@@ -222,14 +249,28 @@ def normalized_gradient(field):
     return gradient
 
 
-def divergence(gradient):
+def divergence(f):
     """
     Compute the discrete divergence of a vector field
     """
-    return reduce(np.add, gradient)
+    # return reduce(np.add, gradient)
+    return np.ufunc.reduce(
+        np.add,
+        [np.gradient(f[i], axis=i) for i in range(len(f))])
 
 
-def distance(source, gradient, occupancy):
+def distance_from_gradient(U, V):
+    N = U.shape[0]
+    Dx = discrete_2d_gradient(N, N, axis=0)
+    Dy = discrete_2d_gradient(N, N, axis=1)
+    grad = np.hstack([U.flatten(), V.flatten()])
+    D = np.vstack([Dx, Dy])
+    phi = np.dot(np.linalg.pinv(D), grad)
+    phi.shape = (N, N)
+    return phi
+
+
+def distance(source, D, dh):
     """
     Find the distance of a gradient on a 2d grid
 
@@ -240,26 +281,39 @@ def distance(source, gradient, occupancy):
 
         we use a row major convention
         A = [a11, a12, a13, a21, a22, a23, ..., aMN]
-
     """
-    gradient = np.array(gradient)
-    M = gradient.shape[1]
-    N = gradient.shape[2]
-    print("M : ")
-    A = discrete_2d_laplacian(M, N, True)
-    D = divergence(gradient)
-    D[:, 0] = D[0, :] = D[:, -1] = D[-1, :] = 0
-    D[source[0], source[1]] = D.min() - 100
-    D[np.where(occupancy.T > 0)] = 0
-    id_s = source[1] + M * source[0]
-    A[id_s, :] = np.zeros(M * N)
-    A[id_s, id_s] = 1
+    # gradient = -1. * np.array(gradient)
+    M = D.shape[0]
+    N = D.shape[1]
+    r = 1 / (dh**2)
+    A = r * discrete_2d_laplacian(M, N, True)
+    # D = divergence(gradient)
+    # Dc = D.copy()
+    # D[source[1], source[0]] = 1000
+    # D[np.where(occupancy.T > 0)] = np.Inf
+    D = D.flatten()
+    # idxs_o = np.where(D == np.Inf)
+    # idxs_i = np.where(D < np.Inf)
+    # A = np.delete(A, idxs_o, axis=0)
+    # A = np.delete(A, idxs_o, axis=1)
+    # D = np.delete(D, idxs_o)
+    assert A.shape[0] == D.shape[0]
+    assert A.shape[1] == D.shape[0]
     A_inv = np.linalg.inv(A)
-    dist = np.dot(A_inv, D.flatten())
-    dist.shape = (M, N)
-    dist -= dist.min()
-    dist[np.where(occupancy.T > 0)] = 10
-    return dist
+    phi = np.dot(A_inv, D)
+    # phi = D
+    d = np.linalg.norm(np.dot(A, phi) - D)
+    print("d = ", d)
+    # phi = D
+    # phi -= phi.min()
+    # dist = np.empty(M * N)
+    # for i in range(len(idxs_i[0])):
+    #     dist[idxs_i[0][i]] = phi[i]
+    # dist[idxs_o] = 10
+    phi -= phi.min()
+    phi.shape = (M, N)
+    # print("dist.max() : ", dist.max())
+    return phi
 
 
 def heat_diffusion(workspace, source, iterations):

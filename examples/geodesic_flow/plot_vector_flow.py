@@ -34,7 +34,7 @@ hd.TIME_FACTOR = 200
 hd.TIME_STEP = 2e-5
 hd.ALGORITHM = "forward"
 hd.CONSTANT_SOURCE = True
-N = 30
+N = 40
 
 circles = []
 circles.append(Circle(origin=[.1, .0], radius=0.1))
@@ -58,26 +58,47 @@ U, V = np.zeros(X.shape), np.zeros(Y.shape)
 print(u_t[-1].shape)
 print(X.shape)
 print(Y.shape)
+phi = np.empty(X.shape)
 f = RegressedPixelGridSpline(u_t[-1], grid.resolution, grid.extent)
 for i, j in itertools.product(range(X.shape[0]), range(X.shape[1])):
-    g = f.gradient(np.array([X[i, j], Y[i, j]]))
-    g /= np.linalg.norm(g)
+    p = np.array([X[i, j], Y[i, j]])
+    phi[i, j] = f(p)
+    g = f.gradient(p)
+    g /= max(np.linalg.norm(g), 1e-30)
     U[i, j] = g[0]
     V[i, j] = g[1]
+
+div = np.zeros(X.shape)
+grid_sparse = workspace.pixel_map(N)
+vx = RegressedPixelGridSpline(U.T, grid_sparse.resolution, grid_sparse.extent)
+vy = RegressedPixelGridSpline(V.T, grid_sparse.resolution, grid_sparse.extent)
+for i, j in itertools.product(range(X.shape[0]), range(X.shape[1])):
+    p = np.array([X[i, j], Y[i, j]])
+    vxx = vx.gradient(p)[0]
+    vyy = vy.gradient(p)[1]
+    div[i, j] = vxx + vyy
 
 for i in range(iterations):
     if ROWS * COLS == 1 and i < iterations - 1:
         continue
     print("plot..")
-    grid_sparse = workspace.pixel_map(N)
     p_source = grid_sparse.world_to_grid(x_source)
     p = grid_sparse.grid_to_world(p_source)
-    print(p)
-    dist = hd.distance(p_source, [U, V], occupancy_map(N, workspace).T)
+    phi = phi.T
+    phi = hd.distance(p_source, div.T, 1. / N)
+    # phi = U.T
+    # phi = div.T
     renderer.set_drawing_axis(i)
     renderer.draw_ws_obstacles()
     renderer.draw_ws_point(p, color='r', shape='o')
     renderer.background_matrix_eval = False
-    renderer.draw_ws_img(dist, interpolate="none", color_style=plt.cm.hsv)
+    renderer.draw_ws_img(phi, interpolate="none", color_style=plt.cm.hsv)
+    f = RegressedPixelGridSpline(
+        phi, grid_sparse.resolution, grid_sparse.extent)
+    for i, j in itertools.product(range(X.shape[0]), range(X.shape[1])):
+        g = -1 * f.gradient(np.array([X[i, j], Y[i, j]]))
+        g /= np.linalg.norm(g)
+        U[i, j] = g[0]
+        V[i, j] = g[1]
     renderer._ax.quiver(X, Y, U, V, units='width')
 renderer.show()
