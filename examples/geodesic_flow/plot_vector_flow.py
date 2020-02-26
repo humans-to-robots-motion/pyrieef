@@ -34,6 +34,7 @@ hd.TIME_FACTOR = 200
 hd.TIME_STEP = 2e-5
 hd.ALGORITHM = "forward"
 hd.CONSTANT_SOURCE = True
+N = 30
 
 circles = []
 circles.append(Circle(origin=[.1, .0], radius=0.1))
@@ -50,8 +51,8 @@ x_source = np.array([0.21666667, 0.15])
 # iterations = ROWS * COLS
 iterations = 9
 u_t = hd.heat_diffusion(workspace, x_source, iterations)
-grid = workspace.pixel_map(101)
-X, Y = workspace.box.meshgrid(30)
+grid = workspace.pixel_map(hd.NB_POINTS)
+X, Y = workspace.box.meshgrid(N)
 U, V = np.zeros(X.shape), np.zeros(Y.shape)
 
 print(u_t[-1].shape)
@@ -68,11 +69,11 @@ for i in range(iterations):
     if ROWS * COLS == 1 and i < iterations - 1:
         continue
     print("plot..")
-    grid_sparse = workspace.pixel_map(30)
+    grid_sparse = workspace.pixel_map(N)
     p_source = grid_sparse.world_to_grid(x_source)
     p = grid_sparse.grid_to_world(p_source)
     print(p)
-    dist = hd.distance([U, V])
+    dist = hd.distance(p_source, [U, V], occupancy_map(N, workspace).T)
     renderer.set_drawing_axis(i)
     renderer.draw_ws_obstacles()
     renderer.draw_ws_point(p, color='r', shape='o')

@@ -101,45 +101,6 @@ def forward_euler_2d(dt, h, source_grid, iterations, occupancy):
     return U
 
 
-def discrete_2d_laplacian(M, N, matrix_form=False):
-    """
-    Efficient allocation of the Discrete-2D-Laplacian
-
-    TODOs
-        1) change allocation in crank_nicholson_2d
-        2) can do better with range instead of for loop!
-
-    """
-    A = np.zeros((M * N, M * N))
-    if matrix_form:
-        diagonal = np.ones(M)
-        Id = np.diag(-1 * diagonal)
-        D = np.diag(4 * diagonal)
-        D[range(1, M), range(M - 1)] = -1
-        D[range(M - 1), range(1, M)] = -1
-        for i in range(N):
-            A[i * M:(i + 1) * M, i * M:(i + 1) * M] = D
-            if i > 0:
-                A[(i - 1) * M:i * M, i * M:(i + 1) * M] = Id
-            if i < N - 1:
-                A[(i + 1) * M:(i + 2) * M, i * M:(i + 1) * M] = Id
-        return A
-    else:
-        # This actually seems wrong...
-        for p, q in itertools.product(range(A.shape[0]), range(A.shape[1])):
-            i0, j0 = row_major(p, A.shape[0])
-            i1, j1 = row_major(q, A.shape[0])
-            if p == q:
-                A[p, q] = 4
-            elif (
-                    i0 == i1 - 1) and (j0 == j1) or (
-                    i0 == i1 + 1) and (j0 == j1) or (
-                    i0 == i1) and (j0 == j1 - 1) or (
-                    i0 == i1) and (j0 == j1 + 1):
-                A[p, q] = -1
-        return A
-
-
 def crank_nicholson_2d(dt, h, source_grid, iterations, occupancy):
     """
     Crank-Nicholson algorithm with matrix inversion
@@ -212,6 +173,45 @@ def crank_nicholson_2d(dt, h, source_grid, iterations, occupancy):
     return costs
 
 
+def discrete_2d_laplacian(M, N, matrix_form=False):
+    """
+    Efficient allocation of the Discrete-2D-Laplacian
+
+    TODOs
+        1) change allocation in crank_nicholson_2d
+        2) can do better with range instead of for loop!
+
+    """
+    A = np.zeros((M * N, M * N))
+    if matrix_form:
+        diagonal = np.ones(M)
+        Id = np.diag(-1 * diagonal)
+        D = np.diag(4 * diagonal)
+        D[range(1, M), range(M - 1)] = -1
+        D[range(M - 1), range(1, M)] = -1
+        for i in range(N):
+            A[i * M:(i + 1) * M, i * M:(i + 1) * M] = D
+            if i > 0:
+                A[(i - 1) * M:i * M, i * M:(i + 1) * M] = Id
+            if i < N - 1:
+                A[(i + 1) * M:(i + 2) * M, i * M:(i + 1) * M] = Id
+        return A
+    else:
+        # This actually seems wrong...
+        for p, q in itertools.product(range(A.shape[0]), range(A.shape[1])):
+            i0, j0 = row_major(p, A.shape[0])
+            i1, j1 = row_major(q, A.shape[0])
+            if p == q:
+                A[p, q] = 4
+            elif (
+                    i0 == i1 - 1) and (j0 == j1) or (
+                    i0 == i1 + 1) and (j0 == j1) or (
+                    i0 == i1) and (j0 == j1 - 1) or (
+                    i0 == i1) and (j0 == j1 + 1):
+                A[p, q] = -1
+        return A
+
+
 def normalized_gradient(field):
     """
     Compute the discrete normalized gradient from scalar field
@@ -226,37 +226,39 @@ def divergence(gradient):
     """
     Compute the discrete divergence of a vector field
     """
-    D = reduce(np.add, gradient)
-    print("D : ", D.shape)
-    return D
+    return reduce(np.add, gradient)
 
 
-def distance(field=None):
+def distance(source, gradient, occupancy):
     """
     Find the distance of a gradient on a 2d grid
 
-    https://en.wikipedia.org/wiki/Discrete_Poisson_equation
+        https://en.wikipedia.org/wiki/Discrete_Poisson_equation
 
-     gradient is given as
-        f_00_x
-        f_00_y
-        f_01_x
-        f_01_y
-        ...
+        source is given as index in matrix
+        gradient is given as two matrices [U, V]
+
+        we use a row major convention
+        A = [a11, a12, a13, a21, a22, a23, ..., aMN]
+
     """
-    field = np.array(field)
-    M = field.shape[1]
-    N = field.shape[2]
+    gradient = np.array(gradient)
+    M = gradient.shape[1]
+    N = gradient.shape[2]
     print("M : ")
     A = discrete_2d_laplacian(M, N, True)
-    b = divergence(field).flatten()
-    print("A shape : ", A.shape)
-    print("b shape : ", b.shape)
+    D = divergence(gradient)
+    D[:, 0] = D[0, :] = D[:, -1] = D[-1, :] = 0
+    D[source[0], source[1]] = D.min() - 100
+    D[np.where(occupancy.T > 0)] = 0
+    id_s = source[1] + M * source[0]
+    A[id_s, :] = np.zeros(M * N)
+    A[id_s, id_s] = 1
     A_inv = np.linalg.inv(A)
-    print("A_inv shape : ", A_inv.shape)
-    dist = np.dot(A_inv, b)
-    # dist = b
+    dist = np.dot(A_inv, D.flatten())
     dist.shape = (M, N)
+    dist -= dist.min()
+    dist[np.where(occupancy.T > 0)] = 10
     return dist
 
 
