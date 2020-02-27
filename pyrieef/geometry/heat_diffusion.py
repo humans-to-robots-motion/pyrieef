@@ -258,7 +258,7 @@ def divergence(f):
         [np.gradient(f[i], axis=i) for i in range(len(f))])
 
 
-def distance_from_gradient(U, V, dh):
+def distance_from_gradient(U, V, dh, f=None):
     """
     Get a scalar field from gradients
     """
@@ -267,12 +267,13 @@ def distance_from_gradient(U, V, dh):
     Dy = (1. / dh) * discrete_2d_gradient(N, N, axis=1)
     grad = np.hstack([U.flatten(), V.flatten()])
     D = np.vstack([Dx, Dy])
+    if f is not None:
+        grad = np.dot(D, f.flatten())
     phi = np.dot(np.linalg.pinv(D), grad)
     print(grad.shape)
     print(D.shape)
     print(phi.shape)
-    grad_n = D * phi
-    d = np.linalg.norm(grad - grad_n)
+    d = np.linalg.norm(grad - np.dot(D, phi))
     print("d : ", d)
     phi.shape = (N, N)
     return phi

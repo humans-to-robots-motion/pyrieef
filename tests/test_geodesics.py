@@ -19,6 +19,7 @@
 
 from __init__ import *
 from utils.misc import *
+from geometry.heat_diffusion import *
 
 
 def test_matrix_coordinates():
@@ -28,5 +29,21 @@ def test_matrix_coordinates():
         assert i == (x + y * DIM)
 
 
+def test_distance_from_gradient():
+    N = 20
+    workspace = Workspace()
+    workspace.obstacles = [Circle(origin=[-2, -2], radius=0.1)]
+    Dx = float(N) * discrete_2d_gradient(N, N, axis=0)
+    Dy = float(N) * discrete_2d_gradient(N, N, axis=1)
+    D = np.vstack([Dx, Dy])
+    f = sdf(occupancy_map(N, workspace)).T
+    grad = np.dot(D, f.flatten())
+    phi = np.dot(np.linalg.pinv(D), grad)
+    d = np.linalg.norm(grad - np.dot(D, phi))
+    print("d : ", d)
+    assert d < 1e-10
+
+
 if __name__ == "__main__":
     test_matrix_coordinates()
+    test_distance_from_gradient()

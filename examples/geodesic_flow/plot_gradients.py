@@ -25,17 +25,17 @@ from pyrieef.rendering.workspace_renderer import WorkspaceDrawer
 import matplotlib.pyplot as plt
 import itertools
 
-N = 20
+N = 27
 
 print(hd.discrete_2d_gradient(3, 3, axis=0))
 print(hd.discrete_2d_gradient(3, 3, axis=1))
 
 # exit()
 circles = []
-circles.append(Circle(origin=[.1, .0], radius=0.1))
-circles.append(Circle(origin=[.1, .25], radius=0.05))
-circles.append(Circle(origin=[.2, .25], radius=0.05))
-circles.append(Circle(origin=[.0, .25], radius=0.05))
+circles.append(Circle(origin=[-2, -2], radius=0.1))
+# circles.append(Circle(origin=[.1, .25], radius=0.05))
+# circles.append(Circle(origin=[.2, .25], radius=0.05))
+# circles.append(Circle(origin=[.0, .25], radius=0.05))
 workspace = Workspace()
 workspace.obstacles = circles
 X, Y = workspace.box.meshgrid(N)
@@ -43,11 +43,11 @@ occ = occupancy_map(N, workspace)
 f = sdf(occ).T
 U = -1 * np.gradient(f.T, axis=0).T
 V = -1 * np.gradient(f.T, axis=1).T
-phi = hd.distance_from_gradient(U, V, 1. / N)
+phi = hd.distance_from_gradient(U, V, 1. / N, f)
 phi -= phi.min()  # set min to 0 for comparison
 f -= f.min()
-d = np.linalg.norm(phi - f)
-print(d)
+# d = np.linalg.norm(phi - f)
+# print(d)
 renderer = WorkspaceDrawer(workspace)
 renderer.draw_ws_obstacles()
 renderer.draw_ws_img(f.T, interpolate="none", color_style=plt.cm.hsv)
