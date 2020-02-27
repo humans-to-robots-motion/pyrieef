@@ -85,14 +85,12 @@ for i in range(iterations):
     p_source = grid_sparse.world_to_grid(x_source)
     p = grid_sparse.grid_to_world(p_source)
     phi = phi.T
-    phi = hd.distance(p_source, div.T, 1. / N)
-    # phi = U.T
-    # phi = div.T
+    # phi = hd.distance(U, V, div, 1. / N).T
     renderer.set_drawing_axis(i)
     renderer.draw_ws_obstacles()
     renderer.draw_ws_point(p, color='r', shape='o')
     renderer.background_matrix_eval = False
-    renderer.draw_ws_img(phi, interpolate="none", color_style=plt.cm.hsv)
+    renderer.draw_ws_img(phi, interpolate="bicubic", color_style=plt.cm.hsv)
     f = RegressedPixelGridSpline(
         phi, grid_sparse.resolution, grid_sparse.extent)
     for i, j in itertools.product(range(X.shape[0]), range(X.shape[1])):

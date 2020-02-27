@@ -111,10 +111,10 @@ def crank_nicholson_2d(dt, h, source_grid, iterations, occupancy):
 
     U(i,j,m+1) = U(i,j,m) + k*Discrete-2D-Laplacian(U)(i,j,m)
                           k
-               = (1 - 4*---) * U(i,j,m) +
+               = (1 - 4* ---) * U(i,j,m) +
                          h^2
                    k
-                  ---*(U(i-1,j,m) + U(i+1,j,m) + U(i,j-1,m) + U(i,j+1,m))
+                  --- * (U(i-1,j,m) + U(i+1,j,m) + U(i,j-1,m) + U(i,j+1,m))
                   h^2
     """
     d = 1. / (h ** 2)
@@ -259,10 +259,10 @@ def divergence(f):
         [np.gradient(f[i], axis=i) for i in range(len(f))])
 
 
-def distance_from_gradient(U, V):
+def distance_from_gradient(U, V, dh):
     N = U.shape[0]
-    Dx = discrete_2d_gradient(N, N, axis=0)
-    Dy = discrete_2d_gradient(N, N, axis=1)
+    Dx = (1. / dh) * discrete_2d_gradient(N, N, axis=0)
+    Dy = (1. / dh) * discrete_2d_gradient(N, N, axis=1)
     grad = np.hstack([U.flatten(), V.flatten()])
     D = np.vstack([Dx, Dy])
     phi = np.dot(np.linalg.pinv(D), grad)
@@ -270,14 +270,13 @@ def distance_from_gradient(U, V):
     return phi
 
 
-def distance(source, D, dh):
+def poisson_equation(D, dh):
     """
     Find the distance of a gradient on a 2d grid
 
         https://en.wikipedia.org/wiki/Discrete_Poisson_equation
 
-        source is given as index in matrix
-        gradient is given as two matrices [U, V]
+        D : divergence
 
         we use a row major convention
         A = [a11, a12, a13, a21, a22, a23, ..., aMN]
@@ -285,34 +284,67 @@ def distance(source, D, dh):
     # gradient = -1. * np.array(gradient)
     M = D.shape[0]
     N = D.shape[1]
-    r = 1 / (dh**2)
-    A = r * discrete_2d_laplacian(M, N, True)
-    # D = divergence(gradient)
-    # Dc = D.copy()
-    # D[source[1], source[0]] = 1000
-    # D[np.where(occupancy.T > 0)] = np.Inf
+    A = (1. / (dh**2)) * discrete_2d_laplacian(M, N, True)
     D = D.flatten()
-    # idxs_o = np.where(D == np.Inf)
-    # idxs_i = np.where(D < np.Inf)
-    # A = np.delete(A, idxs_o, axis=0)
-    # A = np.delete(A, idxs_o, axis=1)
-    # D = np.delete(D, idxs_o)
-    assert A.shape[0] == D.shape[0]
-    assert A.shape[1] == D.shape[0]
     A_inv = np.linalg.inv(A)
     phi = np.dot(A_inv, D)
-    # phi = D
-    d = np.linalg.norm(np.dot(A, phi) - D)
-    print("d = ", d)
-    # phi = D
-    # phi -= phi.min()
-    # dist = np.empty(M * N)
-    # for i in range(len(idxs_i[0])):
-    #     dist[idxs_i[0][i]] = phi[i]
-    # dist[idxs_o] = 10
-    phi -= phi.min()
+    phi -= phi.min()  # solve by setting minimum to 0
     phi.shape = (M, N)
-    # print("dist.max() : ", dist.max())
+    return phi
+
+
+def distance(U, V, D, dh):
+    """
+    Find the distance of a gradient on a 2d grid
+
+        [U, V] : gradient is given as two matrices
+        D : divergence
+
+        we use a row major convention
+        A = [a11, a12, a13, a21, a22, a23, ..., aMN]
+
+        # D = divergence(gradient)
+        # Dc = D.copy()
+        # D[source[1], source[0]] = 1000
+        # D[np.where(occupancy.T > 0)] = np.Inf
+        D = D.flatten()
+        # idxs_o = np.where(D == np.Inf)
+        # idxs_i = np.where(D < np.Inf)
+        # A = np.delete(A, idxs_o, axis=0)
+        # A = np.delete(A, idxs_o, axis=1)
+        # D = np.delete(D, idxs_o)
+        # phi = D
+        # phi -= phi.min()
+        # dist = np.empty(M * N)
+        # for i in range(len(idxs_i[0])):
+        #     dist[idxs_i[0][i]] = phi[i]
+        # dist[idxs_o] = 10
+    """
+    M = D.shape[0]
+    N = D.shape[1]
+    Dx = (1. / dh) * discrete_2d_gradient(N, N, axis=0)
+    Dy = (1. / dh) * discrete_2d_gradient(N, N, axis=1)
+
+    # D2xy = (1. / (dh**2)) * discrete_2d_laplacian(M, N, True)
+    # b = np.hstack([U.flatten(), V.flatten(), D.flatten()])
+    # A = np.vstack([Dx, Dy, D2xy])
+
+    b = np.hstack([U.flatten(), V.flatten()])
+    A = np.vstack([Dx, Dy])
+
+    print("inverse matrix...")
+    A_inv = np.linalg.pinv(A)
+
+    phi = np.dot(A_inv, b)
+    phi -= phi.min()
+
+    d = np.linalg.norm(np.dot(Dx, phi) - U.flatten())
+    print("d1 = ", d)
+
+    d = np.linalg.norm(np.dot(Dy, phi) - V.flatten())
+    print("d2 = ", d)
+
+    phi.shape = (M, N)
     return phi
 
 
