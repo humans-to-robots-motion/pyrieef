@@ -246,9 +246,10 @@ class RangeSubspaceMap(DifferentiableMap):
         return q[self._indices]
 
     def jacobian(self, q):
-        J = np.zeros((self.output_dimension(), self.input_dimension()))
-        J[self._indices, self._indices] = 1
-        return J
+        return np.matrix(np.eye(self._dim))[self._indices, :]
+        # J = np.zeros((self.output_dimension(), self.input_dimension()))
+        # J[self._indices, self._indices] = 1
+        # return np.matrix(J)
 
     def hessian(self, q):
         assert self.output_dimension() == 1
