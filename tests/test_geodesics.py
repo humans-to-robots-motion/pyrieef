@@ -39,9 +39,16 @@ def test_distance_from_gradient():
     f = sdf(occupancy_map(N, workspace)).T
     grad = np.dot(D, f.flatten())
     phi = np.dot(np.linalg.pinv(D), grad)
-    d = np.linalg.norm(grad - np.dot(D, phi))
-    print("d : ", d)
-    assert d < 1e-10
+    d_g = np.linalg.norm(grad - np.dot(D, phi))
+    print("d_g : ", d_g)
+    assert d_g < 1e-10
+
+    phi.shape = (N, N)
+    phi -= phi.min()
+    f -= f.min()
+    d_d = np.linalg.norm(phi - f)
+    print("d_d : ", d_d)
+    assert d_d < 1e-10
 
 
 if __name__ == "__main__":
