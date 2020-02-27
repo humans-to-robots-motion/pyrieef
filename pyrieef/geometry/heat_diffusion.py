@@ -271,6 +271,9 @@ def distance_from_gradient(U, V, dh):
     print(grad.shape)
     print(D.shape)
     print(phi.shape)
+    grad_n = D * phi
+    d = np.linalg.norm(grad - grad_n)
+    print("d : ", d)
     phi.shape = (N, N)
     return phi
 

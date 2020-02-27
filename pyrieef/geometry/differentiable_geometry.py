@@ -135,9 +135,6 @@ class Compose(DifferentiableMap):
         J_f = self._f.jacobian(x)
         H_f = self._f.hessian(x)
         a_x = J_g.T * H_f * J_g
-        print(H_g.shape)
-        print(self.input_dimension())
-        print(J_f.shape)
         b_x = J_f * np.ones(self.input_dimension()) * H_g
         return a_x + b_x
 
