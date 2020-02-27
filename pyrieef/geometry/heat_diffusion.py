@@ -181,7 +181,6 @@ def discrete_2d_gradient(M, N, axis=0):
     if axis == 0:
         A = np.identity(dim)
         A[range(dim - 1), range(1, dim)] = -1
-        A[range(dim - 1), range(1, dim)] = -1
 
         # every end of row left difference
         A[range(M - 1, M * (N - 1), M), range(M, dim, M)] = 0
@@ -260,12 +259,18 @@ def divergence(f):
 
 
 def distance_from_gradient(U, V, dh):
+    """
+    Get a scalar field from gradients
+    """
     N = U.shape[0]
     Dx = (1. / dh) * discrete_2d_gradient(N, N, axis=0)
     Dy = (1. / dh) * discrete_2d_gradient(N, N, axis=1)
     grad = np.hstack([U.flatten(), V.flatten()])
     D = np.vstack([Dx, Dy])
     phi = np.dot(np.linalg.pinv(D), grad)
+    print(grad.shape)
+    print(D.shape)
+    print(phi.shape)
     phi.shape = (N, N)
     return phi
 

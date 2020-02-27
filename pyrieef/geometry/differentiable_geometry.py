@@ -135,6 +135,9 @@ class Compose(DifferentiableMap):
         J_f = self._f.jacobian(x)
         H_f = self._f.hessian(x)
         a_x = J_g.T * H_f * J_g
+        print(H_g.shape)
+        print(self.input_dimension())
+        print(J_f.shape)
         b_x = J_f * np.ones(self.input_dimension()) * H_g
         return a_x + b_x
 
@@ -246,10 +249,13 @@ class RangeSubspaceMap(DifferentiableMap):
         return q[self._indices]
 
     def jacobian(self, q):
-        return np.matrix(np.eye(self._dim))[self._indices, :]
+        J = np.zeros((self.output_dimension(), self.input_dimension()))
+        J[self._indices, self._indices] = 1
+        return J
 
     def hessian(self, q):
-        return np.matrix(np.zeros((self._dim), (self._dim)))
+        assert self.output_dimension() == 1
+        return np.matrix(np.zeros((self._dim, self._dim)))
 
 
 class CombinedOutputMap(DifferentiableMap):

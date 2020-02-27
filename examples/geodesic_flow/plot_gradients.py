@@ -25,10 +25,10 @@ from pyrieef.rendering.workspace_renderer import WorkspaceDrawer
 import matplotlib.pyplot as plt
 import itertools
 
-N = 40
+N = 20
 
-print(hd.discrete_2d_gradient(4, 4, axis=0))
-print(hd.discrete_2d_gradient(4, 4, axis=1))
+print(hd.discrete_2d_gradient(3, 3, axis=0))
+print(hd.discrete_2d_gradient(3, 3, axis=1))
 
 # exit()
 circles = []
@@ -43,7 +43,7 @@ occ = occupancy_map(N, workspace)
 f = sdf(occ).T
 U = -1 * np.gradient(f.T, axis=0).T
 V = -1 * np.gradient(f.T, axis=1).T
-phi = hd.distance_from_gradient(U, V)
+phi = hd.distance_from_gradient(U, V, 1. / N)
 phi -= phi.min()  # set min to 0 for comparison
 f -= f.min()
 d = np.linalg.norm(phi - f)
