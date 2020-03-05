@@ -21,7 +21,7 @@ import numpy as np
 
 
 def vectors_angle(v1, v2):
-    """ computes an ange between two vectors
+    """ computes an angle between two vectors
         the angle is restricted to the range [0, 2pi]"""
     assert v1.shape == (2,) or v1.shape == (3,)
     assert v1.shape == v2.shape

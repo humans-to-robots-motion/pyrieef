@@ -670,6 +670,34 @@ class Tanh(DifferentiableMap):
         assert self.output_dimension() == 1
 
 
+class Arccos(DifferentiableMap):
+    """
+        f(x) = arccos(x)
+    """
+
+    def __init__(self):
+        return
+
+    def input_dimension(self):
+        return 1
+
+    def output_dimension(self):
+        return 1
+
+    def forward(self, x):
+        return np.arccos(x)
+
+    def jacobian(self, x):
+        J = np.matrix([0.])
+        J[0, 0] = -1 / np.sqrt(1 - x ** 2)
+        return J
+
+    def hessian(self, x):
+        H = np.matrix([0.])
+        H[0, 0] = -x / np.power(1 - x ** 2, 1.5)
+        return H
+
+
 def finite_difference_jacobian(f, q):
     """ Takes an object f that has a forward method returning
     a numpy array when querried. """

@@ -374,11 +374,22 @@ def test_activations():
     assert check_jacobian_against_finite_difference(f)
 
 
+def test_trigonometric_functions():
+
+    f = Arccos()
+
+    print("Check Tanh (J implementation) : ")
+    assert check_jacobian_against_finite_difference(f)
+
+    print("Check Tanh (H implementation) : ")
+    assert check_hessian_against_finite_difference(f)
+
+
 if __name__ == "__main__":
     # test_finite_difference()
     # test_zero()
     # test_square_norm()
-    test_norm()
+    # test_norm()
     # test_affine()
     # test_scale()
     # test_sum_of_terms()
@@ -390,3 +401,4 @@ if __name__ == "__main__":
     # test_softmax()
     # test_activations()
     # test_normalize()
+    test_trigonometric_functions()
