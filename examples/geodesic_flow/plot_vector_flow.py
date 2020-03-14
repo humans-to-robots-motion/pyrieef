@@ -85,7 +85,7 @@ for i in range(iterations):
     p_source = grid_sparse.world_to_grid(x_source)
     p = grid_sparse.grid_to_world(p_source)
     phi = phi.T
-    # phi = hd.distance(U, V, div, 1. / N).T
+    phi = hd.distance(U, V, div, 1. / N).T
     renderer.set_drawing_axis(i)
     renderer.draw_ws_obstacles()
     renderer.draw_ws_point(p, color='r', shape='o')
@@ -94,7 +94,7 @@ for i in range(iterations):
     f = RegressedPixelGridSpline(
         phi, grid_sparse.resolution, grid_sparse.extent)
     for i, j in itertools.product(range(X.shape[0]), range(X.shape[1])):
-        g = -1 * f.gradient(np.array([X[i, j], Y[i, j]]))
+        g = f.gradient(np.array([X[i, j], Y[i, j]]))
         g /= np.linalg.norm(g)
         U[i, j] = g[0]
         V[i, j] = g[1]
