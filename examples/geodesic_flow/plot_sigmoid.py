@@ -17,22 +17,26 @@
 #
 #                                        Jim Mainprice on Sunday June 13 2018
 
-from demos_common_imports import *
-import numpy as np
+import demos_common_imports
 import matplotlib.pyplot as plt
+import numpy
 from pyrieef.geometry.differentiable_geometry import *
 
-alpha = np.linspace(-1., -20., 10)
-for a in alpha:
-    n = 100
-    f = LogSumExp(2, a)
-    x_p = np.linspace(-1., 1., n)
-    x_n = -x_p
-    y = np.array([0.] * n)
-    for i in range(n):
-        y[i] = f(np.array([x_p[i], x_n[i]]))
-    plt.plot(x_p, y, label="alpha : {}".format(int(a)))
-print("Done.")
+def evaluate(s, x):
+    return [s(np.array([x_i])) for x_i in x]
+
+
+s_1 = Compose(Sigmoid(1), Scale(IdentityMap(1), 1))
+s_2 = Compose(Sigmoid(1), Scale(IdentityMap(1), 2))
+s_3 = Compose(Sigmoid(1), Scale(IdentityMap(1), 3))
+s_4 = Compose(Sigmoid(1), Scale(IdentityMap(1), 10))
+
+plt.figure()
+x = np.linspace(-1., 1., 100)
+plt.plot(x, evaluate(s_1, x), label="1")
+plt.plot(x, evaluate(s_2, x), label="2")
+plt.plot(x, evaluate(s_3, x), label="3")
+plt.plot(x, evaluate(s_4, x), label="4")
 plt.legend(
     bbox_to_anchor=(0.85, 1),
     loc='upper left',
