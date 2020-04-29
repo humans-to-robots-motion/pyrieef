@@ -25,13 +25,13 @@ from pyrieef.rendering.workspace_renderer import WorkspaceDrawer
 import matplotlib.pyplot as plt
 
 
-ROWS = 3
+ROWS = 1
 COLS = 3
 
-hd.NB_POINTS = 21
-hd.TIME_FACTOR = 100
-hd.TIME_STEP = .0001
-hd.ALGORITHM = "crank-nicholson"
+hd.NB_POINTS = 101
+hd.TIME_FACTOR = 2000
+hd.TIME_STEP = 1e-5
+hd.ALGORITHM = "forward"
 
 circles = []
 circles.append(Circle(origin=[.1, .0], radius=0.1))
@@ -53,5 +53,5 @@ for i in range(iterations):
     renderer.draw_ws_point([x_source[0], x_source[1]], color='r', shape='o')
     renderer.background_matrix_eval = False
     renderer.draw_ws_img(U[i], interpolate="bicubic",
-                         color_style=plt.cm.hsv)
+                         color_style=plt.cm.tab20c)
 renderer.show()
