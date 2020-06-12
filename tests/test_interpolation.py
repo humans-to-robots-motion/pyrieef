@@ -19,6 +19,29 @@
 
 import __init__
 from geometry.interpolation import *
+from numpy.testing import assert_allclose
+
+
+def test_linear_regression():
+    X = np.array([-1, .2, .3, .4, 5])
+    Y = X
+    w_t = np.array([0.])
+    ridge_lambda = 0
+
+    beta = linear_regression(X, Y, w_t, ridge_lambda, 0)
+    print("beta : ", beta)
+    assert np.abs(beta[0] - 1.) < 1e-5
+
+    X = np.hstack([Y / 2, Y / 2])
+    print("X : ", X)
+    print("Y : ", Y)
+    w_t = np.array([0., 0.])
+    w_t.shape = (2, 1)
+    ridge_lambda = 1e-6
+
+    beta = linear_regression(X, Y, w_t, ridge_lambda, 0)
+    print("beta : ", beta)
+    assert_allclose(beta, np.ones((2, 1)), atol=1e-4)
 
 
 def test_1d_solution():
@@ -167,8 +190,9 @@ def test_mahalanobis_tools_test_rescale_mahalanobis():
 
 
 if __name__ == "__main__":
-    test_1d_solution()
-    test_lwr()
-    test_mahalanobis_tools_basic_square_distance()
-    test_mahalanobis_tools_neighborhood_distance_threshold()
-    test_mahalanobis_tools_test_rescale_mahalanobis()
+    test_linear_regression()
+    # test_1d_solution()
+    # test_lwr()
+    # test_mahalanobis_tools_basic_square_distance()
+    # test_mahalanobis_tools_neighborhood_distance_threshold()
+    # test_mahalanobis_tools_test_rescale_mahalanobis()

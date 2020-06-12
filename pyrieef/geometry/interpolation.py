@@ -22,12 +22,31 @@ from .differentiable_geometry import *
 from scipy.spatial import distance
 
 
+def linear_regression(X, Y, w_t, lambda_1, lambda_2):
+    """
+    linear regression with proximal regularization
+
+      X :           matrix of input
+      Y :           vector of targets
+      lambda_1 :    L2 regularizer
+      lambda_2 :    proximal regularizer
+    """
+    X.shape = (X.size, 1) if X.ndim == 1 else X.shape
+    assert X.shape[0] == Y.size
+    assert X.shape[1] == w_t.size
+    lambda_ridge = lambda_1 + lambda_2
+    diag = np.diag(lambda_ridge * np.ones(X.shape[1]))
+    beta1 = np.dot(X.T, Y) + lambda_2 * w_t
+    beta2 = np.dot(np.linalg.inv(np.dot(X.T, X) + diag), beta1)
+    return beta2
+
+
 class LWR(DifferentiableMap):
     """
     Embeds the Locally Weighted Regressor
 
     This allows it to be used for interpolation of derivatives
-    on multi dimensional output
+    on multi-dimensional output
     """
 
     def __init__(self, m, n):
@@ -74,7 +93,7 @@ def locally_weighted_regression(x_query, X, Y, D, ridge_lambda):
           beta^* = argmin 1/2 |Y - X beta|_W^2 + lambda/2 |w|^2
 
           with W a diagonal matrix with elements
-                        w_i = \exp{ -1/2 |x_query - x_i|_D^2
+            w_i = \exp{ -1/2 |x_query - x_i|_D^2
 
       Solution: beta^* = inv(X'WX + lambda I)X'WY.
       Final returned value: beta^*'x_query.
