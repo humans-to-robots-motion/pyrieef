@@ -367,7 +367,7 @@ class AffineMap(DifferentiableMap):
 
 class QuadricFunction(DifferentiableMap):
     """ Here we implement a quadric funciton of the form:
-        f(x) = x^T A x + bx + c """
+        f(x) = 1/2 x^T A x + bx + c """
 
     def __init__(self, a, b, c):
         assert a.shape[0] == a.shape[1]
@@ -386,10 +386,8 @@ class QuadricFunction(DifferentiableMap):
 
     def forward(self, x):
         x_tmp = np.matrix(x.reshape(self._b.size, 1))
-        v = np.asscalar(0.5 *
-                        x_tmp.T * self._a * x_tmp +
-                        self._b.T * x_tmp +
-                        self._c)
+        v = np.asscalar(
+            0.5 * x_tmp.T * self._a * x_tmp + self._b.T * x_tmp + self._c)
         return v
 
     def jacobian(self, x):
@@ -696,6 +694,37 @@ class Arccos(DifferentiableMap):
         H = np.matrix([0.])
         H[0, 0] = -x / np.power(1 - x ** 2, 1.5)
         return H
+
+
+class RadialBasisFunction(DifferentiableMap):
+    """
+    Implements an unnormalized Gaussian
+
+    f(x) = exp( -1/2 |x - x0|^2_H )
+
+        phi(x) = 1/2 (x - x0)^T H (x - x0)
+               = 1/2 [ x^T H (x - x0)  - x0^T H (x - x0) ]
+               = 1/2 [ x^T H x - x^T H x0  -  x0^T H x + x0^T H x0 ]
+               = 1/2 [ x^T H x - 2 x0^T H x - x0^T H x0 ]
+
+
+    Create a Gaussian function centered at x0 with
+    Hessian (inverse covariance) H
+
+    TODO:
+        * implement as pullback for derivatives...
+        * tod check the math...
+    """
+
+    def __init__(self, x0, H):
+        Hx0 = np.dot(H, x0)
+        self._phi = QuadricFunction(H, -Hx0, .5 * np.dot(x0.T, Hx0))
+
+    def forward(self, x):
+        return np.exp(-self._phi.forward(x))
+
+    def input_dimension(self):
+        return self._phi.input_dimension()
 
 
 def finite_difference_jacobian(f, q):
