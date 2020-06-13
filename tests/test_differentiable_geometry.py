@@ -394,8 +394,8 @@ def test_radial_basis_function():
 
     f = RadialBasisFunction(x0, H)
 
-    assert abs(f(x) - .5 * np.exp(
-        np.dot(np.dot((x - x0).T, H), (x - x0)))) < 1e-5
+    phi = np.dot(np.dot((x - x0).T, H), (x - x0))
+    assert abs(f(x) - np.exp(-.5 * phi)) < 1e-5
 
 
 if __name__ == "__main__":

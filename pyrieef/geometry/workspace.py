@@ -910,7 +910,7 @@ class EnvBox(Box):
     def meshgrid_points(self, nb_points=100):
         """ TODO check what reshape is really doing """
         X, Y = self.meshgrid(nb_points)
-        return np.vstack([X.ravel(), Y.ravel()])
+        return np.vstack([X.ravel(), Y.ravel()]).T
 
     def sample_uniform(self):
         """ Sample uniformly point in extend"""

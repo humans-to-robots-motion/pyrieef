@@ -205,7 +205,7 @@ class WorkspaceDrawer(WorkspaceRender):
                       marker='o', linestyle="-", c=color)
 
     def draw_ws_point(self, point, color='b', shape='x'):
-        self._ax.plot(point[0], point[1], color + shape)
+        self._ax.plot(point[0], point[1], shape, c=color)
 
     def show(self):
         if self._continuously_drawing:

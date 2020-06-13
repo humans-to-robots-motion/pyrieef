@@ -30,7 +30,7 @@ show_result = True
 radius = .1
 nb_points = 40
 average_cost = False
-alpha = .0001
+integral_cost = True
 
 workspace = Workspace()
 workspace.obstacles.append(Circle(np.array([0.1, 0.1]), radius))
@@ -40,7 +40,7 @@ costmap = phi(workspace.box.stacked_meshgrid(nb_points))
 print(costmap)
 
 converter = CostmapToSparseGraph(costmap, average_cost)
-converter.integral_cost = True
+converter.integral_cost = integral_cost
 graph = converter.convert()
 if average_cost:
     assert check_symmetric(graph)
@@ -58,7 +58,7 @@ for i in range(100):
     # path = converter.dijkstra(graph, s[0], s[1], t[0], t[1])
     try:
         print("planning...")
-        path = converter.dijkstra_on_map(alpha * costmap, s[0], s[1], t[0], t[1])
+        path = converter.dijkstra_on_map(costmap, s[0], s[1], t[0], t[1])
     except:
         continue
     print("took t : {} sec.".format(time.time() - time_0))
