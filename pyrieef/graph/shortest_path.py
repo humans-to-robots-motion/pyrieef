@@ -21,6 +21,8 @@ from scipy.sparse import csr_matrix
 import scipy.sparse.csgraph as csgraph
 import numpy as np
 
+SQRT2 = 1.4142135623730951
+
 
 def check_symmetric(a, tol=1e-8):
     return np.allclose(a, a.T, atol=tol)
@@ -43,7 +45,7 @@ def shortest_paths(graph_dense):
 
 
 class CostmapToSparseGraph:
-    """Class that convert image to sparse graph representation 
+    """Class that convert image to sparse graph representation
         TODO write a test for and decide weather it should
         be the costmap or the transpose of the costmap
         that should be passed to initialize the class."""
@@ -51,6 +53,7 @@ class CostmapToSparseGraph:
     def __init__(self, costmap, average_cost=False):
         self.costmap = costmap
         self.average_cost = average_cost
+        self.integral_cost = False
         self.init = False
         self._graph_dense = None
         self._edges = []
@@ -70,7 +73,7 @@ class CostmapToSparseGraph:
             j >= 0 and j < self.costmap.shape[1])
 
     def graph_edge_cost(self, n1_i, n1_j, n2_i, n2_j):
-        """ return the value of an edge in the graph 
+        """ return the value of an edge in the graph
             from n1 to n2"""
         n1_id = self.graph_id(n1_i, n1_j)
         n2_id = self.graph_id(n2_i, n2_j)
@@ -81,6 +84,9 @@ class CostmapToSparseGraph:
         cost_n = self.costmap[n_i, n_j]
         if self.average_cost:
             return 0.5 * (cost_c + cost_n)
+        if self.integral_cost:
+            d = np.sqrt(2) if (abs(c_i - n_i) + abs(c_j - n_j)) == 2 else 1.
+            return d * cost_n
         return cost_n
 
     @staticmethod

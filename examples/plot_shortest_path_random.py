@@ -21,30 +21,42 @@ from demos_common_imports import *
 import numpy as np
 from pyrieef.graph.shortest_path import *
 from pyrieef.geometry.workspace import *
+from pyrieef.geometry.differentiable_geometry import *
 from pyrieef.motion.cost_terms import *
 import pyrieef.rendering.workspace_renderer as render
-from utils import timer
 import time
 
 show_result = True
 radius = .1
 nb_points = 40
+nb_rbfs = 5
 average_cost = False
 alpha = .0001
+sigma = 200
 
 workspace = Workspace()
-workspace.obstacles.append(Circle(np.array([0.1, 0.1]), radius))
-workspace.obstacles.append(Circle(np.array([-.1, 0.1]), radius))
-phi = CostGridPotential2D(SignedDistanceWorkspaceMap(workspace), 10., .1, 10.)
-costmap = phi(workspace.box.stacked_meshgrid(nb_points))
-print(costmap)
 
+# Sample cost terrain
+# w = np.random.random(64)
+w = np.ones(nb_rbfs**2)
+rbf = [None] * nb_rbfs**2
+points = workspace.box.meshgrid_points(nb_rbfs).T
+print(points.shape)
+for i, x0 in enumerate(points):
+    print("x0 : {} {}".format(i, x0.T))
+    rbf[i] = RadialBasisFunction(x0, sigma * np.eye(2))
+phi = SumOfTerms(rbf)
+X, Y = workspace.box.meshgrid(nb_points)
+costmap = two_dimension_function_evaluation(X, Y, phi)
+# costmap = phi(workspace.box.stacked_meshgrid(nb_points))
+print("costmap.shape : ", costmap.shape)
+
+# Plan path
 converter = CostmapToSparseGraph(costmap, average_cost)
 converter.integral_cost = True
 graph = converter.convert()
 if average_cost:
     assert check_symmetric(graph)
-# predecessors = shortest_paths(graph)
 pixel_map = workspace.pixel_map(nb_points)
 np.random.seed(1)
 time_0 = time.time()
@@ -53,12 +65,10 @@ for i in range(100):
     t_w = sample_collision_free(workspace)
     s = pixel_map.world_to_grid(s_w)
     t = pixel_map.world_to_grid(t_w)
-    # print "querry : ({}, {}) ({},{})".format(s[0], s[1], t[0], t[1])
-    # path = converter.shortest_path(predecessors, s[0], s[1], t[0], t[1])
-    # path = converter.dijkstra(graph, s[0], s[1], t[0], t[1])
     try:
         print("planning...")
-        path = converter.dijkstra_on_map(alpha * costmap, s[0], s[1], t[0], t[1])
+        path = converter.dijkstra_on_map(
+            alpha * costmap, s[0], s[1], t[0], t[1])
     except:
         continue
     print("took t : {} sec.".format(time.time() - time_0))
@@ -68,8 +78,7 @@ for i in range(100):
         for i, p in enumerate(path):
             trajectory[i] = pixel_map.grid_to_world(np.array(p))
         viewer = render.WorkspaceDrawer(workspace, wait_for_keyboard=True)
-        # viewer.set_drawing_axis(0)
-        viewer.draw_ws_image(phi, nb_points, interpolate="none")
+        viewer.draw_ws_img(costmap, interpolate="none")
         viewer.draw_ws_obstacles()
         viewer.draw_ws_line(trajectory)
         viewer.draw_ws_point(s_w)

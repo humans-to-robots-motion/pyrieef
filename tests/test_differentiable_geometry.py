@@ -19,6 +19,7 @@
 
 import __init__
 from geometry.differentiable_geometry import *
+from numpy.testing import assert_allclose
 
 
 def test_finite_difference():
@@ -385,6 +386,18 @@ def test_trigonometric_functions():
     assert check_hessian_against_finite_difference(f)
 
 
+def test_radial_basis_function():
+
+    x0 = np.random.random((2,))
+    H = np.random.random((2, 2))
+    x = np.random.random((2,))
+
+    f = RadialBasisFunction(x0, H)
+
+    assert abs(f(x) - .5 * np.exp(
+        np.dot(np.dot((x - x0).T, H), (x - x0)))) < 1e-5
+
+
 if __name__ == "__main__":
     # test_finite_difference()
     # test_zero()
@@ -401,4 +414,5 @@ if __name__ == "__main__":
     # test_softmax()
     # test_activations()
     # test_normalize()
-    test_trigonometric_functions()
+    # test_trigonometric_functions()
+    test_radial_basis_function()

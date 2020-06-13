@@ -387,7 +387,7 @@ class QuadricFunction(DifferentiableMap):
     def forward(self, x):
         x_tmp = np.matrix(x.reshape(self._b.size, 1))
         v = np.asscalar(
-            0.5 * x_tmp.T * self._a * x_tmp + self._b.T * x_tmp + self._c)
+            .5 * x_tmp.T * self._a * x_tmp + self._b.T * x_tmp + self._c)
         return v
 
     def jacobian(self, x):
@@ -717,32 +717,39 @@ class RadialBasisFunction(DifferentiableMap):
     """
 
     def __init__(self, x0, H):
+        self._x0 = x0
+        self._H = H
         Hx0 = np.dot(H, x0)
         self._phi = QuadricFunction(H, -Hx0, .5 * np.dot(x0.T, Hx0))
 
     def forward(self, x):
-        return np.exp(-self._phi.forward(x))
+        # return np.exp(-self._phi.forward(x))
+        d = x - self._x0
+        return np.exp(-.5 * np.dot(np.dot(d.T, self._H), d))
 
     def input_dimension(self):
-        return self._phi.input_dimension()
+        return 2
+
+    def output_dimension(self):
+        return 1
 
 
 def finite_difference_jacobian(f, q):
     """ Takes an object f that has a forward method returning
     a numpy array when querried. """
     assert q.size == f.input_dimension()
-    dt = 1e-4
-    dt_half = dt / 2.
-    J = np.zeros((
+    dt=1e-4
+    dt_half=dt / 2.
+    J=np.zeros((
         f.output_dimension(), f.input_dimension()))
     for j in range(q.size):
-        q_up = copy.deepcopy(q)
+        q_up=copy.deepcopy(q)
         q_up[j] += dt_half
-        x_up = f.forward(q_up)
-        q_down = copy.deepcopy(q)
+        x_up=f.forward(q_up)
+        q_down=copy.deepcopy(q)
         q_down[j] -= dt_half
-        x_down = f.forward(q_down)
-        J[:, j] = (x_up - x_down) / dt
+        x_down=f.forward(q_down)
+        J[:, j]=(x_up - x_down) / dt
     return np.matrix(J)
 
 
@@ -751,24 +758,24 @@ def finite_difference_hessian(f, q):
     a numpy array when querried. """
     assert q.size == f.input_dimension()
     assert f.output_dimension() == 1
-    dt = 1e-4
-    dt_half = dt / 2.
-    H = np.zeros((
+    dt=1e-4
+    dt_half=dt / 2.
+    H=np.zeros((
         f.input_dimension(), f.input_dimension()))
     for j in range(q.size):
-        q_up = copy.deepcopy(q)
+        q_up=copy.deepcopy(q)
         q_up[j] += dt_half
-        g_up = f.gradient(q_up)
-        q_down = copy.deepcopy(q)
+        g_up=f.gradient(q_up)
+        q_down=copy.deepcopy(q)
         q_down[j] -= dt_half
-        g_down = f.gradient(q_down)
-        H[:, j] = (g_up - g_down) / dt
+        g_down=f.gradient(q_down)
+        H[:, j]=(g_up - g_down) / dt
     return np.matrix(H)
 
 
 def check_is_close(a, b, tolerance=1e-10):
     """ Returns True of all variable are close."""
-    results = np.isclose(
+    results=np.isclose(
         np.array(a),
         np.array(b),
         atol=tolerance)
@@ -777,9 +784,9 @@ def check_is_close(a, b, tolerance=1e-10):
 
 def check_jacobian_against_finite_difference(phi, verbose=True):
     """ Makes sure the jacobian is close to the finite difference """
-    q = np.random.rand(phi.input_dimension())
-    J = phi.jacobian(q)
-    J_diff = finite_difference_jacobian(phi, q)
+    q=np.random.rand(phi.input_dimension())
+    J=phi.jacobian(q)
+    J_diff=finite_difference_jacobian(phi, q)
     if verbose:
         print("J : ")
         print(J)
@@ -791,9 +798,9 @@ def check_jacobian_against_finite_difference(phi, verbose=True):
 def check_hessian_against_finite_difference(phi, verbose=True,
                                             tolerance=1e-4):
     """ Makes sure the hessuaian is close to the finite difference """
-    q = np.random.rand(phi.input_dimension())
-    H = phi.hessian(q)
-    H_diff = finite_difference_hessian(phi, q)
+    q=np.random.rand(phi.input_dimension())
+    H=phi.hessian(q)
+    H_diff=finite_difference_hessian(phi, q)
     if verbose:
         print("H : ")
         print(H)

@@ -23,7 +23,7 @@ import pyrieef.geometry.heat_diffusion as hd
 from pyrieef.geometry.workspace import *
 from pyrieef.rendering.workspace_renderer import WorkspaceDrawer
 import matplotlib.pyplot as plt
-
+import matplotlib
 
 ROWS = 1
 COLS = 3
@@ -32,6 +32,9 @@ hd.NB_POINTS = 101
 hd.TIME_FACTOR = 2000
 hd.TIME_STEP = 1e-5
 hd.ALGORITHM = "forward"
+
+matplotlib.rcParams['pdf.fonttype'] = 42
+matplotlib.rcParams['ps.fonttype'] = 42
 
 circles = []
 circles.append(Circle(origin=[.1, .0], radius=0.1))
