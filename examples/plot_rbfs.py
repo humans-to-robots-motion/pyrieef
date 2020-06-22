@@ -28,11 +28,12 @@ PLOT3D = False
 mu1 = [1, 0]                # mean of rbf 1 (red)
 mu2 = [-1, 0]               # mean of rbf 2 (blue)
 w = np.array([10, -10])     # weight vector
+stddev = 1
 
 ti = np.linspace(-2.0, 2.0, 100)
 xx, yy = np.meshgrid(ti, ti)
-rbf1 = Rbf(mu1[0], mu1[1], 1, epsilon=1, function='gaussian')
-rbf2 = Rbf(mu2[0], mu2[1], 1, epsilon=1, function='gaussian')
+rbf1 = Rbf(mu1[0], mu1[1], 1, epsilon=stddev, function='gaussian')
+rbf2 = Rbf(mu2[0], mu2[1], 1, epsilon=stddev, function='gaussian')
 phi = np.stack([rbf1(xx, yy), rbf2(xx, yy)])        # create featuremap tensor
 X, Y, Z = xx, yy, np.tensordot(w.T, phi, axes=1)    # calculate costfield
 
