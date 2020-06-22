@@ -34,7 +34,7 @@ ti = np.linspace(-2.0, 2.0, 100)
 xx, yy = np.meshgrid(ti, ti)
 rbf1 = Rbf(mu1[0], mu1[1], 1, epsilon=stddev, function='gaussian')
 rbf2 = Rbf(mu2[0], mu2[1], 1, epsilon=stddev, function='gaussian')
-phi = np.stack([rbf1(xx, yy), rbf2(xx, yy)])        # create featuremap tensor
+phi = np.stack([rbf1(xx, yy), rbf2(xx, yy)])      # create featuremap tensor
 X, Y, Z = xx, yy, np.tensordot(w, phi, axes=1)    # calculate costfield
 
 if not PLOT3D:
