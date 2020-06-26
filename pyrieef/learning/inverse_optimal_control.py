@@ -18,7 +18,11 @@
 #                                        Jim Mainprice on Sunday June 13 2018
 
 from __future__ import print_function
-import common_imports
+import sys
+if sys.version_info >= (3, 0):
+    from .common_imports import *
+else:
+    import common_imports
 from motion.objective import *
 from motion.trajectory import *
 import numpy as np
