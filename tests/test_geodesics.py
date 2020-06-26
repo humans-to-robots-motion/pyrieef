@@ -17,7 +17,7 @@
 #
 #                                        Jim Mainprice on Sunday June 13 2018
 
-from __init__ import *
+import __init__
 from utils.misc import *
 from geometry.heat_diffusion import *
 

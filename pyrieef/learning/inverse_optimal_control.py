@@ -45,7 +45,7 @@ class InverseOptimalControl:
 class Learch(InverseOptimalControl):
 
     def __init__(self, nb_demonstrations):
-        InverseOptimalControl.__init__(nb_demonstrations)
+        InverseOptimalControl.__init__(self, nb_demonstrations)
 
     @abstractmethod
     def planning(self, env_id):
