@@ -18,7 +18,7 @@
 #                                        Jim Mainprice on Sunday June 13 2018
 
 from __future__ import print_function
-import common_imports
+from .common_imports import *
 from motion.objective import *
 from motion.trajectory import *
 import numpy as np

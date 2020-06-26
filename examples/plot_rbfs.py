@@ -25,8 +25,8 @@ import mpl_toolkits.mplot3d
 
 PLOT3D = False
 
-mu1 = [1, 0]                # mean of rbf 1 (red)
-mu2 = [-1, 0]               # mean of rbf 2 (blue)
+mu1 = [1, 0]                # mean of rbf 1 (red)   -> (w[0])
+mu2 = [-1, 0]               # mean of rbf 2 (blue)  -> (w[1])
 w = np.array([10, -10])     # weight vector
 stddev = 1
 
