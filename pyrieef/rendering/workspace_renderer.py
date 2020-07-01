@@ -26,6 +26,7 @@ from utils import timer
 from utils.misc import *
 import random
 import time
+from textwrap import wrap
 from skimage import img_as_ubyte
 from skimage.color import rgba2rgb
 from skimage.transform import rescale, resize
@@ -222,6 +223,13 @@ class WorkspaceDrawer(WorkspaceRender):
         if self._wait_for_keyboard:
             input("Press Enter to continue...")
         plt.close(self._fig)
+
+    def set_title(self, title, fontsize=15):
+        plt.title(
+            '\n'.join(
+                wrap(title, 60)), fontsize=fontsize)
+
+
 
 
 class WorkspaceOpenGl(WorkspaceRender):
