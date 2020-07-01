@@ -229,6 +229,12 @@ class WorkspaceDrawer(WorkspaceRender):
             '\n'.join(
                 wrap(title, 60)), fontsize=fontsize)
 
+    def remove_axis(self):
+        if self._axes is not None:
+            self._ax.axis('off')
+        else:
+            plt.axis('off')
+
 
 
 
