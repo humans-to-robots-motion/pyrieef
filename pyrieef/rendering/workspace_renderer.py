@@ -227,7 +227,7 @@ class WorkspaceDrawer(WorkspaceRender):
     def set_title(self, title, fontsize=15):
         plt.title(
             '\n'.join(
-                wrap(title, 60)), fontsize=fontsize)
+                wrap(title, int(self.size[0])*7)), fontsize=fontsize)
 
     def remove_axis(self):
         if self._axes is not None:
