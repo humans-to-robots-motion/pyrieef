@@ -104,7 +104,7 @@ class WorkspaceDrawer(WorkspaceRender):
             plt.ion()  # continuously plot
         self._plot3d = False
         self._wait_for_keyboard = wait_for_keyboard
-        self.size = scale * np.array([7, 6.5])
+        self.size = scale * np.array([cols * 7, rows * 6.5])
         self._fig = None
         self._ax = None
         self._colorbar = None
