@@ -97,6 +97,7 @@ class TrajectoryOptimizationViewer:
                 self.viewer.draw_ws_background(
                     self.objective.obstacle_potential)
                 self.viewer.draw_ws_obstacles()
+        draw_robot = False
         if hasattr(self.objective, 'robot'):
             draw_robot = True
             verticies = self.objective.robot.shape
