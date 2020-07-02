@@ -26,13 +26,16 @@ from utils import timer
 from utils.misc import *
 import random
 import time
+from textwrap import wrap
 from skimage import img_as_ubyte
 from skimage.color import rgba2rgb
 from skimage.transform import rescale, resize
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
+
 cmap = plt.get_cmap('inferno')
 from abc import abstractmethod
+
 try:
     from . import heightmap as hm
 except ImportError as e:
@@ -40,7 +43,7 @@ except ImportError as e:
 from itertools import product
 
 # Red, Green, Blue
-COLORS = [(139, 0, 0),  (0, 100, 0), (0, 0, 139)]
+COLORS = [(139, 0, 0), (0, 100, 0), (0, 0, 139)]
 
 
 def to_rgb3(im):
@@ -53,7 +56,6 @@ def to_rgb3(im):
 
 
 class WorkspaceRender:
-
     """ Abstract class to draw a 2D workspace """
 
     def __init__(self, workspace):
@@ -91,7 +93,6 @@ class WorkspaceRender:
 
 
 class WorkspaceDrawer(WorkspaceRender):
-
     """ Workspace display based on matplotlib backend """
 
     def __init__(self, workspace, wait_for_keyboard=False,
@@ -100,10 +101,10 @@ class WorkspaceDrawer(WorkspaceRender):
         plt.rcParams.update({'font.size': int(scale * 5)})
         self._continuously_drawing = dynamic
         if self._continuously_drawing:
-            plt.ion()   # continuously plot
+            plt.ion()  # continuously plot
         self._plot3d = False
         self._wait_for_keyboard = wait_for_keyboard
-        self.size = scale * np.array([7, 6.5])
+        self.size = scale * np.array([cols * 7, rows * 6.5])
         self._fig = None
         self._ax = None
         self._colorbar = None
@@ -223,9 +224,22 @@ class WorkspaceDrawer(WorkspaceRender):
             input("Press Enter to continue...")
         plt.close(self._fig)
 
+    def set_title(self, title, fontsize=15):
+        plt.title(
+            '\n'.join(
+                wrap(title, int(self.size[0])*7)), fontsize=fontsize)
+
+    def remove_axis(self):
+        if self._axes is not None:
+            self._ax.axis('off')
+        else:
+            plt.axis('off')
+
+    def save_figure(self, path):
+        plt.savefig(path)
+
 
 class WorkspaceOpenGl(WorkspaceRender):
-
     """ Workspace display based on pyglet backend """
 
     def __init__(self, workspace, display=None):
@@ -245,7 +259,7 @@ class WorkspaceOpenGl(WorkspaceRender):
 
     def draw_ws_circle(self, radius, origin, color=(0, 1, 0)):
         t = Transform(translation=self._scale * (
-            origin - np.array([self._extent.x_min, self._extent.y_min])))
+                origin - np.array([self._extent.x_min, self._extent.y_min])))
         circ = make_circle(self._scale * radius, 30)
         circ.add_attr(t)
         circ.set_color(*color)
@@ -262,7 +276,7 @@ class WorkspaceOpenGl(WorkspaceRender):
     def draw_ws_polygon(self, vertices, origin, rotation, color=(1, 0, 0)):
         t = Transform(
             translation=self._scale * (
-                origin - np.array([self._extent.x_min, self._extent.y_min])),
+                    origin - np.array([self._extent.x_min, self._extent.y_min])),
             rotation=rotation)
         polygon = make_polygon(self._scale * vertices, filled=False)
         polygon.add_attr(t)
@@ -304,7 +318,6 @@ class WorkspaceOpenGl(WorkspaceRender):
 
 
 class WorkspaceHeightmap(WorkspaceRender):
-
     """ Workspace display based on pyglet heighmap """
 
     def __init__(self, workspace):
