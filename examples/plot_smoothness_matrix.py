@@ -29,23 +29,23 @@ trajectory = linear_interpolation_trajectory(
     q_goal=np.ones(dim),
     T=100
 )
-objective = MotionOptimization2DCostMap(
+problem = MotionOptimization2DCostMap(
     T=trajectory.T(),
     n=trajectory.n(),
     q_init=trajectory.initial_configuration(),
     q_goal=trajectory.final_configuration()
 )
-objective.create_clique_network()
-objective.add_smoothness_terms(2)
-objective.create_objective()
+problem.create_clique_network()
+problem.add_smoothness_terms(2)
+problem.create_objective()
 
-H1 = objective.objective.hessian(trajectory.active_segment())
+H1 = problem.objective.hessian(trajectory.active_segment())
 np.set_printoptions(suppress=True, linewidth=200, precision=0,
                     formatter={'float_kind': '{:2.0f}'.format})
 print(H1.shape)
 print(H1 / 200000)
 
-H2 = objective.create_smoothness_metric() / 10000
+H2 = problem.create_smoothness_metric() / 10000
 # H2 = np.loadtxt("tmp.txt")
 np.set_printoptions(suppress=True, linewidth=200, precision=0,
                     formatter={'float_kind': '{:2.0f}'.format})
@@ -55,7 +55,7 @@ if SAMPLES:
     std_dev = 1.
     nb_samples = 20
     # WARNING: This coefficent has to be large
-    H1[0, 0] = 1000
+    H1[0, 0] = 10
     cov = np.linalg.inv(H1)
     mean = np.array([0] * cov.shape[0])
     samples = np.random.multivariate_normal(mean, cov, nb_samples).T

@@ -44,8 +44,8 @@ class MotionOptimization2DCostMap:
         self.costmap = costmap
         self.objective = None
 
-        self.q_goal = q_goal if q_goal is not None else .3 * np.ones(2)
-        self.q_init = q_init if q_init is not None else np.zeros(2)
+        self.q_goal = q_goal if q_goal is not None else .3 * np.ones(n)
+        self.q_init = q_init if q_init is not None else np.zeros(n)
 
         self._eta = 10.
         self._obstacle_scalar = 1.

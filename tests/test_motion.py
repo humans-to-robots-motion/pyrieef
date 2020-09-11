@@ -254,7 +254,7 @@ def test_spline_trajectory():
         q2 = np.array([np.sin(t), np.cos(t)])
         assert_allclose(q_1, q_2, 1e-5)
         v1 = trajectory.velocity(t)
-        v2 = np.array([np.cos(t), -np.sin(t)]) 
+        v2 = np.array([np.cos(t), -np.sin(t)])
         assert_allclose(v1, v2, atol=1e-3)
 
 
@@ -427,6 +427,56 @@ def test_motion_optimimization_2d():
     # calculate_analytical_gradient_speedup(objective.objective)
 
 
+def test_motion_optimimization_hessian():
+
+    np.random.seed(0)
+
+    print("Check Motion Optimization (Derivatives)")
+    dim = 6
+    problem = MotionOptimization2DCostMap(n=dim)
+    problem.set_scalars(acceleration_scalar=1.)
+    problem.create_clique_network()
+    problem.add_smoothness_terms(2)
+    problem.create_objective()
+
+    trajectory = Trajectory(T=problem.T, n=dim)
+    sum_acceleration = problem.cost(trajectory)
+    print(("sum_acceleration : ", sum_acceleration))
+    q_init = np.zeros(dim)
+    q_goal = np.ones(dim)
+    trajectory = linear_interpolation_trajectory(
+        q_init, q_goal, problem.T)
+    print(trajectory)
+    print((trajectory.final_configuration()))
+    sum_acceleration = problem.cost(trajectory)
+    print(("sum_acceleration : ", sum_acceleration))
+
+    print("Test J for trajectory")
+    assert check_jacobian_against_finite_difference(
+        problem.objective, False)
+
+    # Check the hessian of the trajectory
+    print("Test H for trajectory")
+    is_close = check_hessian_against_finite_difference(
+        problem.objective, False, tolerance=1e-2)
+
+    xi = np.random.rand(problem.objective.input_dimension())
+    H = problem.objective.hessian(xi)
+    H_diff = finite_difference_hessian(problem.objective, xi)
+    H_delta = H - H_diff
+    print((" - H_delta dist = ", np.linalg.norm(H_delta, ord='fro')))
+    print((" - H_delta maxi = ", np.max(np.absolute(H_delta))))
+
+    assert is_close
+
+    # Check that the hessian has the known form
+    active_size = dim * (trajectory.T() - 1)
+    H1 = H[:active_size, :active_size]
+    H2 = problem.create_smoothness_metric()
+    H2 = H2[:active_size, :active_size]
+    assert_allclose(H1, H2)
+
+
 def test_linear_interpolation():
     trajectory = linear_interpolation_trajectory(
         q_init=np.zeros(2),
@@ -593,12 +643,13 @@ if __name__ == "__main__":
     # test_trajectory()
     # test_continuous_trajectory()
     # test_constant_acceleration_trajectory()
-    test_spline_trajectory()
+    # test_spline_trajectory()
     # test_squared_norm_derivatives()
     # test_log_barrier()
     # test_bound_barrier()
     # test_obstacle_potential()
     # test_motion_optimimization_2d()
+    test_motion_optimimization_hessian()
     # test_motion_optimimization_smoothness_metric()
     # test_center_of_clique()
     # test_linear_interpolation()
