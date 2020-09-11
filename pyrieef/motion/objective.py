@@ -69,7 +69,8 @@ class MotionOptimization2DCostMap:
 
         # Here we combine everything to make an objective
         # TODO see why n==1 doesn't work...
-        if self.config_space_dim > 1:
+        # TODO see why n>2 doesn't work...
+        if self.config_space_dim == 2:
             # Creates a differentiable clique function.
             self.create_clique_network()
             self.add_all_terms()
