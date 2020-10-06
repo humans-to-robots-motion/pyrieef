@@ -17,14 +17,17 @@
 #
 #                                        Jim Mainprice on Sunday June 13 2018
 
-import common_imports
-import matplotlib.pyplot as plt
-
+import sys
+import os
 from dataset import *
+driectory = os.path.abspath(os.path.dirname(__file__))
+sys.path.insert(0, driectory + os.sep + "..")
+import matplotlib.pyplot as plt
 from utils.options import *
 from utils.misc import *
 import rendering.workspace_renderer as render
 import time
+
 
 # if running in the
 # The default python provided in (Ana)Conda is not a framework build. However,

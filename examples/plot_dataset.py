@@ -30,8 +30,8 @@ import pyrieef.learning.demonstrations as demos
 from pyrieef.learning.dataset import *
 
 dataset = load_workspace_dataset('1k_small.hdf5')
-Viewer = render.WorkspaceHeightmap
-# Viewer = render.WorkspaceDrawer
+# Viewer = render.WorkspaceHeightmap
+Viewer = render.WorkspaceDrawer
 for ws in dataset:
     viewer = Viewer(ws.workspace)
     # viewer.set_drawing_axis(k)

@@ -19,11 +19,9 @@
 
 
 import sys
-print(sys.version_info)
-if sys.version_info >= (3, 0):
-    from .common_imports import *
-else:
-    import common_imports
+import os
+driectory = os.path.abspath(os.path.dirname(__file__))
+sys.path.insert(0, driectory + os.sep + "..")
 from graph.shortest_path import *
 from learning.dataset import *
 from learning.random_environment import *

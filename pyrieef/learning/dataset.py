@@ -18,11 +18,10 @@
 #                                        Jim Mainprice on Sunday June 13 2018
 
 import sys
-print(sys.version_info)
-if sys.version_info >= (3, 0):
-    from .common_imports import *
-else:
-    import common_imports
+import os
+import numpy as np
+driectory = os.path.abspath(os.path.dirname(__file__))
+sys.path.insert(0, driectory + os.sep + "..")
 import h5py
 import os
 from utils import *
@@ -376,11 +375,13 @@ def load_workspace_dataset(basename="1k_small.hdf5"):
     file_ws = 'workspaces_' + basename
     file_cost = 'costdata2d_' + basename
     file_trj = 'trajectories_' + basename
-    dataset = WorkspaceData()
     workspaces = load_workspaces_from_file(file_ws)
     trajectories = load_trajectories_from_file(file_trj)
     data = dict_to_object(load_dictionary_from_file(file_cost))
+    print(len(trajectories))
+    print(len(data.datasets))
     assert len(workspaces) == len(data.datasets)
+    assert len(trajectories) == len(data.datasets)
     workspaces_dataset = [None] * len(workspaces)
     for k, data_file in enumerate(data.datasets):
         ws = WorkspaceData()

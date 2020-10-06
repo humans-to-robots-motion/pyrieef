@@ -19,11 +19,8 @@
 
 
 import sys
-print(sys.version_info)
-if sys.version_info >= (3, 0):
-    from .common_imports import *
-else:
-    import common_imports
+driectory = os.path.abspath(os.path.dirname(__file__))
+sys.path.insert(0, driectory + os.sep + "..")
 from geometry.workspace import *
 from utils.misc import *
 from math import *
