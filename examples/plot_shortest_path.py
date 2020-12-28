@@ -31,12 +31,20 @@ radius = .1
 nb_points = 40
 average_cost = False
 integral_cost = True
+binary_cost = True
 
 workspace = Workspace()
 workspace.obstacles.append(Circle(np.array([0.1, 0.1]), radius))
 workspace.obstacles.append(Circle(np.array([-.1, 0.1]), radius))
-phi = CostGridPotential2D(SignedDistanceWorkspaceMap(workspace), 10., .1, 10.)
-costmap = phi(workspace.box.stacked_meshgrid(nb_points))
+
+if binary_cost:
+    costmap = occupancy_map(nb_points, workspace)
+    costmap = (~costmap.astype(bool)).astype(int)  # invert occupnacy
+else:
+    phi = CostGridPotential2D(
+        SignedDistanceWorkspaceMap(workspace), 10., .1, 10.)
+    costmap = phi(workspace.box.stacked_meshgrid(nb_points)).T
+
 print(costmap)
 
 converter = CostmapToSparseGraph(costmap, average_cost)
@@ -69,7 +77,8 @@ for i in range(100):
             trajectory[i] = pixel_map.grid_to_world(np.array(p))
         viewer = render.WorkspaceDrawer(workspace, wait_for_keyboard=True)
         # viewer.set_drawing_axis(0)
-        viewer.draw_ws_image(phi, nb_points, interpolate="none")
+        # viewer.draw_ws_background(phi, nb_points, interpolate="none")
+        viewer.draw_ws_img(costmap)
         viewer.draw_ws_obstacles()
         viewer.draw_ws_line(trajectory)
         viewer.draw_ws_point(s_w)
