@@ -23,7 +23,6 @@ import pyrieef.geometry.heat_diffusion as hd
 from pyrieef.geometry.workspace import *
 from pyrieef.rendering.workspace_renderer import WorkspaceDrawer
 import matplotlib.pyplot as plt
-import itertools
 
 N = 27
 
@@ -32,10 +31,11 @@ print(hd.discrete_2d_gradient(3, 3, axis=1))
 
 # exit()
 circles = []
-circles.append(Circle(origin=[-2, -2], radius=0.1))
-# circles.append(Circle(origin=[.1, .25], radius=0.05))
-# circles.append(Circle(origin=[.2, .25], radius=0.05))
-# circles.append(Circle(origin=[.0, .25], radius=0.05))
+# circles.append(Circle(origin=[-2, -2], radius=0.1))
+circles.append(Circle(origin=[.1, .25], radius=0.05))
+circles.append(Circle(origin=[.2, .25], radius=0.05))
+circles.append(Circle(origin=[.0, .25], radius=0.05))
+circles.append(Circle(origin=[-.2, 0], radius=0.1))
 workspace = Workspace()
 workspace.obstacles = circles
 X, Y = workspace.box.meshgrid(N)
@@ -48,8 +48,16 @@ phi -= phi.min()  # set min to 0 for comparison
 f -= f.min()
 # d = np.linalg.norm(phi - f)
 # print(d)
-renderer = WorkspaceDrawer(workspace)
+renderer = WorkspaceDrawer(workspace, rows=1, cols=2)
+renderer.set_drawing_axis(0)
 renderer.draw_ws_obstacles()
-renderer.draw_ws_img(f.T, interpolate="none", color_style=plt.cm.hsv)
+renderer.draw_ws_img(sdf(occupancy_map(100, workspace)),
+                     interpolate="none", color_style=plt.cm.hsv)
 renderer._ax.quiver(X, Y, U, V, units='width')
+renderer._ax.set_title("original")
+renderer.set_drawing_axis(1)
+renderer.draw_ws_obstacles()
+renderer.draw_ws_img(phi.T, interpolate="none", color_style=plt.cm.hsv)
+renderer._ax.quiver(X, Y, U, V, units='width')
+renderer._ax.set_title("recovered from vector field")
 renderer.show()
