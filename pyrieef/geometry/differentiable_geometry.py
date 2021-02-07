@@ -734,22 +734,44 @@ class RadialBasisFunction(DifferentiableMap):
         return 1
 
 
+class MakeDifferentiableMap(DifferentiableMap):
+    """ Make a function a differentiable map """
+
+    def __init__(self, f, g, m, n):
+        self._f = f
+        self._g = g
+        self._n = n
+        self._m = m
+
+    def output_dimension(self):
+        return self._m
+
+    def input_dimension(self):
+        return self._n
+
+    def forward(self, x):
+        return np.array(self._f)
+
+    def jacobian(self, x):
+        return np.array(self._g)
+
+
 def finite_difference_jacobian(f, q):
     """ Takes an object f that has a forward method returning
     a numpy array when querried. """
     assert q.size == f.input_dimension()
-    dt=1e-4
-    dt_half=dt / 2.
-    J=np.zeros((
+    dt = 1e-4
+    dt_half = dt / 2.
+    J = np.zeros((
         f.output_dimension(), f.input_dimension()))
     for j in range(q.size):
-        q_up=copy.deepcopy(q)
+        q_up = copy.deepcopy(q)
         q_up[j] += dt_half
-        x_up=f.forward(q_up)
-        q_down=copy.deepcopy(q)
+        x_up = f.forward(q_up)
+        q_down = copy.deepcopy(q)
         q_down[j] -= dt_half
-        x_down=f.forward(q_down)
-        J[:, j]=(x_up - x_down) / dt
+        x_down = f.forward(q_down)
+        J[:, j] = (x_up - x_down) / dt
     return np.matrix(J)
 
 
@@ -758,24 +780,24 @@ def finite_difference_hessian(f, q):
     a numpy array when querried. """
     assert q.size == f.input_dimension()
     assert f.output_dimension() == 1
-    dt=1e-4
-    dt_half=dt / 2.
-    H=np.zeros((
+    dt = 1e-4
+    dt_half = dt / 2.
+    H = np.zeros((
         f.input_dimension(), f.input_dimension()))
     for j in range(q.size):
-        q_up=copy.deepcopy(q)
+        q_up = copy.deepcopy(q)
         q_up[j] += dt_half
-        g_up=f.gradient(q_up)
-        q_down=copy.deepcopy(q)
+        g_up = f.gradient(q_up)
+        q_down = copy.deepcopy(q)
         q_down[j] -= dt_half
-        g_down=f.gradient(q_down)
-        H[:, j]=(g_up - g_down) / dt
+        g_down = f.gradient(q_down)
+        H[:, j] = (g_up - g_down) / dt
     return np.matrix(H)
 
 
 def check_is_close(a, b, tolerance=1e-10):
     """ Returns True of all variable are close."""
-    results=np.isclose(
+    results = np.isclose(
         np.array(a),
         np.array(b),
         atol=tolerance)
@@ -784,9 +806,9 @@ def check_is_close(a, b, tolerance=1e-10):
 
 def check_jacobian_against_finite_difference(phi, verbose=True):
     """ Makes sure the jacobian is close to the finite difference """
-    q=np.random.rand(phi.input_dimension())
-    J=phi.jacobian(q)
-    J_diff=finite_difference_jacobian(phi, q)
+    q = np.random.rand(phi.input_dimension())
+    J = phi.jacobian(q)
+    J_diff = finite_difference_jacobian(phi, q)
     if verbose:
         print("J : ")
         print(J)
@@ -798,9 +820,9 @@ def check_jacobian_against_finite_difference(phi, verbose=True):
 def check_hessian_against_finite_difference(phi, verbose=True,
                                             tolerance=1e-4):
     """ Makes sure the hessuaian is close to the finite difference """
-    q=np.random.rand(phi.input_dimension())
-    H=phi.hessian(q)
-    H_diff=finite_difference_hessian(phi, q)
+    q = np.random.rand(phi.input_dimension())
+    H = phi.hessian(q)
+    H_diff = finite_difference_hessian(phi, q)
     if verbose:
         print("H : ")
         print(H)
