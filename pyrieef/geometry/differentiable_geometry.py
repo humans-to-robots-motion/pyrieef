@@ -750,10 +750,10 @@ class MakeDifferentiableMap(DifferentiableMap):
         return self._n
 
     def forward(self, x):
-        return np.array(self._f)
+        return np.array(self._f(x))
 
     def jacobian(self, x):
-        return np.array(self._g)
+        return np.array(self._g(x))
 
 
 def finite_difference_jacobian(f, q):
@@ -804,7 +804,8 @@ def check_is_close(a, b, tolerance=1e-10):
     return results.all()
 
 
-def check_jacobian_against_finite_difference(phi, verbose=True):
+def check_jacobian_against_finite_difference(phi, verbose=True,
+                                             tolerance=1e-4):
     """ Makes sure the jacobian is close to the finite difference """
     q = np.random.rand(phi.input_dimension())
     J = phi.jacobian(q)
@@ -814,7 +815,7 @@ def check_jacobian_against_finite_difference(phi, verbose=True):
         print(J)
         print("J_diff : ")
         print(J_diff)
-    return check_is_close(J, J_diff, 1e-4)
+    return check_is_close(J, J_diff, tolerance)
 
 
 def check_hessian_against_finite_difference(phi, verbose=True,
