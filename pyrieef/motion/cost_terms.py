@@ -191,6 +191,9 @@ class BoundBarrier(DifferentiableMap):
 
         value = min(self._inf, value)
 
+        # TODO: Check here is a problem with l_dist ...
+        # this should be in the form loop or something
+        # maybe has to do with parallelization.
         if not x.shape == (self.input_dimension(),):
             l_limit = l_dist < self._margin
             u_limit = u_dist < self._margin

@@ -148,41 +148,8 @@ class MotionOptimization2DCostMap:
 
     def create_smoothness_metric(self):
         """ TODO this does not seem to work at all... """
-        a = FiniteDifferencesAcceleration(1, self.dt).a()
-        # print "a : "
-        # print a
-        no_variance = True
-        K_dof = np.matrix(np.zeros((self.T + 1, self.T + 1)))
-        for i in range(0, self.T + 1):
-            if i == 0:
-                K_dof[i, i:i + 2] = a[0, 1:3]
-                # if no_variance:
-                #     K_dof[i, i] *= 1000  # No variance at end points
-            elif i == self.T:
-                K_dof[i, i - 1:i + 1] = a[0, 0:2]
-                if no_variance:
-                    K_dof[i, i] *= 1000  # No variance at end points
-            elif i > 0:
-                K_dof[i, i - 1:i + 2] = a
-        A_dof = K_dof.T * K_dof
-        # print K_dof
-        # print A_dof
-
-        # represented in the form :  \xi = [q_0 ; q_1; ... ; q_2]
-        K_full = np.matrix(np.zeros((
-            self.config_space_dim * (self.T + 1),
-            self.config_space_dim * (self.T + 1))))
-        for dof in range(self.config_space_dim):
-            for (i, j), K_ij in np.ndenumerate(K_dof):
-                id_row = i * self.config_space_dim + dof
-                id_col = j * self.config_space_dim + dof
-                if id_row < K_full.shape[0] and id_col < K_full.shape[1]:
-                    K_full[id_row, id_col] = K_ij
-        # print K_full
-        # print K_full.shape
-        A = K_full.T * K_full
-        self.metric = A
-        return A
+        self.metric = smoothness_metric(self.dt, self.T, self.config_space_dim)
+        return self.metric
 
     def add_attractor(self, trajectory):
         """ Add an attractor to each clique scalled by the distance
@@ -377,3 +344,40 @@ class MotionOptimization2DCostMap:
             raise ValueError
 
         return [dist < 1.e-3, trajectory, gradient, delta]
+
+
+def smoothness_metric(dt, T, n):
+    """ TODO this does not seem to work at all... """
+    a = FiniteDifferencesAcceleration(1, dt).a()
+    # print "a : "
+    # print a
+    no_variance = True
+    K_dof = np.matrix(np.zeros((T + 1, T + 1)))
+    for i in range(0, T + 1):
+        if i == 0:
+            K_dof[i, i:i + 2] = a[0, 1:3]
+            # if no_variance:
+            #     K_dof[i, i] *= 1000  # No variance at end points
+        elif i == T:
+            K_dof[i, i - 1:i + 1] = a[0, 0:2]
+            if no_variance:
+                K_dof[i, i] *= 1000  # No variance at end points
+        elif i > 0:
+            K_dof[i, i - 1:i + 2] = a
+    A_dof = K_dof.T * K_dof
+    # print K_dof
+    # print A_dof
+
+    # represented in the form :  \xi = [q_0 ; q_1; ... ; q_2]
+    K_full = np.matrix(np.zeros((
+        n * (T + 1),
+        n * (T + 1))))
+    for dof in range(n):
+        for (i, j), K_ij in np.ndenumerate(K_dof):
+            id_row = i * n + dof
+            id_col = j * n + dof
+            if id_row < K_full.shape[0] and id_col < K_full.shape[1]:
+                K_full[id_row, id_col] = K_ij
+    # print K_full
+    # print K_full.shape
+    return K_full.T * K_full

@@ -62,6 +62,8 @@ class CliquesFunctionNetwork(FunctionNetwork):
         self._nb_clique_elements = 3
         self._clique_element_dim = clique_element_dim
         self._clique_dim = self._nb_clique_elements * clique_element_dim
+        # TODO this seems wrong...
+        # - 2 should be -2 * clique_element_dim...
         self._nb_cliques = int(self._input_size / clique_element_dim - 2)
         self._functions = self._nb_cliques * [None]
         for i in range(self._nb_cliques):

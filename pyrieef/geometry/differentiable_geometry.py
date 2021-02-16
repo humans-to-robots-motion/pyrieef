@@ -292,9 +292,11 @@ class ProductFunction(DifferentiableMap):
     """Take the product of functions"""
 
     def __init__(self, g, h):
-        """ f(x) = g(x)h(x)
-            n is the input dimension
-           indices are the output"""
+        """ 
+        f(x) = g(x)h(x)
+        n is the input dimension
+        indices are the output 
+        """
         self._g = g
         self._h = h
         # print "self._g.input_dimension() : ", self._g.input_dimension()
