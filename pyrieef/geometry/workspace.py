@@ -42,6 +42,11 @@ class Shape:
     function are represented as analytical or other type of functions.
     The implementations should return a set of points on the
     contour, to allow easy drawing.
+
+    Attributes
+    ----------
+        nb_points : int
+            How do discretize the contour/surface
     """
 
     def __init__(self):
@@ -348,14 +353,20 @@ def segment_from_end_points(p1, p2):
 
 class Box(Shape):
     """
-        An axis aligned box (hypercube) defined by
-            - origin    : its center
-            - dim       : its extent
+    An axis aligned box (hypercube) defined by 
+    center and exent
 
-        TODO 1) define distance
-             2) class should work for 2D and 3D boxes
-             3) test this function
-             4) make callable using stack
+    Attributes
+    ----------
+    origin : numpy array
+        its center
+    dim : numpy array
+        its extent
+
+    TODO 1) define distance
+         2) class should work for 2D and 3D boxes
+         3) test this function
+         4) make callable using stack
     """
 
     def __init__(self,
@@ -858,10 +869,12 @@ class EnvBox(Box):
     """
     Specializes a box to defined an environment
 
-    Parameters
+    Attributes
     ----------
-    origin: is in the center of the box
-    dim: size of the box
+    origin : numpy array
+        the center of the box
+    dim : numpy array
+        size of the box
     """
 
     def __init__(self,
@@ -938,7 +951,14 @@ def pixelmap_from_box(nb_points, box):
 
 class Workspace:
     """
-       Contains obstacles.
+    Contains obstacles.
+
+    Attributes
+    ----------
+    box : EnvBox
+        a specializes a box to defined an environment
+    obstacles : list
+        a list of Shape objects (ex: Circle, Box, ...)
     """
 
     def __init__(self, box=EnvBox()):
