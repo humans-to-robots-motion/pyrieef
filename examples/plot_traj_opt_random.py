@@ -52,32 +52,6 @@ def optimize_path(objective, workspace, path):
     return path
 
 
-def graph_search_path(graph, workspace, nb_points):
-    """ Find feasible path using Dijkstra's algorithm
-            1) samples a path that has collision with the enviroment
-                and perform graph search on a grid (nb_points x nb_points)
-            2) convert path to world coordinates
-            3) interpolate path continuously """
-    path = demonstrations.sample_path(workspace, graph, nb_points, True)
-
-    # convert to world coordinates
-    path_world = ContinuousTrajectory(len(path) - 1, 2)
-    pixel_map = workspace.pixel_map(nb_points)
-    for i, p in enumerate(path):
-        path_world.configuration(i)[:] = pixel_map.grid_to_world(np.array(p))
-    T = demonstrations.TRAJ_LENGTH
-
-    # interpolate the path
-    interpolated_path = Trajectory(T, 2)
-    for i, s in enumerate(np.linspace(0, 1, T)):
-        q = path_world.configuration_at_parameter(s)
-        interpolated_path.configuration(i)[:] = q
-    q_goal = path_world.final_configuration()
-    interpolated_path.configuration(T)[:] = q_goal
-    interpolated_path.configuration(T + 1)[:] = q_goal
-    return interpolated_path
-
-
 motion_objective = MotionOptimization2DCostMap(
     box=EnvBox(origin=np.array([0, 0]), dim=np.array([1., 1.])),
     T=demonstrations.TRAJ_LENGTH,
@@ -98,7 +72,7 @@ graph.convert()
 np.random.seed(0)
 sampling = sample_box_workspaces if BOXES else sample_circle_workspaces
 for k, workspace in enumerate(tqdm([sampling(5) for i in range(100)])):
-    path = graph_search_path(graph, workspace, nb_points)
+    path = demonstrations.graph_search_path(graph, workspace, nb_points)
     if collision_check_trajectory(workspace, path):
         continue
     optimize_path(objective, workspace, path)

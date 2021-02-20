@@ -29,7 +29,6 @@ import itertools
 # Creates a workspace with just one circle
 workspace = Workspace()
 workspace.obstacles = [Circle(origin=[.0, .0], radius=0.1)]
-renderer = WorkspaceDrawer(workspace)
 sdf = SignedDistanceWorkspaceMap(workspace)
 
 # Creates a vector field as the gradient of the signed distance field
@@ -69,6 +68,7 @@ for i, j in itertools.product(range(X_int.shape[0]), range(X_int.shape[1])):
     U_int[i, j] = g[0]
     V_int[i, j] = g[1]
 
+renderer = WorkspaceDrawer(workspace)
 renderer.set_drawing_axis(i)
 renderer.draw_ws_obstacles()
 renderer.draw_ws_point([0, 0], color='r', shape='o')

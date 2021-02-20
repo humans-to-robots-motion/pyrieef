@@ -56,7 +56,7 @@ class TrajectoryOptimizationViewer:
             self.viewer = renderer.WorkspaceHeightmap(self.objective.workspace)
             self._draw_gradient = False
             self._draw_hessian = False
-        self.reset_objective()
+        # self.reset_objective()
 
     def reset_objective(self):
         self.viewer.set_workspace(self.objective.workspace)

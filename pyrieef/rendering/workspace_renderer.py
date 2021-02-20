@@ -62,6 +62,7 @@ class WorkspaceRender:
         self._wait_for_keyboard = False
         self.set_workspace(workspace)
         self.workspace_id = 0
+        self.background_matrix_eval = True
 
     def set_workspace(self, workspace):
         assert workspace is not None
@@ -108,7 +109,6 @@ class WorkspaceDrawer(WorkspaceRender):
         self._fig = None
         self._ax = None
         self._colorbar = None
-        self.background_matrix_eval = True
         self.init(rows, cols)
 
     def init(self, rows, cols):
@@ -249,7 +249,6 @@ class WorkspaceOpenGl(WorkspaceRender):
         self.width = self._scale * (self._extent.x_max - self._extent.x_min)
         self.height = self._scale * (self._extent.y_max - self._extent.y_min)
         self.gl = Viewer(self.width, self.height, display)
-
         # Get SDF as image
         # signed_distance_field = SignedDistanceWorkspaceMap(self._workspace)
         # self.draw_ws_background(signed_distance_field)
@@ -284,7 +283,15 @@ class WorkspaceOpenGl(WorkspaceRender):
         self.gl.add_onetime(polygon)
 
     def draw_ws_background(self, function):
-        Z = function(self._workspace.box.stacked_meshgrid())
+
+        # function(self._workspace.box.stacked_meshgrid())
+        X, Y = self._workspace.box.stacked_meshgrid()
+        if self.background_matrix_eval:
+            Z = function(np.stack([X, Y]))
+        else:
+            Z = two_dimension_function_evaluation(
+                X, Y, function)
+
         # Z = Z.clip(max=1)
         self._max_z = Z.max()
         self._min_z = Z.min()

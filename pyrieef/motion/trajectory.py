@@ -305,6 +305,15 @@ class Trajectory:
         assert x.shape[0] == self._n * (self._T + 2)
         self._x = x.copy()
 
+    def set_from_configurations(self, configurations):
+        """
+        Takes a list of configuration and set them
+        as a trajectory (equaly time spaced config)
+        """
+        assert len(configurations) - 1 == self._T
+        for i, q in enumerate(configurations):
+            self.configuration(i)[:] = q
+
     def active_segment(self):
         """
         The active segment of the trajectory

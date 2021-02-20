@@ -150,6 +150,16 @@ def point_distance_hessian(x, origin):
 
 
 class Circle(Shape):
+    """
+    An Circle
+
+    Attributes
+    ----------
+    origin : numpy array
+        center
+    radius : Float
+        radius
+    """
 
     def __init__(self, origin=np.array([0., 0.]), radius=0.2):
         Shape.__init__(self)
@@ -373,6 +383,7 @@ class Box(Shape):
                  origin=np.array([0., 0.]),
                  dim=np.array([1., 1.])):
         Shape.__init__(self)
+        self._is_box = True
         self.origin = origin
         self.dim = dim
 
@@ -956,7 +967,7 @@ class Workspace:
     Attributes
     ----------
     box : EnvBox
-        a specializes a box to defined an environment
+        a specialized box to defined an environment
     obstacles : list
         a list of Shape objects (ex: Circle, Box, ...)
     """

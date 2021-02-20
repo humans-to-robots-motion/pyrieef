@@ -67,6 +67,38 @@ def grid_to_world_path(workspace, path, nb_points):
     return [grid.grid_to_world(np.array(p)) for p in path]
 
 
+def graph_search_path(
+        graph, 
+        workspace, 
+        nb_points):
+    """ 
+    Find feasible path using Dijkstra's algorithm
+            
+        1) samples a path that has collision with the enviroment
+                and perform graph search on a grid (nb_points x nb_points)
+        2) convert path to world coordinates
+        3) interpolate path continuously 
+    """
+    path = grid_to_world_path(
+        workspace, 
+        sample_path(workspace, graph, nb_points, True),
+        nb_points)
+
+    # convert to world coordinates
+    path_world = ContinuousTrajectory(T = len(path) - 1, n = 2)
+    path_world.set_from_configurations(path)
+
+    # interpolate the path
+    interpolated_path = Trajectory(TRAJ_LENGTH, 2)
+    for i, s in enumerate(np.linspace(0, 1, TRAJ_LENGTH)):
+        q = path_world.configuration_at_parameter(s)
+        interpolated_path.configuration(i)[:] = q
+    q_goal = path_world.final_configuration()
+    interpolated_path.final_configuration()[:] = q_goal
+    interpolated_path.configuration(TRAJ_LENGTH + 1)[:] = q_goal
+    return interpolated_path
+
+
 def sample_path(
         workspace,
         graph,

@@ -99,8 +99,8 @@ def locally_weighted_regression(x_query, X, Y, D, ridge_lambda):
       Final returned value: beta^*'x_query.
 
       Note that all points are augmented with an extra
-      constant feature to handle the bias.
-   """
+    constant feature to handle the bias.
+    """
     # Default value is 0. The calculation uses ridge regression with a finite
     # regularizer, so the values should diminish smoothly to 0 away from the
     # data set anyway.
