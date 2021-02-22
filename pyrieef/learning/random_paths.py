@@ -71,7 +71,7 @@ def graph_search_path(
         graph, 
         workspace, 
         nb_points):
-    """ 
+    """
     Find feasible path using Dijkstra's algorithm
             
         1) samples a path that has collision with the enviroment
@@ -79,10 +79,10 @@ def graph_search_path(
         2) convert path to world coordinates
         3) interpolate path continuously 
     """
-    path = grid_to_world_path(
-        workspace, 
-        sample_path(workspace, graph, nb_points, True),
-        nb_points)
+    grid_path = sample_path(workspace, graph, nb_points, True)
+    if grid_path is None:
+        return None
+    path = grid_to_world_path(workspace, grid_path, nb_points)
 
     # convert to world coordinates
     path_world = ContinuousTrajectory(T = len(path) - 1, n = 2)

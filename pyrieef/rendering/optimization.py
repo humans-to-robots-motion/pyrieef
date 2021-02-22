@@ -103,6 +103,8 @@ class TrajectoryOptimizationViewer:
             verticies = self.objective.robot.shape
         for k in range(self.objective.T + 1):
             q = trajectory.configuration(k)
+            # Draw the initial configuration blue
+            # and the goal is red and all the other are green
             color = (0, 0, 1) if k == 0 else (0, 1, 0)
             color = (1, 0, 0) if k == trajectory.T() else color
             if not self._use_3d:
