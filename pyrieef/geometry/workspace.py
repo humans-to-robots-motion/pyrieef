@@ -163,6 +163,7 @@ class Circle(Shape):
 
     def __init__(self, origin=np.array([0., 0.]), radius=0.2):
         Shape.__init__(self)
+        self._is_circle = True
         self.origin = origin
         self.radius = radius
 
