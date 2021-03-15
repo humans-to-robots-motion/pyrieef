@@ -270,6 +270,21 @@ class Trajectory:
         """
 
     def __init__(self, T=0, n=2, q_init=None, x=None):
+        """
+        Construct a trajectory given a combination of parameters
+
+        Parameters
+        ----------
+            T : int
+                Number of configurations
+            n : int
+                dimensiono of the configurations
+            q_init : array
+                First configuration
+            x :
+                Active part of the trajectory
+                i.e., all configurations except the q_init
+        """
         assert n > 0
         if q_init is not None and x is not None:
             assert x.size % q_init.size == 0

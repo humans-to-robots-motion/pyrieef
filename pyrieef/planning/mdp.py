@@ -28,7 +28,8 @@ as a dictionary of {state: action} pairs, and a Utility function as a
 dictionary of {state: number} pairs. We then define the value_iteration
 and policy_iteration algorithms."""
 
-from pyrieef.utils.misc import vector_add, orientations, turn_right, turn_left
+from . import common_imports
+from utils.misc import vector_add, orientations, turn_right, turn_left
 import random
 
 

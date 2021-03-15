@@ -23,7 +23,7 @@
 
 from __init__ import *
 from planning.mdp import *
-
+from planning.algorithms import *
 
 sequential_decision_environment_1 = GridMDP([[-0.1, -0.1, -0.1, +1],
                                              [-0.1, None, -0.1, -1],
