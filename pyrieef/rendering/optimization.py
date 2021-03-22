@@ -41,19 +41,17 @@ class TrajectoryOptimizationViewer:
         if draw:
             self._draw_gradient = draw_gradient
             self._draw_hessian = draw_gradient
-            self.init_viewer()
+            self.init_viewer(objective.workspace)
 
-    def init_viewer(self):
+    def init_viewer(self, workspace):
         from . import workspace_renderer as renderer
         if not self._use_3d:
             if self._use_gl:
-                self.viewer = renderer.WorkspaceOpenGl(
-                    self.objective.workspace)
+                self.viewer = renderer.WorkspaceOpenGl(workspace)
             else:
-                self.viewer = renderer.WorkspaceDrawer(
-                    self.objective.workspace, dynamic=True)
+                self.viewer = renderer.WorkspaceDrawer(workspace, dynamic=True)
         else:
-            self.viewer = renderer.WorkspaceHeightmap(self.objective.workspace)
+            self.viewer = renderer.WorkspaceHeightmap(workspace)
             self._draw_gradient = False
             self._draw_hessian = False
         # self.reset_objective()

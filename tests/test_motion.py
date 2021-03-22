@@ -200,6 +200,21 @@ def test_continuous_trajectory():
         assert_allclose(q_1, q_2)
 
 
+def test_resample_trajectory():
+
+    q_init = np.random.random(2)
+    q_goal = np.random.random(2)
+    T = 100
+    trajectory_1 = linear_interpolation_trajectory(q_init, q_goal, 5)
+    trajectory_2 = linear_interpolation_trajectory(q_init, q_goal, T)
+    trajectory_3 = resample(trajectory_1, T)
+    for t in range(trajectory_2.T() + 2):
+        print("test configuration : ", t)
+        q_2 = trajectory_2.configuration(t)
+        q_3 = trajectory_3.configuration(t)
+        assert_allclose(q_2, q_3)
+
+
 def test_constant_acceleration_trajectory():
     dt = 0.1
     T = 7
@@ -478,19 +493,23 @@ def test_motion_optimimization_hessian():
 
 
 def test_linear_interpolation():
+    T = 22
     trajectory = linear_interpolation_trajectory(
         q_init=np.zeros(2),
         q_goal=np.ones(2),
-        T=22
+        T=T
     )
     q_1 = trajectory.configuration(0)
     q_2 = trajectory.configuration(1)
     dist = norm(q_1 - q_2)
-    for i in range(1, trajectory.T() + 1):
+    for i in range(1, trajectory.T()):
         q_1 = trajectory.configuration(i)
         q_2 = trajectory.configuration(i + 1)
         dist_next = norm(q_1 - q_2)
         assert abs(dist_next - dist) < 1.e-10
+    assert_allclose(
+        trajectory.final_configuration(),
+        trajectory.configuration(T + 1))
 
 
 def test_linear_interpolation_velocity():
@@ -510,7 +529,7 @@ def test_linear_interpolation_velocity():
     clique = np.append(q_1,  q_2)
     velocity = deriv(clique)
     gradient_1 = deriv.gradient(clique)
-    for i in range(0, trajectory.T() + 1):
+    for i in range(0, trajectory.T()):
         q_1 = trajectory.configuration(i)
         q_2 = trajectory.configuration(i + 1)
         clique = np.append(q_1,  q_2)
@@ -555,6 +574,7 @@ def test_linear_interpolation_optimal_potential():
     objective.create_clique_network()
     objective.add_smoothness_terms(2)
     objective.create_objective()
+    print("trajectory : ", trajectory.active_segment())
     v = objective.objective.forward(trajectory.active_segment())
     g = objective.objective.gradient(trajectory.active_segment())
     g_diff = finite_difference_jacobian(
@@ -562,10 +582,10 @@ def test_linear_interpolation_optimal_potential():
     print(("v : ", v))
     print(("x : ", trajectory.active_segment()))
     print(("g : ", g))
+    print(("g[:-6] : ", g[:-6]))
     print(("g_diff : ", g_diff))
     print((g.shape))
-    assert np.isclose(
-        g, np.zeros(trajectory.active_segment().shape), atol=1e-5).all()
+    assert np.isclose(g[:-6], np.zeros((22 - 6, )), atol=1e-5).all()
 
 
 def test_smoothness_metric():
@@ -642,6 +662,7 @@ if __name__ == "__main__":
     # test_cliques()
     # test_trajectory()
     # test_continuous_trajectory()
+    # test_resample_trajectory()
     # test_constant_acceleration_trajectory()
     # test_spline_trajectory()
     # test_squared_norm_derivatives()
@@ -649,12 +670,12 @@ if __name__ == "__main__":
     # test_bound_barrier()
     # test_obstacle_potential()
     # test_motion_optimimization_2d()
-    test_motion_optimimization_hessian()
+    # test_motion_optimimization_hessian()
     # test_motion_optimimization_smoothness_metric()
     # test_center_of_clique()
     # test_linear_interpolation()
     # test_linear_interpolation_velocity()
-    # test_linear_interpolation_optimal_potential()
+    test_linear_interpolation_optimal_potential()
     # test_smoothness_metric()
     # test_trajectory_objective()
     # test_optimize()

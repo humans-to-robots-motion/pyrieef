@@ -537,11 +537,25 @@ class CubicSplineTrajectory(ContinuousTrajectory):
         return (q2 - 2 * q1 + q0) / (self._epsilon**2)
 
 
+def resample(trajectory, T):
+    """ interpolate """
+    continuous_trajectory = trajectory.continuous_trajectory()
+    new_trajectory = Trajectory(n=trajectory.n(), T=T)
+    for t, s in enumerate(np.linspace(0., 1., T + 1)):
+        q = continuous_trajectory.configuration_at_parameter(s)
+        new_trajectory.configuration(t)[:] = q
+    new_trajectory.configuration(
+        T + 1)[:] = continuous_trajectory.final_configuration()
+    return new_trajectory
+
+
 def linear_interpolation_trajectory(q_init, q_goal, T):
     assert q_init.size == q_goal.size
     trajectory = Trajectory(T, q_init.size)
     for i in range(T + 2):
         alpha = float(i) / float(T)
+        if alpha > 1:
+            alpha = 1
         trajectory.configuration(i)[:] = (1 - alpha) * q_init + alpha * q_goal
         # print "config[{}] : {}".format(i, trajectory.configuration(i))
     return trajectory
