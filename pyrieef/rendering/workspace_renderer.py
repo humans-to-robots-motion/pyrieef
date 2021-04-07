@@ -305,13 +305,13 @@ class WorkspaceOpenGl(WorkspaceRender):
     def draw_ws_obstacles(self):
         ws_o = np.array([self._extent.x_min, self._extent.y_min])
         for i, o in enumerate(self._workspace.obstacles):
-            if isinstance(o, Circle):
+            if hasattr(o, '_is_circle'):
                 circ = make_circle(self._scale * o.radius, 30, False)
                 center = self._scale * (o.origin - ws_o)
                 circ.add_attr(Transform(translation=center))
                 circ.set_color(*COLORS[i % 3])
                 self.gl.add_geom(circ)
-            if isinstance(o, Box):
+            if hasattr(o, '_is_box'):
                 vertices = [self._scale * (v - ws_o) for v in o.verticies()]
                 box = PolyLine(vertices, True)
                 box.set_color(*COLORS[i % 3])
