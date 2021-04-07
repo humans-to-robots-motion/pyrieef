@@ -31,7 +31,7 @@ class TrajectoryOptimizationViewer:
                  draw=True,
                  draw_gradient=True,
                  use_3d=False,
-                 use_gl=True
+                 use_gl=True,
                  scale=700.):
         self.objective = objective
         self.viewer = None
