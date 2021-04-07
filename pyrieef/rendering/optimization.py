@@ -48,7 +48,7 @@ class TrajectoryOptimizationViewer:
         from . import workspace_renderer as renderer
         if not self._use_3d:
             if self._use_gl:
-                self.viewer = renderer.WorkspaceOpenGl(workspace, scale=700.)
+                self.viewer = renderer.WorkspaceOpenGl(workspace, scale=scale)
             else:
                 self.viewer = renderer.WorkspaceDrawer(workspace, dynamic=True)
         else:
