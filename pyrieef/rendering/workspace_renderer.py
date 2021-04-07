@@ -118,7 +118,6 @@ class WorkspaceDrawer(WorkspaceRender):
         if self._ax is not None:
             self._ax.clear()
         self._axes = self._fig.subplots(nrows=rows, ncols=cols)
-        print(type(self._axes))
         if rows > 1 or cols > 1:
             for ax in self._axes.flat:
                 ax.axis('equal')
@@ -242,10 +241,9 @@ class WorkspaceDrawer(WorkspaceRender):
 class WorkspaceOpenGl(WorkspaceRender):
     """ Workspace display based on pyglet backend """
 
-    def __init__(self, workspace, display=None):
+    def __init__(self, workspace, display=None, scale=700.):
         WorkspaceRender.__init__(self, workspace)
-        print((self._workspace.box))
-        self._scale = 700.
+        self._scale = scale
         self.width = self._scale * (self._extent.x_max - self._extent.x_min)
         self.height = self._scale * (self._extent.y_max - self._extent.y_min)
         self.gl = Viewer(self.width, self.height, display)
