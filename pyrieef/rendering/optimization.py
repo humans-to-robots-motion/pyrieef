@@ -31,7 +31,8 @@ class TrajectoryOptimizationViewer:
                  draw=True,
                  draw_gradient=True,
                  use_3d=False,
-                 use_gl=True):
+                 use_gl=True,
+                 scale=700.):
         self.objective = objective
         self.viewer = None
         self._draw_gradient = False
@@ -41,13 +42,13 @@ class TrajectoryOptimizationViewer:
         if draw:
             self._draw_gradient = draw_gradient
             self._draw_hessian = draw_gradient
-            self.init_viewer(objective.workspace)
+            self.init_viewer(objective.workspace, scale=scale)
 
-    def init_viewer(self, workspace):
+    def init_viewer(self, workspace, scale=700.):
         from . import workspace_renderer as renderer
         if not self._use_3d:
             if self._use_gl:
-                self.viewer = renderer.WorkspaceOpenGl(workspace)
+                self.viewer = renderer.WorkspaceOpenGl(workspace, scale=scale)
             else:
                 self.viewer = renderer.WorkspaceDrawer(workspace, dynamic=True)
         else:
