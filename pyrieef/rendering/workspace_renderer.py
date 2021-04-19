@@ -226,7 +226,7 @@ class WorkspaceDrawer(WorkspaceRender):
     def set_title(self, title, fontsize=15):
         plt.title(
             '\n'.join(
-                wrap(title, int(self.size[0])*7)), fontsize=fontsize)
+                wrap(title, int(self.size[0]) * 7)), fontsize=fontsize)
 
     def remove_axis(self):
         if self._axes is not None:
@@ -241,12 +241,14 @@ class WorkspaceDrawer(WorkspaceRender):
 class WorkspaceOpenGl(WorkspaceRender):
     """ Workspace display based on pyglet backend """
 
-    def __init__(self, workspace, display=None, scale=700.):
+    def __init__(self, workspace,  wait_for_keyboard=False,
+                 display=None, scale=700.):
         WorkspaceRender.__init__(self, workspace)
         self._scale = scale
         self.width = self._scale * (self._extent.x_max - self._extent.x_min)
         self.height = self._scale * (self._extent.y_max - self._extent.y_min)
         self.gl = Viewer(self.width, self.height, display)
+        self._wait_for_keyboard = wait_for_keyboard
         # Get SDF as image
         # signed_distance_field = SignedDistanceWorkspaceMap(self._workspace)
         # self.draw_ws_background(signed_distance_field)
@@ -256,11 +258,14 @@ class WorkspaceOpenGl(WorkspaceRender):
 
     def draw_ws_circle(self, radius, origin, color=(0, 1, 0)):
         t = Transform(translation=self._scale * (
-                origin - np.array([self._extent.x_min, self._extent.y_min])))
+            origin - np.array([self._extent.x_min, self._extent.y_min])))
         circ = make_circle(self._scale * radius, 30)
         circ.add_attr(t)
         circ.set_color(*color)
         self.gl.add_onetime(circ)
+
+    def draw_ws_point(self, point, color='b', shape='x'):
+        self.draw_ws_circle(.01, point)
 
     def draw_ws_line(self, line, color=(1, 0, 0)):
         p1 = line[0]
@@ -273,23 +278,25 @@ class WorkspaceOpenGl(WorkspaceRender):
     def draw_ws_polygon(self, vertices, origin, rotation, color=(1, 0, 0)):
         t = Transform(
             translation=self._scale * (
-                    origin - np.array([self._extent.x_min, self._extent.y_min])),
+                origin - np.array([self._extent.x_min, self._extent.y_min])),
             rotation=rotation)
         polygon = make_polygon(self._scale * vertices, filled=False)
         polygon.add_attr(t)
         polygon.set_color(*color)
         self.gl.add_onetime(polygon)
 
-    def draw_ws_background(self, function):
-
-        # function(self._workspace.box.stacked_meshgrid())
-        X, Y = self._workspace.box.stacked_meshgrid()
+    def draw_ws_background(self, phi,
+                           nb_points=100,
+                           color_style=plt.cm.magma,
+                           interpolate="bilinear"):
+        X, Y = self._workspace.box.stacked_meshgrid(nb_points)
         if self.background_matrix_eval:
-            Z = function(np.stack([X, Y]))
+            Z = phi(np.stack([X, Y]))
         else:
-            Z = two_dimension_function_evaluation(
-                X, Y, function)
+            Z = two_dimension_function_evaluation(X, Y, phi)
+        self.draw_ws_img(Z)
 
+    def draw_ws_img(self, Z):
         # Z = Z.clip(max=1)
         self._max_z = Z.max()
         self._min_z = Z.min()
@@ -316,6 +323,11 @@ class WorkspaceOpenGl(WorkspaceRender):
                 box = PolyLine(vertices, True)
                 box.set_color(*COLORS[i % 3])
                 self.gl.add_geom(box)
+
+    def show_once(self):
+        self.show()
+        if self._wait_for_keyboard:
+            input("Press Enter to continue...")
 
     def show(self):
         time.sleep(0.05)

@@ -22,6 +22,7 @@ from pyrieef.geometry.workspace import *
 from pyrieef.geometry.rotations import *
 from pyrieef.kinematics.robot import *
 from pyrieef.rendering.workspace_renderer import WorkspaceDrawer
+from pyrieef.rendering.workspace_renderer import WorkspaceOpenGl
 
 robot = create_robot_from_file(scale=.02)
 # robot = create_robot_with_even_keypoints(scale=.03)
@@ -31,7 +32,8 @@ workspace.obstacles.append(Box(
 workspace.obstacles.append(Box(
     origin=np.array([.3, 0]), dim=np.array([.4, .02])))
 sdf = SignedDistanceWorkspaceMap(workspace)
-viewer = WorkspaceDrawer(workspace, wait_for_keyboard=True)
+# viewer = WorkspaceDrawer(workspace, wait_for_keyboard=True)
+viewer = WorkspaceOpenGl(workspace, wait_for_keyboard=True)
 q = np.array([.0, -.2, .2])
 viewer.draw_ws_obstacles()
 viewer.draw_ws_polygon(robot.shape, q[:2], q[2])
