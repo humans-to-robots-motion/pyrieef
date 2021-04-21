@@ -105,9 +105,9 @@ def trajectory_optimization():
         # Plot trajectory
         plot_results(workspace, x_init, x_goal, trajectory, optimizer)
     else:
-        from pyrieef.rendering import workspace_renderer
+        from pyrieef.rendering import workspace_planar
         from pyrieef.rendering import opengl
-        viewer = workspace_renderer.WorkspaceOpenGl(workspace)
+        viewer = workspace_planar.WorkspaceOpenGl(workspace)
         viewer.draw_ws_background(optimizer.obstacle_potential_from_sdf())
         # viewer.draw_ws_obstacles()
 

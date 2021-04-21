@@ -24,7 +24,7 @@ import time
 from numpy.testing import assert_allclose
 from pyrieef.rendering.optimization import *
 from pyrieef.optimization import algorithms
-from pyrieef.rendering.workspace_renderer import WorkspaceDrawer
+from pyrieef.rendering.workspace_planar import WorkspaceDrawer
 
 
 def initialize_objective(trajectory, workspace, costmap):

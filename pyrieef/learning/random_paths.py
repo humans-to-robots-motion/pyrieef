@@ -161,7 +161,7 @@ def generate_paths(nb_points):
                     if verbose:
                         print("Warning : ", e)
         if DRAW:
-            import rendering.workspace_renderer as render
+            import rendering.workspace_planar as render
             viewer = render.WorkspaceDrawer(workspace, wait_for_keyboard=True)
             viewer.set_workspace(workspace)
             viewer.draw_ws_background(obsatcle_potential(workspace), nb_points)

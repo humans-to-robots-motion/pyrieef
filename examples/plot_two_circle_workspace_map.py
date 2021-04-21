@@ -25,7 +25,7 @@ from pyrieef.geometry.geodesics import *
 from pyrieef.geometry.diffeomorphisms import *
 from pyrieef.geometry.utils import *
 from pyrieef.motion.cost_terms import *
-from pyrieef.rendering.workspace_renderer import WorkspaceDrawer
+from pyrieef.rendering.workspace_planar import WorkspaceDrawer
 import itertools
 
 circles = []

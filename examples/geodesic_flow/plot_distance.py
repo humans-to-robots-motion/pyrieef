@@ -21,7 +21,7 @@ from demos_common_imports import *
 import numpy as np
 import pyrieef.geometry.heat_diffusion as hd
 from pyrieef.geometry.workspace import *
-from pyrieef.rendering.workspace_renderer import WorkspaceDrawer
+from pyrieef.rendering.workspace_planar import WorkspaceDrawer
 import matplotlib.pyplot as plt
 import matplotlib
 

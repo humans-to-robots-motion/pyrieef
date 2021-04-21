@@ -20,7 +20,7 @@
 import demos_common_imports
 from pyrieef.geometry.workspace import *
 from pyrieef.geometry.diffeomorphisms import *
-from pyrieef.rendering.workspace_renderer import WorkspaceDrawer
+from pyrieef.rendering.workspace_planar import WorkspaceDrawer
 
 env = EnvBox(dim=np.array([2., 2.]))
 box = Box(origin=np.array([-.5, -.5]), dim=np.array([.5, .5]))

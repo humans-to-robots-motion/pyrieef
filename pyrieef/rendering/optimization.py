@@ -45,7 +45,7 @@ class TrajectoryOptimizationViewer:
             self.init_viewer(objective.workspace, scale=scale)
 
     def init_viewer(self, workspace, scale=700.):
-        from . import workspace_renderer as renderer
+        from . import workspace_planar as renderer
         if not self._use_3d:
             if self._use_gl:
                 self.viewer = renderer.WorkspaceOpenGl(workspace, scale=scale)

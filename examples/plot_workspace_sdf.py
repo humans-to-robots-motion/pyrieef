@@ -20,7 +20,7 @@
 import demos_common_imports
 from pyrieef.geometry.workspace import *
 from pyrieef.geometry.pixel_map import sdf
-from pyrieef.rendering.workspace_renderer import WorkspaceDrawer
+from pyrieef.rendering.workspace_planar import WorkspaceDrawer
 import scipy.misc
 from scipy.misc import imresize
 

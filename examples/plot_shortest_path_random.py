@@ -23,7 +23,7 @@ from pyrieef.graph.shortest_path import *
 from pyrieef.geometry.workspace import *
 from pyrieef.geometry.differentiable_geometry import *
 from pyrieef.motion.cost_terms import *
-import pyrieef.rendering.workspace_renderer as render
+import pyrieef.rendering.workspace_planar as render
 import time
 import matplotlib.pyplot as plt
 cmap = plt.get_cmap('viridis')

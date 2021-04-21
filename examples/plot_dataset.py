@@ -25,7 +25,7 @@ from numpy.testing import assert_allclose
 
 from pyrieef.geometry.workspace import EnvBox
 from pyrieef.geometry.pixel_map import *
-import pyrieef.rendering.workspace_renderer as render
+import pyrieef.rendering.workspace_planar as render
 import pyrieef.learning.demonstrations as demos
 from pyrieef.learning.dataset import *
 

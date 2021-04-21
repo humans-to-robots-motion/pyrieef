@@ -21,7 +21,7 @@ from demos_common_imports import *
 import numpy as np
 from pyrieef.geometry.workspace import *
 from pyrieef.geometry.interpolation import *
-from pyrieef.rendering.workspace_renderer import WorkspaceDrawer
+from pyrieef.rendering.workspace_planar import WorkspaceDrawer
 from pyrieef.planning.mdp import GridMDP
 from pyrieef.planning.mdp import value_iteration
 import matplotlib.pyplot as plt

@@ -27,7 +27,7 @@ from pyrieef.motion.objective import MotionOptimization2DCostMap
 from pyrieef.motion.control import KinematicTrajectoryFollowingLQR
 from pyrieef.optimization import algorithms
 from pyrieef.rendering.optimization import TrajectoryOptimizationViewer
-from pyrieef.rendering.workspace_renderer import WorkspaceDrawer
+from pyrieef.rendering.workspace_planar import WorkspaceDrawer
 
 """
 Optimize a grasping trajectory and compute LQR to track it

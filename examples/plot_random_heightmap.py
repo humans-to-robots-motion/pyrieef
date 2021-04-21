@@ -19,7 +19,7 @@
 
 from demos_common_imports import *
 import numpy as np
-from pyrieef.rendering.workspace_renderer import WorkspaceHeightmap
+from pyrieef.rendering.workspace_planar import WorkspaceHeightmap
 from pyrieef.geometry.workspace import *
 from pyrieef.motion.cost_terms import *
 

@@ -21,8 +21,8 @@ import demos_common_imports
 from pyrieef.geometry.workspace import *
 from pyrieef.geometry.rotations import *
 from pyrieef.kinematics.robot import *
-from pyrieef.rendering.workspace_renderer import WorkspaceDrawer
-from pyrieef.rendering.workspace_renderer import WorkspaceOpenGl
+from pyrieef.rendering.workspace_planar import WorkspaceDrawer
+from pyrieef.rendering.workspace_planar import WorkspaceOpenGl
 
 robot = create_robot_from_file(scale=.02)
 # robot = create_robot_with_even_keypoints(scale=.03)

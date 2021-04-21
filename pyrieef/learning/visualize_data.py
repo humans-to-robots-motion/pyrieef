@@ -25,7 +25,7 @@ sys.path.insert(0, driectory + os.sep + "..")
 import matplotlib.pyplot as plt
 from utils.options import *
 from utils.misc import *
-import rendering.workspace_renderer as render
+import rendering.workspace_planar as render
 import time
 
 

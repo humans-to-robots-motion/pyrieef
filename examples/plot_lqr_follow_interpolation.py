@@ -22,7 +22,7 @@ import numpy as np
 from pyrieef.geometry.workspace import *
 from pyrieef.motion.trajectory import *
 from pyrieef.motion.control import KinematicTrajectoryFollowingLQR
-from pyrieef.rendering.workspace_renderer import WorkspaceDrawer
+from pyrieef.rendering.workspace_planar import WorkspaceDrawer
 
 """
 Integrate LQR forward in time by following a straight line constant
