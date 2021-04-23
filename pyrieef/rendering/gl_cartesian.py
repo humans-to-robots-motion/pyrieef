@@ -24,6 +24,16 @@ import open3d as o3d
 import numpy as np
 import time
 
+# Download bunny at http://graphics.stanford.edu/data/3Dscanrep/"
+DATA_DIRECTORY = "/Users/jmainpri/Dropbox/Work/workspace/pyrieef/data/"
+# BUNNY = DATA_DIRECTORY + "bunny/data/bun045.ply"
+# BUNNY = DATA_DIRECTORY + "bunny/reconstruction/bun_zipper_res2.ply"
+BUNNY = DATA_DIRECTORY + "bunny/reconstruction/bun_zipper.ply"
+BUNNY = DATA_DIRECTORY + "scan.stl"
+
+ROBOTS = "/Users/jmainpri/Dropbox/Work/workspace/pybullet_robots/"
+BUNNY = ROBOTS + "data/baxter_common/baxter_description/meshes/lower_elbow/E1.STL"
+
 # print("Let's define some primitives")
 
 mesh_box = o3d.geometry.TriangleMesh.create_box(
@@ -43,6 +53,10 @@ mesh_cylinder.paint_uniform_color([0.1, 0.9, 0.1])
 mesh_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(
     size=0.6, origin=[-2, -2, -2])
 
+mesh_bunny = o3d.io.read_triangle_mesh(BUNNY)
+mesh_bunny.compute_vertex_normals()
+o3d.visualization.draw_geometries([mesh_bunny])
+
 # print("We draw a few primitives using collection.")
 # o3d.visualization.draw_geometries(
 #     [mesh_box, mesh_sphere, mesh_cylinder, mesh_frame])
@@ -51,17 +65,17 @@ mesh_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(
 # # o3d.visualization.draw_geometries(
 # #     [mesh_box + mesh_sphere + mesh_cylinder + mesh_frame])
 
-width = 800
-height = 600
+# width = 800
+# height = 600
 
-rate = Rate(20) # Hz
-viz = o3d.visualization.Visualizer()
-viz.create_window(width=width, height=height, visible=True)
-viz.add_geometry(mesh_box)
-for i in range(100000):
-    # do ICP single iteration
-    # transform geometry using ICP
-    viz.update_geometry(mesh_box)
-    viz.poll_events()
-    viz.update_renderer()
-    # rate.sleep() # TODO make that work...
+# rate = Rate(20) # Hz
+# viz = o3d.visualization.Visualizer()
+# viz.create_window(width=width, height=height, visible=True)
+# viz.add_geometry(mesh_box)
+# for i in range(100000):
+#     # do ICP single iteration
+#     # transform geometry using ICP
+#     viz.update_geometry(mesh_bunny)
+#     viz.poll_events()
+#     viz.update_renderer()
+#     # rate.sleep() # TODO make that work...
