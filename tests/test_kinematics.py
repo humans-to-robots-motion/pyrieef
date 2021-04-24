@@ -34,18 +34,18 @@ def test_planar_rotation():
 
 def test_homogeneous_transform():
 
-    kinematic_map = HomogeneousTransform()
+    kinematic_map = HomogeneousTransform2D()
     assert_allclose(kinematic_map(np.zeros(3)), np.zeros(2))
 
-    kinematic_map = HomogeneousTransform(np.ones(2))
+    kinematic_map = HomogeneousTransform2D(np.ones(2))
     assert_allclose(kinematic_map(np.zeros(3)), np.ones(2))
 
-    kinematic_map = HomogeneousTransform(np.ones(2))
+    kinematic_map = HomogeneousTransform2D(np.ones(2))
     p1 = kinematic_map(np.array([1., 1., 0.]))
     p2 = np.array([2., 2.])
     assert_allclose(p1, p2)
 
-    kinematic_map = HomogeneousTransform(np.ones(2))
+    kinematic_map = HomogeneousTransform2D(np.ones(2))
     p1 = kinematic_map(np.array([1., 1., 0.785398]))
     p2 = np.array([1., 2.41421])
     assert_allclose(p1, p2, 1e-4)
@@ -53,7 +53,7 @@ def test_homogeneous_transform():
 
 def test_homogeneous_jacobian():
 
-    kinematic_map = HomogeneousTransform(np.random.rand(2))
+    kinematic_map = HomogeneousTransform2D(np.random.rand(2))
 
     print("----------------------")
     print("Check identity (J implementation) : ")
@@ -78,8 +78,16 @@ def test_freeflyer():
     assert robot.name == "freeflyer"
 
 
+def test_isometries():
+    affine2d = Isometry2D(.4)
+    assert_allclose(
+        affine2d.inverse().matrix(),
+        np.linalg.inv(affine2d.matrix()))
+
+
 if __name__ == "__main__":
-    test_planar_rotation()
-    test_homogeneous_transform()
-    test_homogeneous_jacobian()
-    test_freeflyer()
+    # test_planar_rotation()
+    # test_homogeneous_transform()
+    # test_homogeneous_jacobian()
+    # test_freeflyer()
+    test_isometries()
