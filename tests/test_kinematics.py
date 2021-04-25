@@ -79,7 +79,7 @@ def test_freeflyer():
 
 
 def test_isometries():
-    affine2d = Isometry2D(.4)
+    affine2d = Isometry2D(.4, [-2, 1])
     assert_allclose(
         affine2d.inverse().matrix(),
         np.linalg.inv(affine2d.matrix()))

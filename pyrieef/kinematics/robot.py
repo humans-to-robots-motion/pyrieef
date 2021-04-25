@@ -19,7 +19,7 @@
 
 from abc import abstractmethod
 from .homogeneous_transform import *
-from pyrieef.geometry.workspace import *
+from geometry.workspace import *
 import json
 import os
 
@@ -60,7 +60,7 @@ class Freeflyer(Robot):
             self._create_map(i, name, scale * np.array(keypoints[name]))
 
     def _create_map(self, i, name, p):
-        self._kinematics_maps[i] = HomogeneousTransform(p)
+        self._kinematics_maps[i] = HomogeneousTransform2D(p)
         self.keypoint_names[name] = i
 
     def keypoint_map(self, i):

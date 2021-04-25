@@ -33,7 +33,7 @@ class Rotation2D:
 
     def __init__(self, theta=None):
 
-        if rotation is not None:
+        if theta is not None:
             c, s = np.cos(theta), np.sin(theta)
             self._matrix = np.array(((c, -s), (s, c)))
         else:
@@ -70,8 +70,9 @@ class Isometry2D:
             self._rotation = None
 
         if translation is not None:
+            translation = np.asarray(translation)
             assert(translation.size == 2)
-            self._translation = np.array(translation)
+            self._translation = translation
         else:
             self._translation = None
 
@@ -102,7 +103,8 @@ class Isometry2D:
     def inverse(self):
         T_inv = Isometry2D()
         T_inv._rotation = self._rotation.T
-        T_inv._translation = np.dot(T_inv._rotation, self._translation)
+        print(T_inv._rotation)
+        T_inv._translation = -np.dot(T_inv._rotation, self._translation)
         return T_inv
 
 
@@ -144,7 +146,7 @@ class Isometry3D:
         return self._translation
 
     def matrix(self):
-        m = np.identity(3)
+        m = np.identity(4)
         m[:3, :3] = self._rotation
         m[:3, 3] = self._translation.T
         return m
