@@ -21,8 +21,20 @@ import numpy as np
 
 
 def vectors_angle(v1, v2):
-    """ computes an angle between two vectors
-        the angle is restricted to the range [0, 2pi]"""
+    """
+    Computes an angle between two vectors
+    the angle is restricted to the range [0, 2pi]
+
+    Parameters
+    ----------
+    v1 : array like (n, )
+        vector 1
+
+    v1 : array like (n, )
+        vector 2
+    """
+    v1 = np.asarray(v1)
+    v2 = np.asarray(v2)
     assert v1.shape == (2,) or v1.shape == (3,)
     assert v1.shape == v2.shape
     return np.mod(np.arctan2(np.cross(v1, v2), np.dot(v1, v2)), 2 * np.pi)
@@ -31,6 +43,11 @@ def vectors_angle(v1, v2):
 def rotation_matrix_2d(degree):
     """
     Compose a rotation matrix using using a conversion from degrees
+
+    Parameters
+    ----------
+    degree : float
+        angle in degree
     """
     theta = np.radians(degree)
     return rotation_matrix_2d_radian(theta)
@@ -39,6 +56,60 @@ def rotation_matrix_2d(degree):
 def rotation_matrix_2d_radian(theta):
     """
     Compose a rotation matrix using radians
+
+    Parameters
+    ----------
+    theta : float
+        angle of rotation
     """
     c, s = np.cos(theta), np.sin(theta)
     return np.array(((c, -s), (s, c)))
+
+
+def rand_rotation_3d_matrix(deflection=1.0, randnums=None):
+    """
+    Creates a random rotation matrix.
+
+    Parameters
+    ----------
+    deflection : float
+        the magnitude of the rotation.
+        For 0, no rotation; for 1, competely random rotation.
+        Small deflection => small perturbation.
+        randnums: 3 random numbers in the range [0, 1]. If `None`,
+        they will be auto-generated.
+    """
+    # copied from blog post
+    # http://www.realtimerendering.com/resources/\
+    # GraphicsGems/gemsiii/rand_rotation.c
+
+    if randnums is None:
+        randnums = np.random.uniform(size=(3,))
+
+    theta, phi, z = randnums
+
+    theta = theta * 2.0 * deflection * np.pi  # Rotation about the pole (Z).
+    phi = phi * 2.0 * np.pi                   # For direction of pole deflect.
+    z = z * 2.0 * deflection                  # For magnitude of pole deflect.
+
+    # Compute a vector V used for distributing points over the sphere
+    # via the reflection I - V Transpose(V).  This formulation of V
+    # will guarantee that if x[1] and x[2] are uniformly distributed,
+    # the reflected points will be uniform on the sphere.  Note that V
+    # has length sqrt(2) to eliminate the 2 in the Householder matrix.
+
+    r = np.sqrt(z)
+    Vx, Vy, Vz = V = (
+        np.sin(phi) * r,
+        np.cos(phi) * r,
+        np.sqrt(2.0 - z)
+    )
+
+    st = np.sin(theta)
+    ct = np.cos(theta)
+
+    R = np.array(((ct, st, 0), (-st, ct, 0), (0, 0, 1)))
+
+    # Construct the rotation matrix  ( V Transpose(V) - I ) R.
+    M = (np.outer(V, V) - np.eye(3)).dot(R)
+    return M
