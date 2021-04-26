@@ -93,9 +93,19 @@ def test_isometries():
         affine3d.inverse().matrix(),
         np.linalg.inv(affine3d.matrix()))
 
-    # R_1 = rand_rotation_3d_matrix()
-    # p_1 = np.random.rand(3)
-    # T_1 = Isometry3D(R_1, t)
+    R_1 = rand_rotation_3d_matrix()
+    p_1 = np.random.rand(3)
+    T_1 = Isometry3D(R_1, p_1)
+
+    R_2 = rand_rotation_3d_matrix()
+    p_2 = np.random.rand(3)
+    T_2 = Isometry3D(R_2, p_2)
+
+    T_3 = T_1 * T_2
+    assert_allclose(
+        T_3.matrix(),
+        np.dot(T_1.matrix(), T_2.matrix()))
+
 
 
 
