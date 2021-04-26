@@ -80,16 +80,23 @@ def test_freeflyer():
 
 def test_isometries():
 
-    affine2d = Isometry2D(.4, [-2, 1])
+    p = np.random.rand(2)
+    affine2d = Isometry2D(.4, p)
     assert_allclose(
         affine2d.inverse().matrix(),
         np.linalg.inv(affine2d.matrix()))
 
     R = rand_rotation_3d_matrix()
-    affine3d = Isometry3D(.4, [-2, 1])
+    p = np.random.rand(3)
+    affine3d = Isometry3D(R, p)
     assert_allclose(
         affine3d.inverse().matrix(),
         np.linalg.inv(affine3d.matrix()))
+
+    # R_1 = rand_rotation_3d_matrix()
+    # p_1 = np.random.rand(3)
+    # T_1 = Isometry3D(R_1, t)
+
 
 
 if __name__ == "__main__":

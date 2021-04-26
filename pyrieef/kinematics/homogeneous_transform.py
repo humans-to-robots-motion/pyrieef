@@ -97,9 +97,43 @@ def rand_rotation_3d_matrix(deflection=1.0, randnums=None):
     return M
 
 
-class Isometry2D:
+class Isometry:
     """
-    Affine rigid body transformation.
+    Interface for isometries
+    (i.e., affine transform with orthogonal linear part)
+
+    Members
+    ----------
+    rotation : array like (n, n)
+        rotation matrix
+
+    translation : array like (n, )
+        vector offset
+    """
+
+    def __init__(self):
+        self._rotation = None
+        self._translation = None
+
+    def __str__(self):
+        return str(self.matrix())
+
+    def linear(self):
+        return self._rotation
+
+    def translation(self):
+        return self._translation
+
+    def matrix(self):
+        return None
+
+    def inverse(self):
+        return None
+
+
+class Isometry2D(Isometry):
+    """
+    Affine 2d rigid body transformation.
 
     Parameters
     ----------
@@ -136,12 +170,6 @@ class Isometry2D:
         else:
             raise TypeError("transforms only compose vectors or transforms")
 
-    def linear(self):
-        return self._rotation
-
-    def translation(self):
-        return self._translation
-
     def matrix(self):
         m = np.identity(3)
         m[:2, :2] = self._rotation
@@ -155,7 +183,7 @@ class Isometry2D:
         return T_inv
 
 
-class Isometry3D:
+class Isometry3D(Isometry):
     """
     Affine rigid body transformation.
     """
@@ -165,7 +193,7 @@ class Isometry3D:
         if rotation is not None:
             rotation = np.asarray(rotation)
             assert(rotation.shape == (3, 3))
-            self._rotation = translation
+            self._rotation = rotation
         else:
             self._rotation = None
 
