@@ -10,7 +10,7 @@ Welcome to pyrieef's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-
+   introduction
 
 Indices and tables
 ==================
