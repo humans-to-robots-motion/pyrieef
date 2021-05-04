@@ -21,8 +21,9 @@ sys.path.append('/Users/jmainpri/Dropbox/Work/workspace/pyrieef/pyrieef')
 # To create the doc from the api run.
 #     sphinx-apidoc -f -o source/ ../pyrieef
 
-# To install the them
+# To install first
 #     pip install sphinx_rtd_theme
+#     pip install m2r2
 
 
 # -- Project information -----------------------------------------------------

@@ -11,6 +11,7 @@ Welcome to pyrieef's documentation!
    :caption: Contents:
 
    introduction
+   getting_started
 
 Indices and tables
 ==================
