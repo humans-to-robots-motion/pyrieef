@@ -18,39 +18,28 @@
 #                                        Jim Mainprice on Sunday June 13 2018
 
 import demos_common_imports
-import numpy as np
 from pyrieef.geometry.workspace import *
-from pyrieef.motion.trajectory import *
-from pyrieef.motion.control import KinematicTrajectoryFollowingLQR
+from pyrieef.geometry.pixel_map import sdf
 from pyrieef.rendering.workspace_planar import WorkspaceDrawer
+import cv2
 
-"""
-Integrate LQR forward in time by following a straight line constant
-speed trajectory
-"""
-
-tracked_trajectory = linear_interpolation_trajectory(
-    q_init=-.22 * np.ones(2),
-    q_goal=.4 * np.ones(2),
-    T=22
-)
-
-lqr = KinematicTrajectoryFollowingLQR(dt=0.1, trajectory=tracked_trajectory)
-lqr.solve_ricatti(Q_p=13, Q_v=3, R_a=1)
-
-viewer = WorkspaceDrawer(Workspace(), wait_for_keyboard=True)
-viewer.draw_ws_line(tracked_trajectory.list_configurations())
-
-# create squared meshgrid
-d = np.linspace(-.4, 0.1, 5)
-X, Y = np.meshgrid(d, d)
-start_points = np.vstack([X.ravel(), Y.ravel()]).T
-
-# integrate all points in grid forward in time
-for p_init in start_points:
-    viewer.draw_ws_point(p_init)
-    viewer.draw_ws_line_fill(
-        lqr.integrate(p_init).list_configurations(),
-        color='k',
-        linewidth=.1)
+env = EnvBox(dim=np.array([2., 2.]))
+box = Box(origin=np.array([-.2, -.2]))
+segment = Segment(origin=np.array([.4, -.1]), orientation=0.2)
+circle = Circle(origin=np.array([.5, .5]), radius=0.2)
+workspace = Workspace(env)
+workspace.obstacles.append(box)
+workspace.obstacles.append(segment)
+workspace.obstacles.append(circle)
+viewer = WorkspaceDrawer(workspace, wait_for_keyboard=True)
+nb_points = 20
+occupancy_map = occupancy_map(nb_points, workspace)
+signed_distance_field = sdf(occupancy_map)
+# viewer.draw_ws_img(occupancy_map)
+viewer.draw_ws_img(
+    ndimage.gaussian_filter(
+        cv2.resize(src=signed_distance_field,
+                   dsize=(300, 300),
+                   interpolation=cv2.INTER_NEAREST), sigma=3))
+viewer.draw_ws_obstacles()
 viewer.show_once()
