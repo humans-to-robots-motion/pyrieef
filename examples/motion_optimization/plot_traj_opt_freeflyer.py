@@ -67,6 +67,8 @@ objective = TrajectoryOptimizationViewer(
     objective, draw=True, draw_gradient=True,
     use_3d=DRAW_MODE == "pyglet3d",
     use_gl=DRAW_MODE == "pyglet2d")
+objective.reset_objective()
+objective.viewer.draw_ws_obstacles()
 
 t_0 = time.time()
 algorithms.newton_optimize_trajectory(

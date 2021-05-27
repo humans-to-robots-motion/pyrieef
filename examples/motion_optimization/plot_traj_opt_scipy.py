@@ -62,6 +62,8 @@ objective_traj.create_objective()
 
 objective = TrajectoryOptimizationViewer(
     objective_traj, draw=True, draw_gradient=True)
+objective.reset_objective()
+objective.viewer.draw_ws_obstacles()
 
 # ----------------------------------------------------------------------------
 # Runs a Newton optimization algorithm on the objective
