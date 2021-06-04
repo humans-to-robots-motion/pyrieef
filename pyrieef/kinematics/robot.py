@@ -56,9 +56,11 @@ class Freeflyer(Robot):
         self.name = name
         self.shape = scale * np.array(shape)
         self.keypoint_names = {}
+        self._keypoints = []
         self._kinematics_maps = [None] * len(keypoints)
         for i, name in enumerate(sorted(keypoints.keys())):
             self._create_map(i, name, scale * np.array(keypoints[name]))
+            self._keypoints.append(keypoints[name])
 
     def _create_map(self, i, name, p):
         self._kinematics_maps[i] = HomogeneousTransform2D(p)
