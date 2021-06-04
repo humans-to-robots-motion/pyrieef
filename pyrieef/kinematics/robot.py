@@ -22,6 +22,7 @@ from .homogeneous_transform import *
 from geometry.workspace import *
 import json
 import os
+import math
 
 
 class Robot:
@@ -80,7 +81,7 @@ def create_robot_from_file(
         robot = Freeflyer(
             config["name"],
             config["keypoints"],
-            config["contour"],  
+            config["contour"],
             config["scale"] if scale is None else scale)
     return robot
 
@@ -104,9 +105,29 @@ def create_robot_with_even_keypoints(
         robot = Freeflyer(
             config["name"],
             keypoints,
-            config["shape"],
+            config["contour"],
             config["scale"] if scale is None else scale)
     return robot
+
+
+def create_keypoints(nb_keypoints, segments):
+    """
+    Creates keypoints along a line segment 
+    TODO test
+    """
+    length = 0.
+    for s in(segments):
+        length += s.length()
+    keypoints = []
+    dl = length / nb_keypoints
+    for s in segments:
+        k = math.floor(s.length() / dl)
+        d_alpha = (1. / k)
+        d = 0.
+        for i in range(int(k)):
+            keypoints.append(d * s.p1() + (1 - d) * s.p2())
+            d += d_alpha
+    return keypoints
 
 
 def create_freeflyer_from_segments(
@@ -116,5 +137,19 @@ def create_freeflyer_from_segments(
     print(filename)
     with open(filename, "r") as read_file:
         config = json.loads(read_file.read())
-        segments = config["segments"]
+        points = config["segments"]
+        print(points)  # segment_from_end_points(p[0:1], p[2:4])
+        segments = [segment_from_end_points(
+            np.array(p[0:2]),
+            np.array(p[2:4])) for p in points.values()]
         print(segments)
+        keypoints = create_keypoints(config["nb_keypoints"], segments)
+        keypoints_dic = {}
+        for i, point in enumerate(keypoints):
+            keypoints_dic["s" + str(i)] = point
+        robot = Freeflyer(
+            config["name"],
+            keypoints_dic,
+            config["contour"],
+            config["scale"] if scale is None else scale)
+    return robot

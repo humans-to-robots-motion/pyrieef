@@ -32,7 +32,7 @@
             "s1": [1, 1, 7, 1]
         },
 
-    "nb_keypoints": 8,
+    "nb_keypoints": 7,
     "scale": 1,
     "radii": 1
 }

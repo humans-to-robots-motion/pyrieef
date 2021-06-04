@@ -77,7 +77,10 @@ def test_freeflyer():
     robot = create_robot_from_file()
     assert robot.name == "freeflyer"
 
-    
+    robot = create_freeflyer_from_segments()
+    assert robot.name == "freeflyer"
+
+
 
 
 def test_isometries():
