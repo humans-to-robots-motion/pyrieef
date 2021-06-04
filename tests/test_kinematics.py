@@ -77,6 +77,8 @@ def test_freeflyer():
     robot = create_robot_from_file()
     assert robot.name == "freeflyer"
 
+    
+
 
 def test_isometries():
 
@@ -113,5 +115,5 @@ if __name__ == "__main__":
     # test_planar_rotation()
     # test_homogeneous_transform()
     # test_homogeneous_jacobian()
-    # test_freeflyer()
-    test_isometries()
+    test_freeflyer()
+    # test_isometries()

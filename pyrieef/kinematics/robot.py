@@ -80,7 +80,7 @@ def create_robot_from_file(
         robot = Freeflyer(
             config["name"],
             config["keypoints"],
-            config["shape"],
+            config["contour"],  
             config["scale"] if scale is None else scale)
     return robot
 
@@ -107,3 +107,14 @@ def create_robot_with_even_keypoints(
             config["shape"],
             config["scale"] if scale is None else scale)
     return robot
+
+
+def create_freeflyer_from_segments(
+        nb_keypoints=20,
+        filename=assets_data_dir() + "/freeflyer.json",
+        scale=None):
+    print(filename)
+    with open(filename, "r") as read_file:
+        config = json.loads(read_file.read())
+        segments = config["segments"]
+        print(segments)
