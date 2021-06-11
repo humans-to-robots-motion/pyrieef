@@ -141,7 +141,7 @@ def create_freeflyer_from_segments(
         config = json.loads(read_file.read())
         points = config["segments"]
         print(points)
-        n = 2  # TODO set this as the dimensionality of the FF
+        n = 2 if config["planar"] else 3  # dimensionality of the FF
         segments = [segment_from_end_points(
             np.array(p[0:n]),
             np.array(p[n:2 * n])) for p in points.values()]
