@@ -130,7 +130,7 @@ def create_keypoints(nb_keypoints, segments):
     dl = length / nb_keypoints
     for s in segments:
         k = math.floor(s.length() / dl)
-        d_alpha = (1. / k)
+        d_alpha = (1. / float(k))
         d = 0.
         for i in range(int(k)):
             keypoints.append(d * s.p1() + (1 - d) * s.p2())

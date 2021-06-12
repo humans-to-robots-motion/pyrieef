@@ -283,8 +283,8 @@ class Segment(Shape):
             """ Initialize from end points """
             self._p1 = asarray(p1)
             self._p2 = asarray(p2)
-            self.origin = (p1 + p2) / 2.
-            p12 = p1 - p2
+            self.origin = (self._p1 + self._p2) / 2.
+            p12 = self._p1 - self._p2
             self._orientation = np.arctan2(p12[1], p12[0])
             self._length = np.linalg.norm(p12)
         else:
