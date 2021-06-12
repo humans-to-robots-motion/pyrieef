@@ -264,20 +264,34 @@ def sample_line(p_1, p_2, nb_points):
 
 
 class Segment(Shape):
-    """ A segment defined with an origin, length and orientaiton
+    """
+    A segment defined with an origin, length and orientaiton
         TODO :
             - define distance
-            - test distance"""
+            - test distance
+    """
 
     def __init__(self,
                  origin=np.array([0., 0.]),
                  orientation=0.,
-                 length=0.8):
+                 length=0.8,
+                 p1=None,
+                 p2=None):
         Shape.__init__(self)
-        self.origin = origin
-        self._orientation = orientation
-        self._length = length
-        self._p1, self._p2 = self.end_points()
+        if p1 is not None and p2 is not None:
+            """ Initialize from end points """
+            self._p1 = p1
+            self._p2 = p2
+            self.origin = (p1 + p2) / 2.
+            p12 = p1 - p2
+            self._orientation = np.arctan2(p12[1], p12[0])
+            self._length = np.linalg.norm(p12)
+        else:
+            """  Inialize using orientation and length """
+            self.origin = origin
+            self._orientation = orientation
+            self._length = length
+            self._p1, self._p2 = self.end_points()
 
     def end_points(self):
         p0 = .5 * self._length * np.array(
@@ -352,14 +366,6 @@ class Segment(Shape):
             # spherical distance to a plane
             assert x.size == 2
             return np.zeros((x.size, x.size))
-
-
-def segment_from_end_points(p1, p2):
-    p12 = p1 - p2
-    return Segment(
-        origin=(p1 + p2) / 2.,
-        orientation=np.arctan2(p12[1], p12[0]),
-        length=np.linalg.norm(p12))
 
 
 class Box(Shape):
@@ -438,10 +444,10 @@ class Box(Shape):
     def segments(self):
         v = self.verticies()
         s = [None] * 4
-        s[0] = segment_from_end_points(v[0], v[1])
-        s[1] = segment_from_end_points(v[1], v[2])
-        s[2] = segment_from_end_points(v[2], v[3])
-        s[3] = segment_from_end_points(v[3], v[0])
+        s[0] = Segment(p1=v[0], p2=v[1])
+        s[1] = Segment(p1=v[1], p2=v[2])
+        s[2] = Segment(p1=v[2], p2=v[3])
+        s[3] = Segment(p1=v[3], p2=v[0])
         return s
 
     def closest_segment(self, x):
@@ -686,7 +692,7 @@ class Polygon(Shape):
                 v2 = self._verticies[i + 1]
             else:
                 v2 = self._verticies[0]
-            self._edges[i] = segment_from_end_points(v1, v2)
+            self._edges[i] = Segment(p1=v1, p2=v2)
 
     def verticies(self):
         return self._verticies

@@ -115,7 +115,13 @@ def create_robot_with_even_keypoints(
 def create_keypoints(nb_keypoints, segments):
     """
     Creates keypoints along a line segment 
-    TODO test
+
+    Parameters
+    ----------
+        nb_keypoints: int
+            how many keypoints are sampled along the segments
+        segments: list of Segment
+            list of segemtns
     """
     length = 0.
     for s in(segments):
@@ -142,9 +148,9 @@ def create_freeflyer_from_segments(
         points = config["segments"]
         print(points)
         n = 2 if config["planar"] else 3  # dimensionality of the FF
-        segments = [segment_from_end_points(
-            np.array(p[0:n]),
-            np.array(p[n:2 * n])) for p in points.values()]
+        segments = [Segment(
+            p1=np.array(p[0:n]),
+            p2=np.array(p[n:2 * n])) for p in points.values()]
         print(segments)
         keypoints = create_keypoints(config["nb_keypoints"], segments)
         keypoints_dic = {}

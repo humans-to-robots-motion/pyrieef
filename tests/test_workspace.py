@@ -57,7 +57,7 @@ def test_circle():
 def test_segment():
     p1 = np.random.random(2)
     p2 = np.random.random(2)
-    line = segment_from_end_points(p1, p2)
+    line = Segment(p1=p1, p2=p2)
     p1_l, p2_l = line.end_points()
     assert_allclose(p1, p1_l)
     assert_allclose(p2, p2_l)
