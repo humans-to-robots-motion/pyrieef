@@ -18,6 +18,7 @@
 #                                        Jim Mainprice on Sunday June 13 2018
 
 import numpy as np
+from numpy.core import asarray
 # import matplotlib.pyplot as plt
 # import matplotlib as mpl
 # from matplotlib.pyplot import cm
@@ -280,15 +281,15 @@ class Segment(Shape):
         Shape.__init__(self)
         if p1 is not None and p2 is not None:
             """ Initialize from end points """
-            self._p1 = p1
-            self._p2 = p2
+            self._p1 = asarray(p1)
+            self._p2 = asarray(p2)
             self.origin = (p1 + p2) / 2.
             p12 = p1 - p2
             self._orientation = np.arctan2(p12[1], p12[0])
             self._length = np.linalg.norm(p12)
         else:
             """  Inialize using orientation and length """
-            self.origin = origin
+            self.origin = asarray(origin)
             self._orientation = orientation
             self._length = length
             self._p1, self._p2 = self.end_points()
