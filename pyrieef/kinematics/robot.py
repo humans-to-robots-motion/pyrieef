@@ -152,7 +152,7 @@ def create_freeflyer_from_segments(
             p1=np.array(p[0:n]),
             p2=np.array(p[n:2 * n])) for p in points.values()]
         print(segments)
-        keypoints = create_keypoints(config["nb_keypoints"], segments)
+        keypoints = create_keypoints(nb_keypoints, segments)
         keypoints_dic = {}
         for i, point in enumerate(keypoints):
             keypoints_dic["s" + str(i)] = point
