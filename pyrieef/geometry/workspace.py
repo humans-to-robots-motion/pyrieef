@@ -490,6 +490,34 @@ class Box(Shape):
         return points
 
 
+class OrientedBox(Box):
+    """
+    Oriented box (hypercube) defined by 
+    center and exent
+
+    Attributes
+    ----------
+    origin : numpy array
+        its center
+    dim : numpy array
+        its extent
+
+    TODO 1) define distance
+         2) class should work for 2D and 3D boxes
+         3) test this function
+         4) make callable using stack
+    """
+
+    def __init__(self,
+                 origin=np.array([0., 0.]),
+                 dim=np.array([1., 1.]),
+                 orientation=np.identity(2)):
+        Box.__init__(self, origin, dim)
+        self._is_box = False
+        self._is_oriented_box = True
+        self.orientation = dim
+
+
 class AxisAlignedBox(Box):
     """
         An axis aligned box (hypercube) defined by
