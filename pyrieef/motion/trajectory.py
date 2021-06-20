@@ -261,13 +261,13 @@ class TrajectoryObjectiveFunction(DifferentiableMap):
 
 class Trajectory:
     """
-        Implement a trajectory as a single vector of configuration,
+    Implements a trajectory as a single vector of configuration,
         returns cliques of configurations
-        Note there is T active configuration in the trajectory
-        indices
+    
+    Note there is T active configuration in the trajectory indices
                 0 and T + 1
             are supposed to be inactive.
-        """
+    """
 
     def __init__(self, T=0, n=2, q_init=None, x=None):
         """
