@@ -392,8 +392,8 @@ class Box(Shape):
                  dim=np.array([1., 1.])):
         Shape.__init__(self)
         self._is_box = True
-        self.origin = origin
-        self.dim = dim
+        self.origin = asarray(origin)
+        self.dim = asarray(dim)
 
     def upper_corner(self):
         return self.origin + .5 * self.dim
@@ -513,9 +513,9 @@ class OrientedBox(Box):
                  dim=np.array([1., 1.]),
                  orientation=np.identity(2)):
         Box.__init__(self, origin, dim)
-        self._is_box = False
+        delattr(self, '_is_box')
         self._is_oriented_box = True
-        self.orientation = dim
+        self.orientation = np.asarray(orientation)
 
 
 class AxisAlignedBox(Box):
@@ -668,8 +668,8 @@ def line_side(a, b, p):
         True if the point p is on the left side of the line
         when the observer travels along the line from a -> b.
 
-     Parameters
-         ----------
+    Parameters
+    ----------
          a : numpy array 2d (origin of line segment)
          b : numpy array 2d (end of line segment)
          p : numpy array 2d (point that should be right or left)
