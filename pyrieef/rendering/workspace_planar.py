@@ -175,6 +175,13 @@ class WorkspaceDrawer(WorkspaceRender):
 
     def draw_ws_img(self, Z, interpolate="nearest", color_style=plt.cm.magma):
         """
+        Draws an image in the background
+
+        Parameters:
+            Z : image numpy array
+            interpolate : ["nearest", "none", "bicubic", "bilinear"]
+            color_style : [viridis, hot, bone, magma]
+
         Examples of coloring are : [viridis, hot, bone, magma]
             see page :
             https://matplotlib.org/examples/color/colormaps_reference.html
@@ -215,13 +222,32 @@ class WorkspaceDrawer(WorkspaceRender):
         else:
             plt.show()
 
-    def show_once(self, t_sleep=0.0001):
+    def show_once(self, t_sleep=0.0001, close_window=True):
+        """
+        Notes
+            Use close_window=False with viewer._ax.clear()
+
+            Example:
+
+                viewer = render.WorkspaceDrawer(
+                        rows=1, cols=1, workspace=workspace, 
+                        wait_for_keyboard=True)
+                viewer.set_drawing_axis(0)
+
+                for i in range(10):
+                    viewer._ax.clear()
+                    viewer.draw_ws_img(A, interpolate="bilinear")
+                    viewer.draw_ws_obstacles()
+                    viewer.draw_ws_point(p, "r")
+                    viewer.show_once(close_window=False)
+        """
         plt.show(block=False)
         plt.draw()
         plt.pause(t_sleep)
         if self._wait_for_keyboard:
             input("Press Enter to continue...")
-        plt.close(self._fig)
+        if close_window:
+            plt.close(self._fig)
 
     def set_title(self, title, fontsize=15):
         plt.title(
