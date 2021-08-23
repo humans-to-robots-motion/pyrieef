@@ -142,6 +142,19 @@ def create_freeflyer_from_segments(
         nb_keypoints=20,
         filename=assets_data_dir() + "/freeflyer.json",
         scale=None):
+    """
+    Loads a freeflyer description from a json file and creates
+    a freeflyer with segments equally spaced along the line segments
+
+    Parameters
+    ----------
+        nb_keypoints: int
+            how many keypoints are sampled along the segments
+        filename: string
+            json file that should be loaded
+        scale: float
+            how the freeflyer should be scaled
+    """
     print(filename)
     with open(filename, "r") as read_file:
         config = json.loads(read_file.read())
