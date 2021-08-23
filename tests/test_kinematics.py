@@ -81,8 +81,6 @@ def test_freeflyer():
     assert robot.name == "freeflyer"
 
 
-
-
 def test_isometries():
 
     p = np.random.rand(2)
@@ -110,8 +108,6 @@ def test_isometries():
     assert_allclose(
         T_3.matrix(),
         np.dot(T_1.matrix(), T_2.matrix()))
-
-
 
 
 if __name__ == "__main__":

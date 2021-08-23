@@ -146,12 +146,10 @@ def create_freeflyer_from_segments(
     with open(filename, "r") as read_file:
         config = json.loads(read_file.read())
         points = config["segments"]
-        print(points)
         n = 2 if config["planar"] else 3  # dimensionality of the FF
         segments = [Segment(
             p1=np.array(p[0:n]),
-            p2=np.array(p[n:2 * n])) for p in points.values()]
-        print(segments)
+            p2=np.array(p[n:2 * n])) for k, p in sorted(points.items())]
         keypoints = create_keypoints(nb_keypoints, segments)
         keypoints_dic = {}
         for i, point in enumerate(keypoints):
