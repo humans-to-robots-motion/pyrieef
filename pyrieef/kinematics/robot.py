@@ -51,10 +51,12 @@ class Freeflyer(Robot):
                  name="freeflyer",
                  keypoints={"base": [0., 0.]},
                  shape=[[0, 0], [0, 1], [1, 1], [1, 0]],
+                 radii=1.,
                  scale=1.):
         Robot.__init__(self)
         self.name = name
         self.shape = scale * np.array(shape)
+        self.radii = radii * np.ones(len(keypoints))
         self.keypoint_names = {}
         self._keypoints = []
         self._kinematics_maps = [None] * len(keypoints)
@@ -84,6 +86,7 @@ def create_robot_from_file(
             config["name"],
             config["keypoints"],
             config["contour"],
+            config["radii"],
             config["scale"] if scale is None else scale)
     return robot
 
@@ -108,6 +111,7 @@ def create_robot_with_even_keypoints(
             config["name"],
             keypoints,
             config["contour"],
+            config["radii"],
             config["scale"] if scale is None else scale)
     return robot
 
@@ -171,5 +175,6 @@ def create_freeflyer_from_segments(
             config["name"],
             keypoints_dic,
             config["contour"],
+            config["radii"],
             config["scale"] if scale is None else scale)
     return robot

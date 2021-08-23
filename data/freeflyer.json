@@ -34,5 +34,5 @@
 
     "nb_keypoints": 7,
     "scale": 1,
-    "radii": 1
+    "radii": 0.1
 }

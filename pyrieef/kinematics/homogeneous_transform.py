@@ -264,6 +264,9 @@ class HomogeneousTransform2D(DifferentiableMap):
     def input_dimension(self):
         return self._n
 
+    def point(self):
+        return self._p[:self.output_dimension()]
+
     def forward(self, q):
         assert q.size == self.input_dimension()
         dim = self.output_dimension()
@@ -319,6 +322,9 @@ class HomogeneousTransform3D(DifferentiableMap):
 
     def input_dimension(self):
         return self._n
+
+    def point(self):
+        return self._p[:self.output_dimension()]
 
     def forward(self, q):
         assert q.size == self.input_dimension()
