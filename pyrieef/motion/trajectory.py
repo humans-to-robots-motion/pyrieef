@@ -415,7 +415,7 @@ class ContinuousTrajectory(Trajectory):
     """ Implements a trajectory that can be continously interpolated """
 
     def configuration_at_parameter(self, s):
-        """ The trajectory is indexed by s \in [0, 1] """
+        """ The trajectory is indexed by s in [0, 1] """
         d_param = s * self.length()
         q_prev = self.configuration(0)
         dist = 0.
@@ -477,7 +477,7 @@ class CubicSplineTrajectory(ContinuousTrajectory):
         which is why we set an epsilon parameter.
 
     The trajectory is defined for a time interval
-        t \in [0., dt * (T + 1)]
+        t in [0., dt * (T + 1)]
 
     A trajectory is always defined from index 0 to T included
     The final configuration of the trajectory is thus the

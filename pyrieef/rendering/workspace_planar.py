@@ -349,6 +349,13 @@ class WorkspaceOpenGl(WorkspaceRender):
                 box = PolyLine(vertices, True)
                 box.set_color(*COLORS[i % 3])
                 self.gl.add_geom(box)
+            if hasattr(o, '_is_oriented_box'):
+                vertices = [self._scale * (v - o.origin) for v in o.verticies()]
+                box = PolyLine(vertices, True)
+                center = self._scale * (o.origin - ws_o)
+                box.add_attr(Transform(translation=center, rotation=o.theta()))
+                box.set_color(*COLORS[i % 3])
+                self.gl.add_geom(box)
 
     def show_once(self):
         self.show()

@@ -517,6 +517,9 @@ class OrientedBox(Box):
         self._is_oriented_box = True
         self.orientation = np.asarray(orientation)
 
+    def theta(self):
+        return angle_from_matrix_2d(self.orientation)
+
 
 class AxisAlignedBox(Box):
     """
@@ -1092,7 +1095,8 @@ def sample_circle_workspaces(nb_circles, radius_parameter=.15):
 def sample_box_workspaces(
         nb_boxes,
         height=.20,
-        width=.20):
+        width=.20,
+        oriented=False):
     """ Samples a workspace randomly composed of nb_boxes
         the height and width parameters specify
         the max fraction of workspace diagonal used for a box. """
@@ -1108,7 +1112,13 @@ def sample_box_workspaces(
         h = (max_h - min_h) * np.random.rand() + min_h
         w = (max_w - min_w) * np.random.rand() + min_w
         dimensions = np.array([w, h])
-        workspace.obstacles[i] = AxisAlignedBox(origin, dimensions)
+        if oriented:
+            theta = np.pi * np.random.rand() - np.pi
+            orientation = rotation_matrix_2d_radian(theta)
+            workspace.obstacles[i] = OrientedBox(
+                origin, dimensions, orientation)
+        else:
+            workspace.obstacles[i] = AxisAlignedBox(origin, dimensions)
     return workspace
 
 
