@@ -40,6 +40,19 @@ def vectors_angle(v1, v2):
     return np.mod(np.arctan2(np.cross(v1, v2), np.dot(v1, v2)), 2 * np.pi)
 
 
+def angle_from_matrix_2d(matrix):
+    """
+    Returns the angle from a 2d matrix
+
+    Parameters
+    ----------
+    degree : float
+        angle in degree
+    """
+    assert matrix.shape == (2, 2)
+    return np.arctan2(matrix[1, 0], matrix[0, 0])
+
+
 def rotation_matrix_2d(degree):
     """
     Compose a rotation matrix using using a conversion from degrees
