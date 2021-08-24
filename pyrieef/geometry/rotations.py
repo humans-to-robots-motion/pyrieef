@@ -46,8 +46,7 @@ def angle_from_matrix_2d(matrix):
 
     Parameters
     ----------
-    degree : float
-        angle in degree
+    matrix : np.array
     """
     assert matrix.shape == (2, 2)
     return np.arctan2(matrix[1, 0], matrix[0, 0])
