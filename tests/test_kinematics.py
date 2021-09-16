@@ -21,6 +21,7 @@ import __init__
 from kinematics.homogeneous_transform import *
 from kinematics.robot import *
 from kinematics.planar_arm import *
+from geometry.differentiable_geometry import *
 from numpy.testing import assert_allclose
 
 
@@ -127,10 +128,28 @@ def test_planar_robot():
         assert_allclose(x1, x2)
 
 
+def test_planar_robot_jacobian():
+    verbose = False
+    link_lengths = [1.2, 2.3]
+    phi = TwoLinkArmAnalyticalForwardKinematics(link_lengths)
+    for q in np.random.random((100, 2)):
+        q_bound = np.pi
+        q[0] = 2. * q_bound * q[0] - q_bound
+        q[1] = 2. * q_bound * q[1] - q_bound
+        J = phi.jacobian(q)
+        J_diff = finite_difference_jacobian(phi, q)
+        if verbose:
+            print("J : ")
+            print(J)
+            print("J_diff : ")
+            print(J_diff)
+        assert_allclose(J, J_diff)
+
+
 if __name__ == "__main__":
     # test_planar_rotation()
     # test_homogeneous_transform()
     # test_homogeneous_jacobian()
     # test_freeflyer()
     # test_isometries()
-    test_planar_robot()
+    test_planar_robot_jacobian()

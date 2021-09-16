@@ -21,6 +21,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from math import pi
 from math import cos, sin
+from geometry.differentiable_geometry import *
 
 
 def radian(q):
@@ -31,20 +32,6 @@ def transform_2d(theta, l):
     return np.array([[cos(theta), -sin(theta), l],
                      [sin(theta), cos(theta), 0],
                      [0, 0, 1]])
-
-
-def planar_arm_fk_pos(
-        q=[0, 0],
-        link_lengths=[0, 1]):
-    """ 
-    Analytical solution to the forward kinematics problem
-    """
-    assert(len(link_lengths) == 2)
-    l1 = link_lengths[0]
-    l2 = link_lengths[1]
-    return np.array([
-        l1 * cos(q[0]) + l2 * cos(q[0] + q[1]),
-        l1 * sin(q[0]) + l2 * sin(q[0] + q[1])])
 
 
 class TwoLinkArm:
@@ -78,6 +65,51 @@ class TwoLinkArm:
         plt.plot(self.shoulder[0], self.shoulder[1], 'ko')
         plt.plot(self.elbow[0], self.elbow[1], 'ko')
         plt.plot(self.wrist[0], self.wrist[1], 'ko')
+
+
+def planar_arm_fk_pos(
+        q=[0, 0],
+        link_lengths=[0, 1]):
+    """ 
+    Analytical solution to the forward kinematics problem
+    """
+    assert(len(link_lengths) == 2)
+    l1 = link_lengths[0]
+    l2 = link_lengths[1]
+    return np.array([
+        l1 * cos(q[0]) + l2 * cos(q[0] + q[1]),
+        l1 * sin(q[0]) + l2 * sin(q[0] + q[1])])
+
+
+class TwoLinkArmAnalyticalForwardKinematics(DifferentiableMap):
+
+    def __init__(self, link_lengths=[0, 1]):
+        """
+        phi : q -> R^2
+
+        Analytical solution to the forward kinematics problem
+        """
+        # Make sure the composition makes sense
+        self._link_lengths = link_lengths
+
+    def output_dimension(self):
+        return 2
+
+    def input_dimension(self):
+        return 2
+
+    def forward(self, q):
+        return planar_arm_fk_pos(q, self._link_lengths)
+
+    def jacobian(self, q):
+        l1 = self._link_lengths[0]
+        l2 = self._link_lengths[1]
+        q12 = q[0] + q[1]
+        l2_sin_q12 = l2 * sin(q12)
+        l2_cos_q12 = l2 * cos(q12)
+        return np.array([
+            [-l1 * sin(q[0]) - l2_sin_q12, - l2_sin_q12],
+            [l1 * cos(q[0]) + l2_cos_q12, l2_cos_q12]])
 
 
 if __name__ == "__main__":
