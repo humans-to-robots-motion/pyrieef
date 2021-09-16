@@ -20,6 +20,7 @@
 import __init__
 from kinematics.homogeneous_transform import *
 from kinematics.robot import *
+from kinematics.planar_arm import *
 from numpy.testing import assert_allclose
 
 
@@ -110,9 +111,26 @@ def test_isometries():
         np.dot(T_1.matrix(), T_2.matrix()))
 
 
+def test_planar_robot():
+
+    robot = TwoLinkArm()
+    robot.link_lengths[0] = 1.2
+    robot.link_lengths[1] = 2.3
+
+    for q in np.random.random((100, 2)):
+        q_bound = np.pi
+        q[0] = 2. * q_bound * q[0] - q_bound
+        q[1] = 2. * q_bound * q[1] - q_bound
+        robot.set_and_update(q)
+        x1 = robot.wrist
+        x2 = planar_arm_fk_pos(q, robot.link_lengths)
+        assert_allclose(x1, x2)
+
+
 if __name__ == "__main__":
     # test_planar_rotation()
     # test_homogeneous_transform()
     # test_homogeneous_jacobian()
-    test_freeflyer()
+    # test_freeflyer()
     # test_isometries()
+    test_planar_robot()

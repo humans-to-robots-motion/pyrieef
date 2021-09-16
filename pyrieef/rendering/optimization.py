@@ -105,6 +105,7 @@ class TrajectoryOptimizationViewer:
             # and the goal is red and all the other are green
             color = (0, 0, 1) if k == 0 else (0, 1, 0)
             color = (1, 0, 0) if k == trajectory.T() else color
+            color = (1, 1, 0) if k == 31 else color
             if not self._use_3d:
                 self.viewer.draw_ws_circle(.01, q[:2], color)
                 if draw_robot:
