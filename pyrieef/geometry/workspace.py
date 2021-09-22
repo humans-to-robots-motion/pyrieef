@@ -696,6 +696,75 @@ def line_side(a, b, p):
     return m >= 0
 
 
+class Cylinder(Shape):
+    """
+    An (infinite) Cylinder
+
+    Attributes
+    ----------
+    origin : numpy array
+        center
+    radius : Float
+        radius
+    height : Float
+        height
+    """
+
+    def __init__(self, origin=np.array([0., 0.]), radius=0.2, height=1.):
+        Shape.__init__(self)
+        self._is_cylinder = True
+        self.origin = origin
+        self.radius = radius
+        self.height = height
+
+    def dist_from_border(self, x):
+        """
+        Returns the signed distance (SD) to a cylinder shape;
+        negative inside and positive outside.
+
+        This function is paralleized, meanning that if called on
+        an array (2 or 3, n, n) it will return a matrix of SDField.
+
+        Parameters
+        ----------
+            x : numpy array
+        """
+        assert x.size == 3
+        return vector_norm((x[:2].T - self.origin[:2]).T) - self.radius
+
+    def is_inside(self, x):
+        assert x.size == 3
+        return vector_norm((x[:2].T - self.origin[:2]).T) < self.radius
+
+    def closest_point(self, x):
+        assert x.size == 3
+        o = self.origin[:2]
+        x_center = (x_circ.T - o).T
+        p_in_circle = self.radius * x_center / vector_norm(x_center)
+        p = p_in_circle + o
+        return np.hstack((p, x[2]))
+
+    def dist_gradient(self, x):
+        """ Warning: not parraleized but should work from 3D """
+        g2 = point_distance_gradient(x[:2], self.origin[:2])
+        return np.hstack((g2, 0))
+
+    def dist_hessian(self, x):
+        """ Warning: not parraleized but should work from 3D """
+        H = np.zeros((3, 3))
+        H[:2, :2] = point_distance_hessian(x[:2], self.origin[:2])
+        return H
+
+    def sampled_points(self):
+        """ TODO make this generic (3D) and parallelizable... Tough."""
+        points = []
+        for theta in np.linspace(0, 2 * math.pi, self.nb_points):
+            x = self.origin[0] + self.radius * np.cos(theta)
+            y = self.origin[1] + self.radius * np.sin(theta)
+            points.append(np.array([x, y]))
+        return points
+
+
 class Polygon(Shape):
     """
         A Polygon class

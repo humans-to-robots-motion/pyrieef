@@ -89,7 +89,6 @@ class TwoLinkArmAnalyticalForwardKinematics(DifferentiableMap):
 
         Analytical solution to the forward kinematics problem
         """
-        # Make sure the composition makes sense
         self._link_lengths = link_lengths
 
     def output_dimension(self):
