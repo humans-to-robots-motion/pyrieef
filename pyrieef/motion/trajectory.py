@@ -263,7 +263,7 @@ class Trajectory:
     """
     Implements a trajectory as a single vector of configuration,
         returns cliques of configurations
-    
+
     Note there is T active configuration in the trajectory indices
                 0 and T + 1
             are supposed to be inactive.
@@ -550,6 +550,20 @@ def resample(trajectory, T):
 
 
 def linear_interpolation_trajectory(q_init, q_goal, T):
+    """
+    Creates a linear interpolation trajectory
+
+    Parameters
+    ----------
+    q_init : array_like
+        initial configuration
+    q_goal : array_like
+        goal configuration
+    T : int
+        number of active configurations
+    """
+    q_init = np.asarray(q_init)
+    q_goal = np.asarray(q_goal)
     assert q_init.size == q_goal.size
     trajectory = Trajectory(T, q_init.size)
     for i in range(T + 2):
@@ -562,6 +576,19 @@ def linear_interpolation_trajectory(q_init, q_goal, T):
 
 
 def no_motion_trajectory(q_init, T):
+    """
+    Creates a trajectory as a copy of the same configuration
+
+    Parameters
+    ----------
+    q_init : array_like
+        initial configuration
+    q_goal : array_like
+        goal configuration
+    T : int
+        number of active configurations
+    """
+    q_init = np.asarray(q_init)
     trajectory = Trajectory(T, q_init.size)
     for i in range(T + 2):
         trajectory.configuration(i)[:] = q_init
