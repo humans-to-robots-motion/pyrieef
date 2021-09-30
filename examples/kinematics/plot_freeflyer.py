@@ -24,7 +24,7 @@ from pyrieef.kinematics.robot import *
 from pyrieef.rendering.workspace_planar import WorkspaceDrawer
 from pyrieef.rendering.workspace_planar import WorkspaceOpenGl
 
-robot = create_robot_from_file(scale=.02)
+robot = create_freeflyer_from_file(scale=.02)
 # robot = create_robot_with_even_keypoints(scale=.03)
 workspace = Workspace()
 workspace.obstacles.append(Box(

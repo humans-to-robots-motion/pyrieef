@@ -76,7 +76,7 @@ def assets_data_dir():
     return os.path.abspath(os.path.dirname(__file__)) + os.sep + "../../data"
 
 
-def create_robot_from_file(
+def create_freeflyer_from_file(
         filename=assets_data_dir() + "/freeflyer.json",
         scale=None):
     print(filename)

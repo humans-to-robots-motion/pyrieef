@@ -34,7 +34,7 @@ MARGIN = .20
 OFFSET = 0.1
 
 print("Run Motion Optimization")
-robot = create_robot_from_file(scale=.02)
+robot = create_freeflyer_from_file(scale=.02)
 trajectory = linear_interpolation_trajectory(
     q_init=np.array([.0, -.4, 0]),
     q_goal=np.array([.0, .4, 0]),

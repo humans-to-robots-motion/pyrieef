@@ -104,8 +104,10 @@ def sample_path(
         graph,
         nb_points,
         no_linear_interpolation):
-    """ finds a path that does not collide with enviroment
-    but that is significantly difficult to perform """
+    """
+    finds a path that does not collide with enviroment
+    but that is significantly difficult to perform
+    """
     cost = cost_grid(workspace, nb_points)
     pixel_map = workspace.pixel_map(nb_points)
     half_diag = workspace.box.diag() / 2.

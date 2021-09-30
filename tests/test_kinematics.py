@@ -76,7 +76,7 @@ def test_freeflyer():
     assert_allclose(robot.shape[2], [.2, .2])
     assert_allclose(robot.shape[3], [.2, 0])
 
-    robot = create_robot_from_file()
+    robot = create_freeflyer_from_file()
     assert robot.name == "freeflyer"
 
     robot = create_freeflyer_from_segments()
