@@ -126,6 +126,10 @@ def create_keypoints(nb_keypoints, segments):
             how many keypoints are sampled along the segments
         segments: list of Segment
             list of segemtns
+
+    Returns
+    -------
+        list of numpy arrays
     """
     length = 0.
     for s in(segments):
