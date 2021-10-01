@@ -18,7 +18,6 @@
 #                                    Jim Mainprice on Friday September 23 2021
 
 import numpy as np
-import matplotlib.pyplot as plt
 from math import pi
 from math import cos, sin
 from geometry.differentiable_geometry import *
@@ -112,6 +111,7 @@ class TwoLinkArmAnalyticalForwardKinematics(DifferentiableMap):
 
 
 if __name__ == "__main__":
+    import matplotlib.pyplot as plt
     arm = TwoLinkArm(radian([60, 0]))
     arm.forward_kinematics()
     print("wrist : ", arm.wrist)
