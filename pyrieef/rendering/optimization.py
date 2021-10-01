@@ -24,8 +24,10 @@ import numpy as np
 
 class TrajectoryOptimizationViewer:
 
-    """ Wrapper around a Trajectory objective function
-        tha can draw the inner optimization quantities """
+    """
+    Wrapper around a Trajectory objective function
+        that can draw the inner optimization quantities
+    """
 
     def __init__(self, objective,
                  draw=True,
@@ -97,6 +99,7 @@ class TrajectoryOptimizationViewer:
                 self.viewer.draw_ws_obstacles()
         draw_robot = False
         if hasattr(self.objective, 'robot'):
+            print("Draw robot")
             draw_robot = True
             verticies = self.objective.robot.shape
         for k in range(self.objective.T + 1):

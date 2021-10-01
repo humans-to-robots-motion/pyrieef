@@ -147,8 +147,8 @@ def create_keypoints(nb_keypoints, segments):
 
 
 def create_freeflyer_from_segments(
-        nb_keypoints=20,
         filename=assets_data_dir() + "/freeflyer.json",
+        nb_keypoints=None,
         scale=None):
     """
     Loads a freeflyer description from a json file and creates
@@ -166,6 +166,7 @@ def create_freeflyer_from_segments(
     print(filename)
     with open(filename, "r") as read_file:
         config = json.loads(read_file.read())
+        nb_keypoints = config["nb_keypoints"]
         points = config["segments"]
         n = 2 if config["planar"] else 3  # dimensionality of the FF
         segments = [Segment(
