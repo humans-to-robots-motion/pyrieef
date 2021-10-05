@@ -268,7 +268,8 @@ class HomogeneousTransform2D(DifferentiableMap):
         return self._p[:self.output_dimension()]
 
     def forward(self, q):
-        assert q.size == self.input_dimension()
+        assert len(q) == self.input_dimension()
+        q = np.asarray(q)
         dim = self.output_dimension()
         self._T[:dim, :dim] = rotation_matrix_2d_radian(q[dim])
         self._T[:dim, dim] = q[:dim]
@@ -277,7 +278,9 @@ class HomogeneousTransform2D(DifferentiableMap):
     def jacobian(self, q):
         """ Should return a matrix or single value of
                 m x n : [output : 2 x input : 3] (dimensions)"""
-        assert q.size == self.input_dimension()
+
+        assert len(q) == self.input_dimension()
+        q = np.asarray(q)
         J = np.zeros((self.output_dimension(), self.input_dimension()))
         J[0, 0] = 1.
         J[1, 1] = 1.

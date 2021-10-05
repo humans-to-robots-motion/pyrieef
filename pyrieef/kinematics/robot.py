@@ -28,23 +28,51 @@ import math
 class Robot:
     """
     Abstract robot class
+
+    Attributes
+    ----------
+    name : str
+        a formatted string to print out the name
+    shape : array like
+        the contour of the robot
+    radii : array like
+        the radii of the keypoints
+    _keypoints : array like
+        the keypoints location in base frame
+    _maps : array like
+        the forward kinematics map of each keypoint
     """
 
     def __init__(self):
         self.name = None
         self.shape = None
-        self.keypoints = None
+        self.radii = None
+        self._keypoints = []
         self._maps = []
 
     @abstractmethod
     def forward_kinematics_map(self):
         raise NotImplementedError()
 
+    def nb_keypoints(self):
+        return len(self._keypoints)
+
 
 class Freeflyer(Robot):
     """
     Planar 3DoFs robot
         verticies are stored counter clock-wise
+
+    Attributes
+    ----------
+    name : str
+        a formatted string to print out the name
+    shape : array like
+        the contour of the robot
+    radii : array like
+        the radii of the keypoints
+    _keypoints : array like
+        the keypoint location in base frame
     """
 
     def __init__(self,
@@ -54,10 +82,14 @@ class Freeflyer(Robot):
                  radii=1.,
                  scale=1.):
         Robot.__init__(self)
+
+        # public attributes
         self.name = name
         self.shape = scale * np.array(shape)
         self.radii = radii * np.ones(len(keypoints))
         self.keypoint_names = {}
+
+        # private attributes
         self._keypoints = []
         self._kinematics_maps = [None] * len(keypoints)
         for i, name in enumerate(sorted(keypoints.keys())):
@@ -79,6 +111,16 @@ def assets_data_dir():
 def create_freeflyer_from_file(
         filename=assets_data_dir() + "/freeflyer.json",
         scale=None):
+    """
+    Creates freeflyer directly from the keypoints in the file
+
+    Parameters
+    ----------
+        filename: string
+            json file that should be loaded
+        scale: float
+            how the freeflyer should be scaled
+    """
     print(filename)
     with open(filename, "r") as read_file:
         config = json.loads(read_file.read())
@@ -95,6 +137,18 @@ def create_robot_with_even_keypoints(
         nb_keypoints=20,
         filename=assets_data_dir() + "/freeflyer.json",
         scale=None):
+    """
+    Creates keypoints along the shape part of the robot
+
+    Parameters
+    ----------
+        nb_keypoints: int
+            how many keypoints are sampled along the segments
+        filename: string
+            json file that should be loaded
+        scale: float
+            how the freeflyer should be scaled
+    """
     print(filename)
     with open(filename, "r") as read_file:
         config = json.loads(read_file.read())
@@ -132,7 +186,7 @@ def create_keypoints(nb_keypoints, segments):
         list of numpy arrays
     """
     length = 0.
-    for s in(segments):
+    for s in (segments):
         length += s.length()
     keypoints = []
     dl = length / nb_keypoints

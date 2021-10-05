@@ -155,6 +155,14 @@ class WorkspaceDrawer(WorkspaceRender):
         self._ax.plot(X, Y, color=color, linewidth=2.0)
 
     def draw_ws_polygon(self, vertices, origin, rotation, color=(1, 0, 0)):
+        """
+        Draws a polygon where the verticies are given as a list points
+
+            Note:
+                it does not matter which order they are passed
+                (clockwise or counter clock wise)
+                as long as they provide a contour
+        """
         self._ax.plot(origin[0], origin[1], 'kx')
         R = rotation_matrix_2d_radian(rotation)
         vertices = np.vstack([vertices, vertices[0]])
@@ -177,7 +185,8 @@ class WorkspaceDrawer(WorkspaceRender):
         """
         Draws an image in the background
 
-        Parameters:
+        Parameters
+        ----------
             Z : image numpy array
             interpolate : ["nearest", "none", "bicubic", "bilinear"]
             color_style : [viridis, hot, bone, magma]
@@ -285,7 +294,7 @@ class WorkspaceOpenGl(WorkspaceRender):
     def draw_ws_circle(self, radius, origin, color=(0, 1, 0)):
         t = Transform(translation=self._scale * (
             origin - np.array([self._extent.x_min, self._extent.y_min])))
-        circ = make_circle(self._scale * radius, 30)
+        circ = make_circle(self._scale * radius, 30, False)
         circ.add_attr(t)
         circ.set_color(*color)
         self.gl.add_onetime(circ)
@@ -302,6 +311,9 @@ class WorkspaceOpenGl(WorkspaceRender):
         self.gl.draw_line(p1_ws, p2_ws, linewidth=7, color=(1, 0, 0))
 
     def draw_ws_polygon(self, vertices, origin, rotation, color=(1, 0, 0)):
+        """
+        Draws a polygon where the vertices are given
+        """
         t = Transform(
             translation=self._scale * (
                 origin - np.array([self._extent.x_min, self._extent.y_min])),

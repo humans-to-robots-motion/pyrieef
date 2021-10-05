@@ -45,6 +45,10 @@ class TrajectoryOptimizationViewer:
             self._draw_gradient = draw_gradient
             self._draw_hessian = draw_gradient
             self.init_viewer(objective.workspace, scale=scale)
+        self.draw_robot = False
+        if hasattr(self.objective, 'robot'):
+            self.draw_robot = True
+            self.robot_verticies = self.objective.robot.shape
 
     def init_viewer(self, workspace, scale=700.):
         from . import workspace_planar as renderer
@@ -86,6 +90,27 @@ class TrajectoryOptimizationViewer:
                 self.draw(Trajectory(q_init=self.objective.q_init, x=x))
         return self.objective.objective.hessian(x)
 
+    def draw_configuration(self, q, color=(1, 0, 0)):
+        if not self._use_3d:
+            self.viewer.draw_ws_circle(.01, q[:2], color)
+
+            if self.draw_robot:
+
+                # Draw contour
+                self.viewer.draw_ws_polygon(
+                    self.robot_verticies, q[:2], q[2], color)
+
+                # Draw keypoints
+                for i in range(self.objective.robot.nb_keypoints()):
+                    p = self.objective.robot.keypoint_map(i)(q)
+                    r = self.objective.robot.radii[i]
+                    self.viewer.draw_ws_circle(r, p, color)
+
+        else:
+            cost = self.objective.obstacle_potential(q)
+            self.viewer.draw_ws_sphere(
+                q, height=self.viewer.normalize_height(cost))
+
     def draw(self, trajectory, g_traj=None):
         if self.viewer is None:
             self.init_viewer()
@@ -97,26 +122,16 @@ class TrajectoryOptimizationViewer:
                 self.viewer.draw_ws_background(
                     self.objective.obstacle_potential)
                 self.viewer.draw_ws_obstacles()
-        draw_robot = False
-        if hasattr(self.objective, 'robot'):
-            print("Draw robot")
-            draw_robot = True
-            verticies = self.objective.robot.shape
         for k in range(self.objective.T + 1):
             q = trajectory.configuration(k)
+
             # Draw the initial configuration blue
             # and the goal is red and all the other are green
             color = (0, 0, 1) if k == 0 else (0, 1, 0)
             color = (1, 0, 0) if k == trajectory.T() else color
             color = (1, 1, 0) if k == 31 else color
-            if not self._use_3d:
-                self.viewer.draw_ws_circle(.01, q[:2], color)
-                if draw_robot:
-                    self.viewer.draw_ws_polygon(verticies, q[:2], q[2], color)
-            else:
-                cost = self.objective.obstacle_potential(q)
-                self.viewer.draw_ws_sphere(
-                    q, height=self.viewer.normalize_height(cost))
+            self.draw_configuration(q, color)
+
             if g_traj is not None:
                 self.viewer.draw_ws_line([q[:2], g_traj.configuration(k)[:2]])
         self.viewer.show()
