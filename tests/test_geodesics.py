@@ -31,6 +31,19 @@ def test_matrix_coordinates():
 
 
 def test_gradient_1d_operator():
+    """
+    Start testing gradient operator
+    It seems that the conventions for gradients between numpy and pyrieef
+    are not the same. 
+
+        1) the sign has to be flipped
+        2) the axis as to be flipped
+
+    TODO:   The signed should be checked and fixed in pyrieef this is probably
+            a mistake as the gradient should always point to the direction
+            of function increase and not decrease. The axes is more of a 
+            convention thing and we shoudl probably have it match numpy.
+    """
 
     N = 10
     D = -float(N) * discrete_2d_gradient(N, N, axis=1)
