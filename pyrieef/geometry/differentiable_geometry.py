@@ -418,6 +418,22 @@ class ExpTestFunction(DifferentiableMap):
         return np.exp(-(2 * p[0])**2 - (p[1] / 2)**2)
 
 
+class PolynomeTestFunction(DifferentiableMap):
+    """ Test function polynome """
+
+    def output_dimension(self):
+        return 1
+
+    def input_dimension(self):
+        return 2
+
+    def forward(self, p):
+        return (p[0] - 1)**2 + .5 * (p[1] - 3)**2 + 4
+
+    def jacobian(self, p):
+        return np.matrix([2*(p[0]-1), p[1]-3])
+
+
 class IdentityMap(DifferentiableMap):
     """Simple identity map : f(x)=x"""
 

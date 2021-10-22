@@ -195,6 +195,12 @@ def test_quadric():
     assert check_hessian_against_finite_difference(Scale(f, .3))
 
 
+def test_polynome():
+    f = PolynomeTestFunction()
+    for _ in range(10):
+        assert check_jacobian_against_finite_difference(f)
+
+
 def test_composition():
 
     # Test constant Jacobian.
@@ -407,6 +413,7 @@ if __name__ == "__main__":
     # test_scale()
     # test_sum_of_terms()
     # test_quadric()
+    test_polynome()
     # test_composition()
     # test_pullback()
     # test_rangesubspace()
@@ -415,4 +422,4 @@ if __name__ == "__main__":
     # test_activations()
     # test_normalize()
     # test_trigonometric_functions()
-    test_radial_basis_function()
+    # test_radial_basis_function()
