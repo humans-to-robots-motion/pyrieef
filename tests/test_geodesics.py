@@ -37,12 +37,12 @@ def test_gradient_1d_operator():
     are not the same. 
 
         1) the sign has to be flipped
-        2) the axis as to be flipped
+        2) the axis has to be flipped
 
-    TODO:   The signed should be checked and fixed in pyrieef this is probably
+    TODO:   The sign should be checked and fixed in pyrieef, this is probably
             a mistake as the gradient should always point to the direction
-            of function increase and not decrease. The axes is more of a 
-            convention thing and we shoudl probably have it match numpy.
+            of function increase and not decrease. The axis is more of a 
+            convention thing and we should probably have it match numpy.
     """
 
     N = 10
