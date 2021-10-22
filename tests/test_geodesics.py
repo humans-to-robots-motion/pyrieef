@@ -20,6 +20,7 @@
 import __init__
 from utils.misc import *
 from geometry.heat_diffusion import *
+from geometry.differentiable_geometry import PolynomeTestFunction
 
 
 def test_matrix_coordinates():
@@ -27,6 +28,66 @@ def test_matrix_coordinates():
     for i in range(100):
         [x, y] = row_major(i, DIM)
         assert i == (x + y * DIM)
+
+
+def test_gradient_1d_operator():
+
+    N = 10
+    D = -float(N) * discrete_2d_gradient(N, N, axis=1)
+
+    f = PolynomeTestFunction()
+    x = y = np.linspace(0, 1, N)
+    X, Y = np.meshgrid(x, y)
+    Z = f(np.stack([X, Y]))
+    J = f.jacobian_x(np.stack([X, Y]))
+    print(Z.shape)
+    print(D.shape)
+    print(np.gradient(Z, axis=0).shape)
+    print(J.shape)
+
+    grad1 = np.dot(D, Z.flatten())
+    grad2 = np.gradient(Z, 1/float(N), axis=0).flatten()
+    grad3 = J.flatten()
+    print("len(grad1) : ", len(grad1))
+    print("len(grad2) : ", len(grad2))
+    print("len(grad3) : ", len(grad3))
+    print(grad1)
+    print(grad2)
+    print(grad3)
+    d_g = np.linalg.norm(grad1 - grad2)
+    print(d_g)
+    assert d_g < 2
+
+
+def test_gradient_operator():
+    """
+    TODO test the function here..
+    finish this
+    """
+
+    N = 10
+    Dx = discrete_2d_gradient(N, N, axis=0)
+    # Dy = discrete_2d_gradient(N, N, axis=1)
+    D = np.vstack([Dx, Dy])
+
+    f = PolynomeTestFunction()
+    x = y = np.linspace(0, 3, N)
+    X, Y = np.meshgrid(x, y)
+    Z = f(np.stack([X, Y]))
+    print(Z.shape)
+    print(D.shape)
+    print(np.gradient(Z, axis=0).shape)
+    print(np.gradient(Z, axis=1).shape)
+    grad1 = np.dot(D, Z.flatten())
+    grad2 = np.stack([
+        np.gradient(Z, axis=0).flatten(),
+        np.gradient(Z, axis=1).flatten()]).flatten()
+    print("len(grad1) : ", len(grad1))
+    print("len(grad2) : ", len(grad2))
+    print(grad1)
+    print(grad2)
+    d_g = np.linalg.norm(grad1 - grad2)
+    # assert d_g < 1e-10
 
 
 def test_distance_from_gradient():
@@ -52,5 +113,7 @@ def test_distance_from_gradient():
 
 
 if __name__ == "__main__":
-    test_matrix_coordinates()
-    test_distance_from_gradient()
+    # test_matrix_coordinates()
+    test_gradient_1d_operator()
+    # test_gradient_operator()
+    # test_distance_from_gradient()

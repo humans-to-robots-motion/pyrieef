@@ -430,6 +430,12 @@ class PolynomeTestFunction(DifferentiableMap):
     def forward(self, p):
         return (p[0] - 1)**2 + .5 * (p[1] - 3)**2 + 4
 
+    def jacobian_x(self, p):
+        return 2*(p[0]-1)
+
+    def jacobian_y(self, p):
+        return p[1]-3
+
     def jacobian(self, p):
         return np.matrix([2*(p[0]-1), p[1]-3])
 
