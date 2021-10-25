@@ -30,6 +30,46 @@ def test_matrix_coordinates():
         assert i == (x + y * DIM)
 
 
+def test_gradient_1d_operator_linear():
+    """
+    TODO test with a linear map
+
+         f(x) = ax
+    d/dx f(x) = a
+
+    """
+
+    # 
+    a = np.random.random((1, 2))
+    b = np.zeros((1, ))
+    f = AffineMap(a, b)
+
+    # define the gradient
+    N = 10
+    D = -float(N) * discrete_2d_gradient(N, N, axis=1)
+    x = y = np.linspace(0, 1, N)
+    X, Y = np.meshgrid(x, y)
+    Z = f(np.stack([X, Y]))
+    J = f.jacobian_x(np.stack([X, Y]))
+    print(Z.shape)
+    print(D.shape)
+    print(np.gradient(Z, axis=0).shape)
+    print(J.shape)
+
+    grad1 = np.dot(D, Z.flatten())
+    grad2 = np.gradient(Z, 1/float(N), axis=0).flatten()
+    grad3 = J.flatten()
+    print("len(grad1) : ", len(grad1))
+    print("len(grad2) : ", len(grad2))
+    print("len(grad3) : ", len(grad3))
+    print(grad1)
+    print(grad2)
+    print(grad3)
+    d_g = np.linalg.norm(grad1 - grad2)
+    print(d_g)
+    assert d_g < 2
+
+
 def test_gradient_1d_operator():
     """
     Start testing gradient operator
@@ -127,6 +167,7 @@ def test_distance_from_gradient():
 
 if __name__ == "__main__":
     # test_matrix_coordinates()
-    test_gradient_1d_operator()
+    test_gradient_1d_operator_linear()
+    # test_gradient_1d_operator()
     # test_gradient_operator()
     # test_distance_from_gradient()
