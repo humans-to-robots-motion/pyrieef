@@ -40,17 +40,18 @@ def test_gradient_1d_operator_linear():
 
     """
 
-    #
+    np.random.seed(0)
     a = np.random.random((1, 2))
     b = np.zeros((1, ))
     f = AffineMap(a, b)
 
     # define the gradient
-    N = 10
-    D = -float(N) * discrete_2d_gradient(N, N, axis=1)
-    x = y = np.linspace(0, 1, N)
+    N = 2
+
+    x = y = np.linspace(0, 2e-6, N)
     X, Y = np.meshgrid(x, y)
 
+    print(x)
     # 3 dimensional array with both x and y values at each grid point
     xxyy = np.concatenate(
         [np.expand_dims(X, axis=2),
@@ -70,33 +71,46 @@ def test_gradient_1d_operator_linear():
 
     Z = f_vect(Q)
     G = g_vect(Q)
-    H = h_vect(Q)
 
     # print(Z)
     # print(G)
     # print(H)
 
-    print(Z.shape)
-    print(G.shape)
-    print(H.shape)
+    # print(Z.shape)
+    # print(G.shape)
+    # print(H.shape)
 
     # print(f_vect)
     # print(D.shape)
     # print(np.gradient(Z, axis=0).shape)
     # print(J.shape)
 
-    # grad1 = np.dot(D, Z.flatten())
-    # grad2 = np.gradient(Z, 1/float(N), axis=0).flatten()
-    # grad3 = J.flatten()
-    # print("len(grad1) : ", len(grad1))
-    # print("len(grad2) : ", len(grad2))
-    # print("len(grad3) : ", len(grad3))
-    # print(grad1)
-    # print(grad2)
-    # print(grad3)
-    # d_g = np.linalg.norm(grad1 - grad2)
-    # print(d_g)
-    # assert d_g < 2
+    dx = 2e-6/float(N)
+
+    for a in range(2):
+
+        D = discrete_2d_gradient(N, N, dx=dx, axis=a)
+        print("D : ", D)
+        grad1 = np.dot(D, Z.flatten()).reshape((N, N))
+        grad2 = np.gradient(Z, dx, axis=a)
+        grad3 = G[:, :, a]
+
+        # print("len(grad1) : ", len(grad1))
+        # print("len(grad2) : ", len(grad2))
+        # print("len(grad3) : ", len(grad3))
+        print("grad1 : ", grad1)
+        print("grad3 : ", grad3)
+
+        print("grad1.shape :", grad1.shape)
+        print("grad2.shape :", grad2.shape)
+        print("grad3.shape :", grad3.shape)
+
+        d_g = np.linalg.norm(grad1 - grad2)
+        print("d_g (1): ", d_g)
+
+        d_g = np.linalg.norm(grad1 - grad3)
+        print("d_g (2): ", d_g)
+        # assert d_g < 2
 
 
 def test_gradient_1d_operator():
