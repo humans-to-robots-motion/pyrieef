@@ -29,5 +29,18 @@ def test_2():
     np.sqrt(.7774)
 
 
-print(timeit.timeit(stmt=test_1, number=100000))
-print(timeit.timeit(stmt=test_2, number=100000))
+def test_3():
+    np.random.seed(0)
+    x = np.random.rand(100000)
+    res = np.vectorize(math.sqrt)(x)
+
+def test_4():
+    np.random.seed(0)
+    x = np.random.rand(100000)
+    res = np.sqrt(x)
+
+
+print("time in sec : ", timeit.timeit(stmt=test_1, number=100000))
+print("time in sec : ", timeit.timeit(stmt=test_2, number=100000))
+print("time in sec : ", timeit.timeit(stmt=test_3, number=1))
+print("time in sec : ", timeit.timeit(stmt=test_4, number=1))
