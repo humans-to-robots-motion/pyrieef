@@ -173,30 +173,35 @@ def crank_nicholson_2d(dt, h, source_grid, iterations, occupancy):
     return costs
 
 
-def discrete_2d_gradient(M, N, axis=0):
+def discrete_2d_gradient(M, N, dx=1., axis=0):
     """
     Efficient allocation of the Discrete-2D-Gradient
     """
     dim = M * N
     if axis == 0:
-        A = np.identity(dim)
-        A[range(dim - 1), range(1, dim)] = -1
+        A = np.zeros((dim, dim))
+        np.fill_diagonal(A, -1)
 
-        # every end of row left difference
-        A[range(M - 1, M * (N - 1), M), range(M, dim, M)] = 0
-        A[range(M - 1, dim, M), range(M - 1, dim, M)] = -1
-        A[range(M - 1, dim, M), range(M - 2, dim, M)] = 1
-
-    if axis == 1:
-        A = np.identity(dim)
-        A[range(M * (N - 1)), range(M, dim)] = -1
+        A[range(M * (N - 1)), range(M, dim)] = 1
 
         # every end of collumn left difference
         last_block = range(M * (N - 1), dim)
-        A[last_block, last_block] = -1
-        A[last_block, range(M * (N - 2), M * (N - 1))] = 1
+        A[last_block, last_block] = 1
+        A[last_block, range(M * (N - 2), M * (N - 1))] = -1
 
-    return A
+    if axis == 1:
+        
+        A = np.zeros((dim, dim))
+        np.fill_diagonal(A, -1)
+
+        A[range(dim - 1), range(1, dim)] = 1
+
+        # every end of row left difference
+        A[range(M - 1, M * (N - 1), M), range(M, dim, M)] = 0
+        A[range(M - 1, dim, M), range(M - 1, dim, M)] = 1
+        A[range(M - 1, dim, M), range(M - 2, dim, M)] = -1
+
+    return  (1/dx)  * A
 
 
 def discrete_2d_laplacian(M, N, matrix_form=False):
@@ -261,18 +266,22 @@ def divergence(f):
 def distance_from_gradient(U, V, dh, f=None):
     """
     Get a scalar field from gradients
+
+    TODO: 
+        - Check wether the axis actually corresponds to Dx and Dy..
+        - This depends on what we excpect for U and V
+        - It could be that since this is an ill-posed problem it does
+        not matter..
+        - When we flip the sign of Dx, Dy the solition does not seem to change
     """
     N = U.shape[0]
-    Dx = (1. / dh) * discrete_2d_gradient(N, N, axis=0)
-    Dy = (1. / dh) * discrete_2d_gradient(N, N, axis=1)
-    grad = np.hstack([U.flatten(), V.flatten()])
+    Dx = discrete_2d_gradient(N, N, dx=dh, axis=0)
+    Dy = discrete_2d_gradient(N, N, dx=dh, axis=1)
     D = np.vstack([Dx, Dy])
+    grad = np.hstack([U.flatten(), V.flatten()])
     if f is not None:
         grad = np.dot(D, f.flatten())
     phi = np.dot(np.linalg.pinv(D), grad)
-    print(grad.shape)
-    print(D.shape)
-    print(phi.shape)
     d = np.linalg.norm(grad - np.dot(D, phi))
     print("d : ", d)
     phi.shape = (N, N)

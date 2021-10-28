@@ -90,21 +90,30 @@ class TrajectoryOptimizationViewer:
                 self.draw(Trajectory(q_init=self.objective.q_init, x=x))
         return self.objective.objective.hessian(x)
 
-    def draw_configuration(self, q, color=(1, 0, 0)):
+    def draw_configuration(self, q, color=(1, 0, 0), with_robot=False):
         if not self._use_3d:
-            self.viewer.draw_ws_circle(.01, q[:2], color)
 
-            if self.draw_robot:
+            if not self.draw_robot:
 
-                # Draw contour
-                self.viewer.draw_ws_polygon(
-                    self.robot_verticies, q[:2], q[2], color)
+                self.viewer.draw_ws_circle(.01, q[:2], color)
 
-                # Draw keypoints
-                for i in range(self.objective.robot.nb_keypoints()):
-                    p = self.objective.robot.keypoint_map(i)(q)
-                    r = self.objective.robot.radii[i]
-                    self.viewer.draw_ws_circle(r, p, color)
+            else:
+
+                if with_robot:
+
+                    # Draw contour
+                    self.viewer.draw_ws_polygon(
+                        self.robot_verticies, q[:2], q[2], color)
+
+                    # Draw keypoints
+                    for i in range(self.objective.robot.nb_keypoints()):
+                        p = self.objective.robot.keypoint_map(i)(q)
+                        r = self.objective.robot.radii[i]
+                        self.viewer.draw_ws_circle(r, p, color)
+
+                else:
+                    p = self.objective.robot.keypoint_map(0)(q)
+                    self.viewer.draw_ws_circle(.01, p, color)
 
         else:
             cost = self.objective.obstacle_potential(q)
@@ -122,7 +131,14 @@ class TrajectoryOptimizationViewer:
                 self.viewer.draw_ws_background(
                     self.objective.obstacle_potential)
                 self.viewer.draw_ws_obstacles()
+
+        with_robot = False
+
         for k in range(self.objective.T + 1):
+
+            if self.draw_robot:
+                with_robot = k % 5 == 0
+
             q = trajectory.configuration(k)
 
             # Draw the initial configuration blue
@@ -130,7 +146,7 @@ class TrajectoryOptimizationViewer:
             color = (0, 0, 1) if k == 0 else (0, 1, 0)
             color = (1, 0, 0) if k == trajectory.T() else color
             color = (1, 1, 0) if k == 31 else color
-            self.draw_configuration(q, color)
+            self.draw_configuration(q, color, with_robot)
 
             if g_traj is not None:
                 self.viewer.draw_ws_line([q[:2], g_traj.configuration(k)[:2]])

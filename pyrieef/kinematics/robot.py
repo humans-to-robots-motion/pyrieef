@@ -189,14 +189,21 @@ def create_keypoints(nb_keypoints, segments):
     for s in (segments):
         length += s.length()
     keypoints = []
-    dl = length / nb_keypoints
-    for s in segments:
-        k = math.floor(s.length() / dl)
-        d_alpha = (1. / float(k))
-        d = 0.
-        for i in range(int(k)):
-            keypoints.append(d * s.p1() + (1 - d) * s.p2())
-            d += d_alpha
+    dl = length / (nb_keypoints - 1)
+    d_rest = 0
+    print(dl)
+    for k, s in enumerate(segments):
+        d = d_rest
+        while s.length() - d > 1e-6:
+            alpha = d / s.length()
+            p = (1 - alpha) * s.p1() + alpha * s.p2()
+            keypoints.append(p)
+            if len(keypoints) == nb_keypoints :
+                return keypoints
+            d += dl
+        d_rest = d - s.length()
+        if k == len(segments) -1:
+            keypoints.append(s.p2())
     return keypoints
 
 
@@ -224,13 +231,15 @@ def create_freeflyer_from_segments(
             "nb_keypoints"] if nb_keypoints is None else nb_keypoints
         points = config["segments"]
         n = 2 if config["planar"] else 3  # dimensionality of the FF
+        all_points = sorted(points.items())
+        print(all_points)
         segments = [Segment(
             p1=np.array(p[0:n]),
-            p2=np.array(p[n:2 * n])) for k, p in sorted(points.items())]
+            p2=np.array(p[n:2 * n])) for k, p in all_points]
         keypoints = create_keypoints(nb_keypoints, segments)
         keypoints_dic = {}
         for i, point in enumerate(keypoints):
-            keypoints_dic["s" + str(i)] = point
+            keypoints_dic["s{:03}".format(i)] = point
         robot = Freeflyer(
             config["name"],
             keypoints_dic,

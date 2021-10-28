@@ -201,6 +201,12 @@ def test_polynome():
         assert check_jacobian_against_finite_difference(f)
 
 
+def test_linear():
+    f = LinearTestFunction()
+    for _ in range(10):
+        assert check_jacobian_against_finite_difference(f)
+
+
 def test_composition():
 
     # Test constant Jacobian.
@@ -413,7 +419,8 @@ if __name__ == "__main__":
     # test_scale()
     # test_sum_of_terms()
     # test_quadric()
-    test_polynome()
+    # test_polynome()
+    test_linear()
     # test_composition()
     # test_pullback()
     # test_rangesubspace()

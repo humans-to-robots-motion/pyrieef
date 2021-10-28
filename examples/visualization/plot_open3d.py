@@ -17,8 +17,8 @@
 #
 #                                        Jim Mainprice on Wed April 21 2021
 
-import common_imports
-from utils.timer import Rate
+import demos_common_imports
+from pyrieef.utils.timer import Rate
 
 import open3d as o3d
 import numpy as np

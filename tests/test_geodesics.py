@@ -158,21 +158,24 @@ def test_gradient_1d_operator():
 
 def test_gradient_operator():
     """
-    TODO test the function here..
-    finish this
+    This function tests the linear gradient operator
+
+    Note: that we have small deviations from the numpy implementations
+          We should check that these deviations come from the boundry
+          conditions. The numpy version has some different things happening.
     """
 
     N = 10
-    Dx = discrete_2d_gradient(N, N, axis=0)
-    Dy = discrete_2d_gradient(N, N, axis=1)
-    D = np.vstack([Dx, Dy])
 
-    f = PolynomeTestFunction()
     x = y = np.linspace(0, 1, N)
-    X, Y = np.meshgrid(x, y)
-    Z = f(np.stack([X, Y]))
+    Q = np.stack((np.meshgrid(x, y)))
+    Z = PolynomeTestFunction().forward(Q)
+    # Z = LinearTestFunction().forward(Q)
 
-    grad1 = np.dot(D, Z.flatten())
+    grad1 = np.dot(np.vstack([
+        discrete_2d_gradient(N, N, axis=0),
+        discrete_2d_gradient(N, N, axis=1)]), Z.flatten())
+
     grad2 = np.stack([
         np.gradient(Z, axis=0).flatten(),
         np.gradient(Z, axis=1).flatten()]).flatten()

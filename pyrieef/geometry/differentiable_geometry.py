@@ -440,6 +440,28 @@ class PolynomeTestFunction(DifferentiableMap):
         return np.matrix([2*(p[0]-1), p[1]-3])
 
 
+class LinearTestFunction(DifferentiableMap):
+    """ Test function linear function (easily testable on meshgrid) """
+
+    def output_dimension(self):
+        return 1
+
+    def input_dimension(self):
+        return 2
+
+    def forward(self, p):
+        return .25 * p[0] + .7 * p[1]
+
+    def jacobian_x(self, p):
+        return .25
+
+    def jacobian_y(self, p):
+        return .7
+
+    def jacobian(self, p):
+        return np.matrix([.25, .7])
+
+
 class IdentityMap(DifferentiableMap):
     """Simple identity map : f(x)=x"""
 
