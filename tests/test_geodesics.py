@@ -58,7 +58,7 @@ def test_gradient_1d_operator_linear():
     X, Y = np.meshgrid(x, y)
 
     # Two ways of creating the data for vectorized querry
-    # TODO test for speed etc. 
+    # TODO test for speed etc.
 
     # 1) with expand dims
     # 3 dimensional array with both x and y values at each grid point
@@ -72,7 +72,7 @@ def test_gradient_1d_operator_linear():
 
     assert_allclose(Q, xxyy)
 
-    # define vectorize functions 
+    # define vectorize functions
     f_vect = np.vectorize(f.forward, signature='(2)->(1)')
     g_vect = np.vectorize(f.gradient, signature='(2)->(2)')
     h_vect = np.vectorize(f.hessian, signature='(2)->(2,2)')
@@ -95,60 +95,65 @@ def test_gradient_1d_operator_linear():
     dx = l/float(N-1)
 
     # Switch between axis diff and dim dimension to easily test equality
-    G = np.flip(G, axis=2) 
+    G = np.flip(G, axis=2)
 
     for a in range(2):
 
         D = discrete_2d_gradient(N, N, dx=dx, axis=a)
 
-        grad1 = np.dot(D, Z.flatten()).reshape((N, N))
-        grad2 = np.gradient(Z, dx, axis=a).reshape((N, N))
+        grad1 = np.dot(D, Z.flatten())
+        grad2 = np.gradient(Z, dx, axis=a)
         grad3 = G[:, :, a]
 
-        assert_allclose(grad1, grad2)
-        assert_allclose(grad1, grad3)
+        assert_allclose(grad1, grad2.flatten())
+        assert_allclose(grad1, grad3.flatten())
 
 
 def test_gradient_1d_operator():
     """
     Start testing gradient operator
-    It seems that the conventions for gradients between numpy and pyrieef
-    are not the same. 
 
-        1) the sign has to be flipped
-        2) the axis has to be flipped
+    TODO: Make sure that it works over the whole code based !!!
 
-    TODO:   The sign should be checked and fixed in pyrieef, this is probably
-            a mistake as the gradient should always point to the direction
+    Following is not Fixed !
+
+        It seems that the conventions for gradients between numpy and pyrieef
+        are not the same. 
+
+            1) the sign has to be flipped
+            2) the axis has to be flipped
+
+        TODO:   The sign should be checked and fixed in pyrieef,
+            this is probably a mistake as the gradient should always point
+            to the direction
             of function increase and not decrease. The axis is more of a 
             convention thing and we should probably have it match numpy.
     """
-
     N = 10
-    D = -float(N) * discrete_2d_gradient(N, N, axis=1)
+    l = 1e-6
+    dx = l/(N-1)
 
     f = PolynomeTestFunction()
-    x = y = np.linspace(0, 1, N)
+    x = y = np.linspace(0, l, N)
     X, Y = np.meshgrid(x, y)
     Z = f(np.stack([X, Y]))
-    J = f.jacobian_x(np.stack([X, Y]))
-    print(Z.shape)
-    print(D.shape)
-    print(np.gradient(Z, axis=0).shape)
-    print(J.shape)
+    J = f.jacobian_y(np.stack([X, Y]))
 
-    grad1 = np.dot(D, Z.flatten())
-    grad2 = np.gradient(Z, 1/float(N), axis=0).flatten()
-    grad3 = J.flatten()
-    print("len(grad1) : ", len(grad1))
-    print("len(grad2) : ", len(grad2))
-    print("len(grad3) : ", len(grad3))
-    print(grad1)
-    print(grad2)
-    print(grad3)
-    d_g = np.linalg.norm(grad1 - grad2)
-    print(d_g)
-    assert d_g < 2
+    # inversion of differentiating aling and axis and the axis in the matrix
+    jacobian = [
+        f.jacobian_y(np.stack([X, Y])),
+        f.jacobian_x(np.stack([X, Y]))]
+
+    for a in range(2):
+
+        D = discrete_2d_gradient(N, N, dx, axis=a)
+
+        grad1 = np.dot(D, Z.flatten())
+        grad2 = np.gradient(Z, dx, axis=a)
+        grad3 = jacobian[a]
+
+        assert_allclose(grad1, grad2.flatten())
+        assert_allclose(grad1, grad3.flatten())
 
 
 def test_gradient_operator():
@@ -206,7 +211,7 @@ def test_distance_from_gradient():
 
 if __name__ == "__main__":
     # test_matrix_coordinates()
-    test_gradient_1d_operator_linear()
-    # test_gradient_1d_operator()
+    # test_gradient_1d_operator_linear()
+    test_gradient_1d_operator()
     # test_gradient_operator()
     # test_distance_from_gradient()
