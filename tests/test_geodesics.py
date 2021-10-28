@@ -184,13 +184,24 @@ def test_gradient_operator():
 
 
 def test_distance_from_gradient():
+    """
+    Compare the distance obtained from pseudo inverse of the gradient
+    operator with the original one
+    """
+
     N = 20
+
+    # Signed distance field
     workspace = Workspace()
     workspace.obstacles = [Circle(origin=[-2, -2], radius=0.1)]
-    Dx = float(N) * discrete_2d_gradient(N, N, axis=0)
-    Dy = float(N) * discrete_2d_gradient(N, N, axis=1)
-    D = np.vstack([Dx, Dy])
     f = sdf(occupancy_map(N, workspace)).T
+
+    # Gradient operator
+    dl = 1/float(N-1)
+    Dx = discrete_2d_gradient(N, N, dx=dl, axis=0)
+    Dy = discrete_2d_gradient(N, N, dx=dl, axis=1)
+    D = np.vstack([Dx, Dy])
+
     grad = np.dot(D, f.flatten())
     phi = np.dot(np.linalg.pinv(D), grad)
     d_g = np.linalg.norm(grad - np.dot(D, phi))
@@ -209,5 +220,5 @@ if __name__ == "__main__":
     # test_matrix_coordinates()
     # test_gradient_1d_operator_linear()
     # test_gradient_1d_operator()
-    test_gradient_operator()
-    # test_distance_from_gradient()
+    # test_gradient_operator()
+    test_distance_from_gradient()

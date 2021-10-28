@@ -340,8 +340,8 @@ def distance(U, V, D, dh):
     """
     M = D.shape[0]
     N = D.shape[1]
-    Dx = (1. / dh) * discrete_2d_gradient(N, N, axis=0)
-    Dy = (1. / dh) * discrete_2d_gradient(N, N, axis=1)
+    Dx = discrete_2d_gradient(N, N, dx=dh, axis=0)
+    Dy = discrete_2d_gradient(N, N, dx=dh, axis=1)
 
     # D2xy = (1. / (dh**2)) * discrete_2d_laplacian(M, N, True)
     # b = np.hstack([U.flatten(), V.flatten(), D.flatten()])
