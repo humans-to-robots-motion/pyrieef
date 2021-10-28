@@ -164,27 +164,20 @@ def test_gradient_operator():
 
     N = 10
     Dx = discrete_2d_gradient(N, N, axis=0)
-    # Dy = discrete_2d_gradient(N, N, axis=1)
+    Dy = discrete_2d_gradient(N, N, axis=1)
     D = np.vstack([Dx, Dy])
 
     f = PolynomeTestFunction()
-    x = y = np.linspace(0, 3, N)
+    x = y = np.linspace(0, 1, N)
     X, Y = np.meshgrid(x, y)
     Z = f(np.stack([X, Y]))
-    print(Z.shape)
-    print(D.shape)
-    print(np.gradient(Z, axis=0).shape)
-    print(np.gradient(Z, axis=1).shape)
+
     grad1 = np.dot(D, Z.flatten())
     grad2 = np.stack([
         np.gradient(Z, axis=0).flatten(),
         np.gradient(Z, axis=1).flatten()]).flatten()
-    print("len(grad1) : ", len(grad1))
-    print("len(grad2) : ", len(grad2))
-    print(grad1)
-    print(grad2)
-    d_g = np.linalg.norm(grad1 - grad2)
-    # assert d_g < 1e-10
+
+    assert_allclose(grad1, grad2, atol=2e-2)
 
 
 def test_distance_from_gradient():
@@ -212,6 +205,6 @@ def test_distance_from_gradient():
 if __name__ == "__main__":
     # test_matrix_coordinates()
     # test_gradient_1d_operator_linear()
-    test_gradient_1d_operator()
-    # test_gradient_operator()
+    # test_gradient_1d_operator()
+    test_gradient_operator()
     # test_distance_from_gradient()
