@@ -33,38 +33,46 @@ def test_matrix_coordinates():
 
 def test_gradient_1d_operator_linear():
     """
-    TODO test with a linear map
+    Test Finite Difference (FD) gradients against linear map
 
-         f(x) = ax
-    d/dx f(x) = a
+    Details:
+                 f(x) = ax
+            d/dx f(x) = a
 
+        Linear maps are perfectly approximated by finite difference
+        as no higher-order curvature terms are involved
+        That allows to test an FD implementation.
     """
 
     np.random.seed(0)
+
+    # Linear map with random coefficients
     a = np.random.random((1, 2))
     b = np.zeros((1, ))
     f = AffineMap(a, b)
 
-    # define the gradient
-    N = 2
-
-    x = y = np.linspace(0, 2e-6, N)
+    # define the grid points
+    N = 10
+    l = 1.
+    x = y = np.linspace(0, l, N)
     X, Y = np.meshgrid(x, y)
 
-    print(x)
+    # Two ways of creating the data for vectorized querry
+    # TODO test for speed etc. 
+
+    # 1) with expand dims
     # 3 dimensional array with both x and y values at each grid point
     xxyy = np.concatenate(
         [np.expand_dims(X, axis=2),
          np.expand_dims(Y, axis=2)], axis=2)
 
+    # 2) simpler with stack
     # Same thing directly with stack
     Q = np.stack((X, Y), axis=2)
 
-    print("Q1 shape : ", xxyy.shape)
-    print("Q2 shape : ", Q.shape)
-
     assert_allclose(Q, xxyy)
 
+    # define vectorize functions 
     f_vect = np.vectorize(f.forward, signature='(2)->(1)')
     g_vect = np.vectorize(f.gradient, signature='(2)->(2)')
     h_vect = np.vectorize(f.hessian, signature='(2)->(2,2)')
@@ -72,45 +80,33 @@ def test_gradient_1d_operator_linear():
     Z = f_vect(Q)
     G = g_vect(Q)
 
-    # print(Z)
-    # print(G)
-    # print(H)
+    # Test vectorized querry
+    G2 = np.empty_like(G)
+    for i, j in product(range(X.shape[0]), range(X.shape[0])):
+        g = f.gradient(np.array([X[i, j], Y[i, j]]))
+        G2[i, j, 0] = g[0]
+        G2[i, j, 1] = g[1]
 
-    # print(Z.shape)
-    # print(G.shape)
-    # print(H.shape)
+    assert_allclose(G, G2)
 
-    # print(f_vect)
-    # print(D.shape)
-    # print(np.gradient(Z, axis=0).shape)
-    # print(J.shape)
+    # dx is the distance between the grid samples np.gradient can handle
+    # varying grid sizes, discrete_2d_gradient can not do that so far
+    # WARNING: the distance between N equaly spaced samples along l is not l/N
+    dx = l/float(N-1)
 
-    dx = 2e-6/float(N)
+    # Switch between axis diff and dim dimension to easily test equality
+    G = np.flip(G, axis=2) 
 
     for a in range(2):
 
         D = discrete_2d_gradient(N, N, dx=dx, axis=a)
-        print("D : ", D)
+
         grad1 = np.dot(D, Z.flatten()).reshape((N, N))
-        grad2 = np.gradient(Z, dx, axis=a)
+        grad2 = np.gradient(Z, dx, axis=a).reshape((N, N))
         grad3 = G[:, :, a]
 
-        # print("len(grad1) : ", len(grad1))
-        # print("len(grad2) : ", len(grad2))
-        # print("len(grad3) : ", len(grad3))
-        print("grad1 : ", grad1)
-        print("grad3 : ", grad3)
-
-        print("grad1.shape :", grad1.shape)
-        print("grad2.shape :", grad2.shape)
-        print("grad3.shape :", grad3.shape)
-
-        d_g = np.linalg.norm(grad1 - grad2)
-        print("d_g (1): ", d_g)
-
-        d_g = np.linalg.norm(grad1 - grad3)
-        print("d_g (2): ", d_g)
-        # assert d_g < 2
+        assert_allclose(grad1, grad2)
+        assert_allclose(grad1, grad3)
 
 
 def test_gradient_1d_operator():
