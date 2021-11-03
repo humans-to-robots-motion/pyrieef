@@ -80,7 +80,7 @@ for i in range(grid.nb_cells_x):
         p = grid.grid_to_world(np.array([i, j]))
 plt.plot(X, Y, "k", linewidth=2.0)
 plt.axis('equal')
-plt.axis(workspace.box.box_extent())
+plt.axis(workspace.box.extent_data())
 
 x_goal = np.array([0.4, 0.4])
 nx, ny = (3, 3)

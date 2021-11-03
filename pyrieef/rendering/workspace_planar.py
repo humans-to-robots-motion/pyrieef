@@ -121,12 +121,12 @@ class WorkspaceDrawer(WorkspaceRender):
         if rows > 1 or cols > 1:
             for ax in self._axes.flat:
                 ax.axis('equal')
-                ax.axis(self._workspace.box.box_extent())
+                ax.axis(self._workspace.box.extent_data())
             self.set_drawing_axis(0)
         else:
             self._ax = self._axes
             self._ax.axis('equal')
-            self._ax.axis(self._workspace.box.box_extent())
+            self._ax.axis(self._workspace.box.extent_data())
             self._axes = None
 
     def set_drawing_axis(self, i):
@@ -134,7 +134,7 @@ class WorkspaceDrawer(WorkspaceRender):
         if self._axes is not None:
             self._ax = self._axes.flatten()[i]
             self._ax.axis('equal')
-            self._ax.axis(self._workspace.box.box_extent())
+            self._ax.axis(self._workspace.box.extent_data())
 
     def draw_ws_obstacles(self):
         colorst = [cm.gist_ncar(i) for i in np.linspace(
@@ -197,7 +197,7 @@ class WorkspaceDrawer(WorkspaceRender):
         """
         im = self._ax.imshow(
             Z.T,
-            extent=self._workspace.box.box_extent(),
+            extent=self._workspace.box.extent_data(),
             origin='lower',
             interpolation=interpolate,
             cmap=color_style)
@@ -412,7 +412,7 @@ class WorkspaceHeightmap(WorkspaceRender):
         return (c - self._min_z) / (self._max_z - self._min_z)
 
     def heightmap_coordinates(self, p, height):
-        T = self._height_map.transform(*self._workspace.box.box_extent())
+        T = self._height_map.transform(*self._workspace.box.extent_data())
         corner = np.array([self._extent.x_min, self._extent.y_min])
         p_ws = p - corner
         p = T * np.matrix([p_ws[0], p_ws[1], 1]).T

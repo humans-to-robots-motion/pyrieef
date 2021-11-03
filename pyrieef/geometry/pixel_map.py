@@ -35,6 +35,16 @@ def sdf(image):
 
 
 class Extent:
+    """
+    Implements simple extents for a 2D box
+
+    Attributes
+    ----------
+    x_min : float
+    x_max : float
+    y_min : float
+    y_max : float
+    """
 
     def __init__(self, sides=.5):
         self.x_min = -sides

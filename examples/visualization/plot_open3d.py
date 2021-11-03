@@ -25,14 +25,14 @@ import numpy as np
 import time
 
 # Download bunny at http://graphics.stanford.edu/data/3Dscanrep/"
-DATA_DIRECTORY = "/Users/jmainpri/Dropbox/Work/workspace/pyrieef/data/"
+DATA_DIRECTORY = "/Users/jim/Dropbox/Work/workspace/pyrieef/data/"
 # BUNNY = DATA_DIRECTORY + "bunny/data/bun045.ply"
 # BUNNY = DATA_DIRECTORY + "bunny/reconstruction/bun_zipper_res2.ply"
 BUNNY = DATA_DIRECTORY + "bunny/reconstruction/bun_zipper.ply"
-BUNNY = DATA_DIRECTORY + "scan.stl"
+# BUNNY = DATA_DIRECTORY + "scan.stl"
 
-ROBOTS = "/Users/jmainpri/Dropbox/Work/workspace/pybullet_robots/"
-BUNNY = ROBOTS + "data/baxter_common/baxter_description/meshes/lower_elbow/E1.STL"
+# ROBOTS = "/Users/jmainpri/Dropbox/Work/workspace/pybullet_robots/"
+# BUNNY = ROBOTS + "data/baxter_common/baxter_description/meshes/lower_elbow/E1.STL"
 
 # print("Let's define some primitives")
 

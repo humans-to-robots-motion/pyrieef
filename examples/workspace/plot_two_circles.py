@@ -46,11 +46,11 @@ for i in range(grid.nb_cells_x):
         # TODO why is it this way... (j before i)
         # these are matrix coordinates...
         matrix[j, i] = simulation.PotentialCausedByObject(p)
-plt.imshow(matrix, origin='lower', extent=workspace.box.box_extent())
+plt.imshow(matrix, origin='lower', extent=workspace.box.extent_data())
 plt.scatter(X, Y)
 plt.ylabel('some points')
 plt.axis('equal')
-plt.axis(workspace.box.box_extent())
+plt.axis(workspace.box.extent_data())
 
 x_goal = np.array([0.4, 0.2])
 nx, ny = (10, 5)

@@ -54,7 +54,7 @@ for i in range(grid.nb_cells_x):
 plt.plot(X, Y, "b", linewidth=2.0)
 # plt.ylabel('some points')
 plt.axis('equal')
-plt.axis(workspace.box.box_extent())
+plt.axis(workspace.box.extent_data())
 
 x_goal = np.array([0.4, 0.4])
 nx, ny = (3, 3)

@@ -53,8 +53,8 @@ def test_pixelmap_meshgrid():
     x_max = extent.x_max - 0.5 * resolution
     y_min = extent.y_min + 0.5 * resolution
     y_max = extent.y_max - 0.5 * resolution
-    x = np.linspace(x_min, x_max, nb_points)
-    y = np.linspace(y_min, y_max, nb_points)
+    x = np.linspace(x_min, x_max, int(nb_points))
+    y = np.linspace(y_min, y_max, int(nb_points))
     print(x)
     print(y)
     X, Y = np.meshgrid(x, y)

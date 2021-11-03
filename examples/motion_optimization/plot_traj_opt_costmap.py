@@ -71,7 +71,7 @@ def plot_costmaps():
     workspace = sample_circle_workspaces(nb_circles=4)
     grid_sparse = workspace.box.stacked_meshgrid(24)
     grid_dense = workspace.box.stacked_meshgrid(100)
-    extent = workspace.box.box_extent()
+    extent = workspace.box.extent_data()
     sdf = SignedDistanceWorkspaceMap(workspace)
 
     viewer = WorkspaceDrawer(workspace, wait_for_keyboard=True,

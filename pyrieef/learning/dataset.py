@@ -225,7 +225,7 @@ def get_yaml_options():
     filename = directory + os.sep + "synthetic_data.yaml"
     with open(filename, 'r') as stream:
         try:
-            options_data = yaml.load(stream)
+            options_data = yaml.safe_load(stream)
             # print(options_data)
         except yaml.YAMLError as exc:
             print(exc)
