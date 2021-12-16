@@ -96,7 +96,8 @@ def forward_euler_2d(dt, h, source_grid, iterations, occupancy):
         u_0 = u_t.copy()
         t += dt
         if k % TIME_FACTOR == 0:
-            print("t : {:.3E} , u_t.max() : {:.3E}".format(t, u_t.max()))
+            print("t : {:.3E} , u_t.max() : {:.3E}, k {}".format(
+                t, u_t.max(), k))
             U.append(u_t.copy())
     return U
 
@@ -380,11 +381,15 @@ def heat_diffusion(workspace, source, iterations):
     grid = workspace.pixel_map(NB_POINTS)
     h = grid.resolution
     occupancy = occupancy_map(NB_POINTS, workspace).T
-    print("Max t size : ", (h ** 2))
     t = TIME_STEP
+    source_grid = grid.world_to_grid(source)
+    print("Max t size : ", (h ** 2))
+    print("nb points : ", NB_POINTS)
+    print("extent.x : ", grid.extent.x())
+    print("extent.y : ", grid.extent.y())
     print(" -- h : ", h)
     print(" -- t : ", t)
-    source_grid = grid.world_to_grid(source)
+    print(" -- p : ", source_grid)    
     if ALGORITHM == "crank-nicholson":
         return crank_nicholson_2d(t, h, source_grid, iterations, occupancy)
     else:

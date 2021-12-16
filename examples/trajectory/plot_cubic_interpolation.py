@@ -27,7 +27,12 @@ from pyrieef.geometry.differentiable_geometry import DifferentiableMap
 
 class CubicInterpolator(DifferentiableMap):
 
-    """ Interpolate waypoints using Cubic Hermite splines """
+    """
+    Interpolate waypoints using Cubic Catmull–Rom splines
+
+        Details:
+            https://en.wikipedia.org/wiki/Cubic_Hermite_spline
+    """
 
     def __init__(self, T, dt=1.):
         self._T = T
@@ -47,21 +52,18 @@ class CubicInterpolator(DifferentiableMap):
 
     def forward(self, x):
 
+        # retrieve time along spline
         t = x[0]
-        waypoints = x[1:]
 
+        # s is over the [0, 1] interval
         ds = math.fmod(t / self._dt, self._T)
         si = math.floor(ds)
         ds -= si
 
-        p = [0, 0, 0, 0]
-        p[0] = waypoints[si]
-        p[1] = waypoints[si + 1]
-        p[2] = waypoints[si + 2]
-        p[3] = waypoints[si + 3]
+        # calculatre spline coefficents
+        a = self._A @ x[si+1:si+5]
 
-        a = self._A @ p
-
+        # return spline value at ds
         return a[3] * (ds ** 3) + a[2] * (ds ** 2) + a[1] * ds + a[0]
 
 
@@ -94,7 +96,7 @@ for t in time_index_2:
     for k in range(len(waypoints)):
         interpolated_derivative[k].append(dx[k + 1])
 
-# Plot everything using subplots
+# plot everything using subplots
 fig, axs = plt.subplots(1 + len(waypoints), 1)
 axs[0].plot(time_index_2, interpolated_configurations)
 axs[0].plot(time_index_1, waypoints, 'o')
