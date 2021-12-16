@@ -27,7 +27,7 @@ from pyrieef.geometry.differentiable_geometry import DifferentiableMap
 
 class CubicInterpolator(DifferentiableMap):
 
-    """ Interpolate waypoints using a cubic spline  """
+    """ Interpolate waypoints using Cubic Hermite splines """
 
     def __init__(self, T, dt=1.):
         self._T = T
@@ -60,34 +60,27 @@ class CubicInterpolator(DifferentiableMap):
         p[2] = waypoints[si + 2]
         p[3] = waypoints[si + 3]
 
-        coef =  self._A @ p
+        a = self._A @ p
 
-        dspow2 = ds ** 2
-        dspow3 = dspow2 * ds
-
-        return coef[3] * dspow3 + coef[2] * dspow2 + coef[1] * ds + coef[0]
-
-        # TODO this formula is wrong...
-        # return p[1] + \
-        #     0.5 * (p[2] - p[0]) * ds + \
-        #      (1. * p[0] - -2.5 * p[1] + 4. * p[2] - p[3]) * dspow2 + \
-        #      (-p[0] + 3. * p[1] - 3 * p[2] + p[3]) * dspow3
+        return a[3] * (ds ** 3) + a[2] * (ds ** 2) + a[1] * ds + a[0]
 
 
 T = 10
 dt = 1.
 epsilon = 1e-4
 
-time_index_1 = np.linspace(-dt, (T + 1) * dt, T + 3)
-time_index_2 = np.linspace(epsilon, T * dt - epsilon, 100)
 interpolator = CubicInterpolator(T, dt)
 
+# setup time indices
+time_index_1 = np.linspace(-dt, (T + 1) * dt, T + 3)
+time_index_2 = np.linspace(epsilon, T * dt - epsilon, 100)
+
+# test with sinusoid function
 waypoints = np.sin(time_index_1)
 
+# calculate all interpolated quatities
 interpolated_configurations = []
 interpolated_velocities = []
-interpolated_accelerations = []
-
 interpolated_derivative = [None] * len(waypoints)
 for k in range(len(waypoints)):
     interpolated_derivative[k] = []
@@ -101,19 +94,13 @@ for t in time_index_2:
     for k in range(len(waypoints)):
         interpolated_derivative[k].append(dx[k + 1])
 
+# Plot everything using subplots
 fig, axs = plt.subplots(1 + len(waypoints), 1)
-
 axs[0].plot(time_index_2, interpolated_configurations)
-axs[0].plot(time_index_1, np.sin(time_index_1), 'o')
-axs[0].plot(time_index_1, np.sin(time_index_1), '--')
+axs[0].plot(time_index_1, waypoints, 'o')
+axs[0].plot(time_index_1, waypoints, '--')
 axs[0].legend(['Position'])
-
-# plt.subplot(512)
-# plt.plot(time_index_2, interpolated_velocities)
-# plt.legend(['Velocity'])
-
 for k in range(len(waypoints)):
     axs[k + 1].plot(time_index_2, interpolated_derivative[k])
     axs[k + 1].legend(['Waypoint' + str(k)])
-
 plt.show()
