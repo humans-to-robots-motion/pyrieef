@@ -97,12 +97,15 @@ for t in time_index_2:
         interpolated_derivative[k].append(dx[k + 1])
 
 # plot everything using subplots
-fig, axs = plt.subplots(1 + len(waypoints), 1)
+n = 5  # len(waypoints)
+fig, axs = plt.subplots(1 + n, 1)
 axs[0].plot(time_index_2, interpolated_configurations)
 axs[0].plot(time_index_1, waypoints, 'o')
 axs[0].plot(time_index_1, waypoints, '--')
 axs[0].legend(['Position'])
-for k in range(len(waypoints)):
+axs[0].set(xlim=(-1, 11))
+for k in range(n):
     axs[k + 1].plot(time_index_2, interpolated_derivative[k])
     axs[k + 1].legend(['Waypoint' + str(k)])
+    axs[k + 1].set(xlim=(-1, 11))
 plt.show()

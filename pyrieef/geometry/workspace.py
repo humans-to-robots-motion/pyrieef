@@ -118,6 +118,10 @@ class Shape:
     def sampled_points(self):
         raise NotImplementedError()
 
+    @abstractmethod
+    def to_dictionary(self):
+        raise NotImplementedError()
+
 
 def point_distance_gradient(x, origin):
     """
@@ -206,6 +210,14 @@ class Circle(Shape):
             y = self.origin[1] + self.radius * np.sin(theta)
             points.append(np.array([x, y]))
         return points
+
+    def to_dictionary(self):
+        """ Serialize object to a dictionary """
+        return dict(
+            type="circle",
+            position=self.origin.tolist(),
+            radius=self.radius
+        )
 
 
 class Ellipse(Shape):
@@ -489,6 +501,14 @@ class Box(Shape):
         points.extend(sample_line(v[3], v[0], nb_points_per_edge))
         return points
 
+    def to_dictionary(self):
+        """ Serialize object to a dictionary """
+        return dict(
+            type="box",
+            position=self.origin.tolist(),
+            dimension=self.dim.tolist()
+        )
+
 
 class OrientedBox(Box):
     """
@@ -519,6 +539,25 @@ class OrientedBox(Box):
 
     def theta(self):
         return angle_from_matrix_2d(self.orientation)
+
+    def to_dictionary(self):
+        """ Serialize object to a dictionary """
+        if self.origin.size == 2:
+            return dict(
+                type="oriented_rectangle",
+                position=self.origin.tolist(),
+                dimension=self.dim.tolist(),
+                orientation=self.theta()
+            )
+        if self.origin.size == 3:
+            return dict(
+                type="oriented_box",
+                position=self.origin.tolist(),
+                dimension=self.dim.tolist(),
+                orientation=self.orientation.tolist()
+            )
+        else:
+            raise NotImplementedError('box has to be of dim 2 or 3')
 
 
 class AxisAlignedBox(Box):
@@ -663,6 +702,23 @@ class AxisAlignedBox(Box):
         x_center = (x.T - self.origin).T
         return self._switcher_hessian.get(self.find_zone(x_center))(x_center)
 
+    def to_dictionary(self):
+        """ Serialize object to a dictionary """
+        if self.origin.size == 2:
+            return dict(
+                type="axis_aligned_rectangle",
+                position=self.origin.tolist(),
+                dimension=self.dim.tolist()
+            )
+        if self.origin.size == 3:
+            return dict(
+                type="axis_aligned_box",
+                position=self.origin.tolist(),
+                dimension=self.dim.tolist()
+            )
+        else:
+            raise NotImplementedError('box has to be of dim 2 or 3')
+
 
 def line_side(a, b, p):
     """
@@ -763,6 +819,15 @@ class Cylinder(Shape):
             y = self.origin[1] + self.radius * np.sin(theta)
             points.append(np.array([x, y]))
         return points
+
+    def to_dictionary(self):
+        """ Serialize object to a dictionary """
+        return dict(
+            type="cylinder",
+            position=self.origin.tolist(),
+            radius=self.radius,
+            height=self.height
+        )
 
 
 class Polygon(Shape):
@@ -1137,6 +1202,21 @@ class Workspace:
         assert extent.x() == extent.y()
         resolution = extent.x() / nb_points
         return PixelMap(resolution, extent)
+
+    def to_dictionary(self):
+        """ Serialize the workspace """
+
+        container = dict(
+            dimensionality=2,
+            boundry=self.box.extent_data().tolist(),
+        )
+        primitives = {}
+        for i, o in enumerate(self.obstacles):
+            primitives['primitive_{}'.format(i)] = o.to_dictionary()
+        
+        workspace = {**container, **primitives}
+        print("workspace : \n\n", workspace)
+        return workspace
 
 
 def sample_circles(nb_circles):
