@@ -55,12 +55,12 @@ class CubicInterpolator(DifferentiableMap):
         # retrieve time along spline
         t = x[0]
 
-        # s is over the [0, 1] interval
+        # s is defined over the interval [0, 1] 
         ds = math.fmod(t / self._dt, self._T)
         si = math.floor(ds)
         ds -= si
 
-        # calculatre spline coefficents
+        # calculate spline coefficents
         a = self._A @ x[si+1:si+5]
 
         # return spline value at ds
