@@ -31,7 +31,33 @@ class CubicInterpolator(DifferentiableMap):
     Interpolate waypoints using Cubic Catmull–Rom splines
 
         Details:
-            https://en.wikipedia.org/wiki/Cubic_Hermite_spline
+        
+            f([t, data]) = Catmull–Rom-Spline_si(t) (ds(t), data)
+
+        where the spline is a Cubic Hermite Spline
+        Ref: https://en.wikipedia.org/wiki/Cubic_Hermite_spline
+
+        Paramters:
+
+            dt in R.     : time interval between waypoints
+
+            t in R^*_+   : time along trajectory
+
+            T in R^*_+.  : total time if dt=1
+                           the active trajecory is between
+                                t=0 : 1st waypoint
+                              t=T+1 : last waypoint
+
+            data         : waypoints, [x_1, x_2, ... x_{T+3] in R^{T+3}
+                           there are T+1 waypoints along the trajectory
+                           and 2 waypoints before (x_1) and after (x_{T+3})
+                           the data for setting boundry conditions
+                           (i.e., initial acceleration)
+
+            Hence the input dimension is:
+
+                dim(f) = 1 (time) + (T + 3) (data) 
+                       = T + 4
     """
 
     def __init__(self, T, dt=1.):
