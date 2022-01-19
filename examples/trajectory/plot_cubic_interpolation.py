@@ -58,6 +58,13 @@ class CubicInterpolator(DifferentiableMap):
 
                 dim(f) = 1 (time) + (T + 3) (data) 
                        = T + 4
+
+        Notes:
+
+            The gradient at some d/dx f(x)|_x=[t_0, data_0]
+            will only act on 4 waypoints
+
+            Meaning that the hessian will remain sparse
     """
 
     def __init__(self, T, dt=1.):
@@ -105,6 +112,17 @@ time_index_2 = np.linspace(epsilon, T * dt - epsilon, 100)
 
 # test with sinusoid function
 waypoints = np.sin(time_index_1)
+
+"""
+ Default first and last waypoints. It also works if you uncomment them.
+ in the general case we do not have access to these waypoints and they
+ serve as boundry conditions. 
+
+ Here it is setting up the derivatives of the splines at the inital and final 
+ active waypoints i.e, waypoints[1] and waypoints[-2]
+"""
+# waypoints[0] = waypoints[1]
+# waypoints[-1] = waypoints[-2]
 
 # calculate all interpolated quatities
 interpolated_configurations = []
