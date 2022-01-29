@@ -280,6 +280,7 @@ class WorkspaceOpenGl(WorkspaceRender):
                  display=None, scale=700.):
         WorkspaceRender.__init__(self, workspace)
         self._scale = scale
+        print("scale : ",  self._scale)
         self.width = self._scale * (self._extent.x_max - self._extent.x_min)
         self.height = self._scale * (self._extent.y_max - self._extent.y_min)
         self.gl = Viewer(self.width, self.height, display)
@@ -350,17 +351,20 @@ class WorkspaceOpenGl(WorkspaceRender):
     def draw_ws_obstacles(self):
         ws_o = np.array([self._extent.x_min, self._extent.y_min])
         for i, o in enumerate(self._workspace.obstacles):
+            
             if hasattr(o, '_is_circle'):
                 circ = make_circle(self._scale * o.radius, 30, False)
                 center = self._scale * (o.origin - ws_o)
                 circ.add_attr(Transform(translation=center))
                 circ.set_color(*COLORS[i % 3])
                 self.gl.add_geom(circ)
+
             if hasattr(o, '_is_box'):
                 vertices = [self._scale * (v - ws_o) for v in o.verticies()]
                 box = PolyLine(vertices, True)
                 box.set_color(*COLORS[i % 3])
                 self.gl.add_geom(box)
+
             if hasattr(o, '_is_oriented_box'):
                 vertices = [self._scale * (v - o.origin) for v in o.verticies()]
                 box = PolyLine(vertices, True)

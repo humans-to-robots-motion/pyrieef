@@ -41,6 +41,7 @@ class TrajectoryOptimizationViewer:
         self._draw_hessian = False
         self._use_3d = use_3d
         self._use_gl = use_gl
+        self.points_radii = .01
         if draw:
             self._draw_gradient = draw_gradient
             self._draw_hessian = draw_gradient
@@ -90,12 +91,13 @@ class TrajectoryOptimizationViewer:
                 self.draw(Trajectory(q_init=self.objective.q_init, x=x))
         return self.objective.objective.hessian(x)
 
-    def draw_configuration(self, q, color=(1, 0, 0), with_robot=False):
+    def draw_configuration(self, q, 
+        color=(1, 0, 0), with_robot=False):
         if not self._use_3d:
 
             if not self.draw_robot:
 
-                self.viewer.draw_ws_circle(.01, q[:2], color)
+                self.viewer.draw_ws_circle(self.points_radii, q[:2], color)
 
             else:
 
@@ -113,7 +115,7 @@ class TrajectoryOptimizationViewer:
 
                 else:
                     p = self.objective.robot.keypoint_map(0)(q)
-                    self.viewer.draw_ws_circle(.01, p, color)
+                    self.viewer.draw_ws_circle(self.points_radii, p, color)
 
         else:
             cost = self.objective.obstacle_potential(q)
