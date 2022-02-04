@@ -292,10 +292,10 @@ class WorkspaceOpenGl(WorkspaceRender):
         # Draw WS obstacles
         # self.draw_ws_obstacles()
 
-    def draw_ws_circle(self, radius, origin, color=(0, 1, 0)):
+    def draw_ws_circle(self, radius, origin, color=(0, 1, 0), filled=False):
         t = Transform(translation=self._scale * (
             origin - np.array([self._extent.x_min, self._extent.y_min])))
-        circ = make_circle(self._scale * radius, 30, False)
+        circ = make_circle(self._scale * radius, 30, filled)
         circ.add_attr(t)
         circ.set_color(*color)
         self.gl.add_onetime(circ)
@@ -303,13 +303,21 @@ class WorkspaceOpenGl(WorkspaceRender):
     def draw_ws_point(self, point, color='b', shape='x'):
         self.draw_ws_circle(.01, point)
 
-    def draw_ws_line(self, line, color=(1, 0, 0)):
+    def draw_ws_line(self, line, color=(1, 0, 0), linewidth=7):
+        """
+        Draws a line between two points
+
+        Parameters
+        ----------
+        line : list
+            the two points as two numpy arrays
+        """
         p1 = line[0]
         p2 = line[1]
         corner = np.array([self._extent.x_min, self._extent.y_min])
         p1_ws = self._scale * (p1 - corner)
         p2_ws = self._scale * (p2 - corner)
-        self.gl.draw_line(p1_ws, p2_ws, linewidth=7, color=(1, 0, 0))
+        self.gl.draw_line(p1_ws, p2_ws, linewidth=linewidth, color=color)
 
     def draw_ws_polygon(self, vertices, origin, rotation, color=(1, 0, 0)):
         """
