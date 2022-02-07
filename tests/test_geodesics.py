@@ -216,9 +216,30 @@ def test_distance_from_gradient():
     assert d_d < 1e-10
 
 
+def test_2d_laplacian():
+    n = 10
+    u = np.random.random((n, n))
+    h = 1
+    M = discrete_2d_laplacian(n, n, matrix_form=True)
+    v1 = -(1/(h ** 2)) * M @ u.flatten()
+    v2 = finite_difference_laplacian_2d(h, u).flatten()
+
+    with np.printoptions(
+            formatter={'float': '{: 0.1f}'.format},
+            linewidth=200):
+        print(v1.reshape((10, 10)))
+        print(v2.reshape((10, 10)))
+
+    # TODO figure out why the inner part does not fit.
+    assert_allclose(
+        v1.reshape((n, n))[1:n-1, 1:n-1],
+        v2.reshape((n, n))[1:n-1, 1:n-1])
+
+
 if __name__ == "__main__":
     # test_matrix_coordinates()
     # test_gradient_1d_operator_linear()
     # test_gradient_1d_operator()
     # test_gradient_operator()
-    test_distance_from_gradient()
+    # test_distance_from_gradient()
+    test_2d_laplacian()

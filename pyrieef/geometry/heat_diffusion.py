@@ -139,8 +139,6 @@ def crank_nicholson_2d(dt, h, source_grid, iterations, occupancy):
         print("c : ", c)
     print("fill matrix...")
 
-    M = discrete_2d_laplacian(n, n, matrix_form=True)
-    M *= dt / (h ** 2)
 
     # for p, q in itertools.product(range(dim), range(dim)):
     #     i0, j0 = row_major(p, n)
@@ -167,11 +165,14 @@ def crank_nicholson_2d(dt, h, source_grid, iterations, occupancy):
     #     print(" - M.shape : ", M.shape)
     #     print(" - u_0.shape : ", u_0.shape)
 
+    M = (-1 * dt / (h ** 2)) * discrete_2d_laplacian(n, n, matrix_form=True)
+
     print("solve...")
+
     costs = []
     # u_t = u_0
-    A = np.eye(dim) + M
-    for i in range(90):
+
+    for i in range(10):
 
         for j in range(u_t.size):
             i0, j0 = row_major(j, n)
@@ -185,13 +186,13 @@ def crank_nicholson_2d(dt, h, source_grid, iterations, occupancy):
             u_t[source_grid[0] * n + source_grid[1]] = 1.e4
 
         print("invert {}..".format(i))
-        L = A @ u_t
-        u_t = np.linalg.inv(np.eye(dim) - .1 * L) @ u_t
+        L = M @ u_t
+        u_t = np.linalg.inv(np.eye(dim) - 1e-5 * L) @ u_t
 
         print(u_t.max())
-        if (i+1) % 30 == 0:
-            costs.append(np.reshape(u_t, (-1, n)).copy())
-            # costs.append(np.reshape(L, (-1, n)).copy())
+        if (i+1) % 3 == 0:
+            # costs.append(np.reshape(u_t, (-1, n)).copy())
+            costs.append(np.reshape(L, (-1, n)).copy())
 
     print("solved!")
     return costs
@@ -276,9 +277,30 @@ def discrete_2d_gradient(M, N, dx=1., axis=0):
     return (1/dx) * A
 
 
+def finite_difference_laplacian_2d(h, u):
+    """
+    Compute the 2d laplacian on a grid
+
+        h : space discretization
+        t : time discretization
+
+    TODO
+    """
+    d = h ** 2
+    v = u.copy()
+    for i, j in itertools.product(
+            range(1, u.shape[0] - 1), range(1, u.shape[1] - 1)):
+        v[i, j] = d * (- 4 * u[i, j] +
+                   u[i + 1, j] + u[i - 1, j] +
+                   u[i, j + 1] + u[i, j - 1])
+    return v
+
+
 def discrete_2d_laplacian(M, N, matrix_form=False):
     """
     Efficient allocation of the Discrete-2D-Laplacian
+
+        Return the negatie of the operator
 
     TODOs
         1) change allocation in crank_nicholson_2d
@@ -313,17 +335,6 @@ def discrete_2d_laplacian(M, N, matrix_form=False):
                     i0 == i1) and (j0 == j1 + 1):
                 A[p, q] = -1
         return A
-
-def laplacian_2d(dt, h, u):
-    """
-    Compute the 2d laplacian on a grid
-
-        h : space discretization
-        t : time discretization
-
-    TODO
-    """
-    return
 
 
 def normalized_gradient(field):
