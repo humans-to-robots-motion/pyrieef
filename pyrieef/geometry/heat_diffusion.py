@@ -20,7 +20,9 @@
 import numpy as np
 from .workspace import *
 from .pixel_map import *
-# from utils.misc import *
+from pyrieef.utils.misc import *
+
+# External
 import itertools
 from functools import reduce
 # import scipy
@@ -118,60 +120,129 @@ def crank_nicholson_2d(dt, h, source_grid, iterations, occupancy):
                   --- * (U(i-1,j,m) + U(i+1,j,m) + U(i,j-1,m) + U(i,j+1,m))
                   h^2
     """
+    n = NB_POINTS
     d = 1. / (h ** 2)
-    dim = NB_POINTS ** 2
+    dim = n ** 2
     M = np.zeros((dim, dim))
 
     a = 2. * dt * d
     c = - dt * d
+
+    Zero = np.zeros((dim, ))
+    u_t = Zero.copy()
+    u_0 = Zero.copy()
+    u_t[source_grid[0] * n + source_grid[1]] = 1.e4
+    # u_0 = np.where(occupancy.T > 0, Zero, u_0)
 
     if VERBOSE:
         print("a : ", a)
         print("c : ", c)
     print("fill matrix...")
 
-    for p, q in itertools.product(range(dim), range(dim)):
-        i0, j0 = row_major(p, NB_POINTS)
-        i1, j1 = row_major(q, NB_POINTS)
-        if p == q:
-            M[p, q] = a
-        elif (
-                i0 == i1 - 1) and (j0 == j1) or (
-                i0 == i1 + 1) and (j0 == j1) or (
-                i0 == i1) and (j0 == j1 - 1) or (
-                i0 == i1) and (j0 == j1 + 1):
-            M[p, q] = c
-        if occupancy[i0, j0] == 1. or occupancy[i1, j1] == 1.:
-            M[p, q] = 0.
-    if VERBOSE:
-        with np.printoptions(
-                formatter={'float': '{: 0.1f}'.format},
-                linewidth=200):
-            print("M : \n", M)
-    u_0 = np.zeros((dim))
-    u_0[source_grid[0] + source_grid[1] * NB_POINTS] = 1.
-    if VERBOSE:
-        print(" - I.shape : ", I.shape)
-        print(" - M.shape : ", M.shape)
-        print(" - u_0.shape : ", u_0.shape)
+    M = discrete_2d_laplacian(n, n, matrix_form=True)
+    M *= dt / (h ** 2)
+
+    # for p, q in itertools.product(range(dim), range(dim)):
+    #     i0, j0 = row_major(p, n)
+    #     i1, j1 = row_major(q, n)
+    #     if p == q:
+    #         M[p, q] = a
+    #     elif (
+    #             i0 == i1 - 1) and (j0 == j1) or (
+    #             i0 == i1 + 1) and (j0 == j1) or (
+    #             i0 == i1) and (j0 == j1 - 1) or (
+    #             i0 == i1) and (j0 == j1 + 1):
+    #         M[p, q] = c
+    #     if occupancy[i0, j0] == 1. or occupancy[i1, j1] == 1.:
+    #         M[p, q] = 0.
+    # if VERBOSE:
+    #     with np.printoptions(
+    #             formatter={'float': '{: 0.1f}'.format},
+    #             linewidth=200):
+    #         print("M : \n", M)
+    # u_0 = np.zeros((dim))
+    # u_0[source_grid[0] + source_grid[1] * n] = 1.
+    # if VERBOSE:
+    #     print(" - I.shape : ", I.shape)
+    #     print(" - M.shape : ", M.shape)
+    #     print(" - u_0.shape : ", u_0.shape)
+
     print("solve...")
     costs = []
-    u_t = u_0
-    for i in range(iterations * 10):
+    # u_t = u_0
+    A = np.eye(dim) + M
+    for i in range(90):
+
         for j in range(u_t.size):
-            i0, j0 = row_major(j, NB_POINTS)
-            if (i0 == 0 or i0 == NB_POINTS - 1 or
-                    j0 == 0 or j0 == NB_POINTS - 1):
+            i0, j0 = row_major(j, n)
+
+            if (i0 == 0 or i0 == n - 1 or j0 == 0 or j0 == n - 1):
                 u_t[j] = 0
             elif occupancy[i0, j0] == 1.:
                 u_t[j] = 0
-        u_t = (np.eye(dim) - M).dot(u_t)
-        u_t = np.linalg.solve(np.eye(dim) + M, u_t)
-        if i % 10 == 0:
-            print(u_t.max())
-            costs.append(np.reshape(u_t, (-1, NB_POINTS)).copy())
+
+        if CONSTANT_SOURCE:
+            u_t[source_grid[0] * n + source_grid[1]] = 1.e4
+
+        print("invert {}..".format(i))
+        L = A @ u_t
+        u_t = np.linalg.inv(np.eye(dim) - .1 * L) @ u_t
+
+        print(u_t.max())
+        if (i+1) % 30 == 0:
+            costs.append(np.reshape(u_t, (-1, n)).copy())
+            # costs.append(np.reshape(L, (-1, n)).copy())
+
     print("solved!")
     return costs
+
+
+def crank_nicholson_2d_version_2(dt, h, source_grid, iterations, occupancy):
+    """
+    Crank-Nicholson algorithm with matrix inversion
+    we use a row major representation of the matrix
+
+        h : space discretization
+        t : time discretization
+
+    U(i,j,m+1) = U(i,j,m) + k*Discrete-2D-Laplacian(U)(i,j,m)
+                          k
+               = (1 - 4* ---) * U(i,j,m) +
+                         h^2
+                   k
+                  --- * (U(i-1,j,m) + U(i+1,j,m) + U(i,j-1,m) + U(i,j+1,m))
+                  h^2
+    """
+    U = []
+    t = 0.
+    # dt = dh2 * dh2 / (2 * (dh2 + dh2))
+    Zero = np.zeros((NB_POINTS, NB_POINTS))
+    u_t = Zero.copy()
+    u_0 = Zero.copy()
+    u_0[source_grid[0], source_grid[1]] = 1.e4
+    # u_0 = np.where(occupancy.T > 0, Zero, u_0)
+
+    # Use discrete laplacian
+    M = discrete_2d_laplacian(matrix_form=True)
+    M *= dt / (h ** 2)
+
+    U = []
+    u_t = u_0
+    for i in range(iterations * 10):
+        if CONSTANT_SOURCE:
+            u_0[source_grid[0], source_grid[1]] = 1.e4
+
+        u_t = (np.eye(dim) - M).dot(u_t)
+        u_t = np.linalg.solve(np.eye(dim) + M, u_t)
+
+        u_t = np.where(occupancy.T > 0, Zero, u_t)
+        u_0 = u_t.copy()
+
+        if i % 10 == 0:
+            print(u_t.max())
+            U.append(np.reshape(u_t, (-1, NB_POINTS)).copy())
+    print("solved!")
+    return U
 
 
 def discrete_2d_gradient(M, N, dx=1., axis=0):
@@ -191,7 +262,7 @@ def discrete_2d_gradient(M, N, dx=1., axis=0):
         A[last_block, range(M * (N - 2), M * (N - 1))] = -1
 
     if axis == 1:
-        
+
         A = np.zeros((dim, dim))
         np.fill_diagonal(A, -1)
 
@@ -202,7 +273,7 @@ def discrete_2d_gradient(M, N, dx=1., axis=0):
         A[range(M - 1, dim, M), range(M - 1, dim, M)] = 1
         A[range(M - 1, dim, M), range(M - 2, dim, M)] = -1
 
-    return  (1/dx)  * A
+    return (1/dx) * A
 
 
 def discrete_2d_laplacian(M, N, matrix_form=False):
@@ -242,6 +313,17 @@ def discrete_2d_laplacian(M, N, matrix_form=False):
                     i0 == i1) and (j0 == j1 + 1):
                 A[p, q] = -1
         return A
+
+def laplacian_2d(dt, h, u):
+    """
+    Compute the 2d laplacian on a grid
+
+        h : space discretization
+        t : time discretization
+
+    TODO
+    """
+    return
 
 
 def normalized_gradient(field):
@@ -389,9 +471,11 @@ def heat_diffusion(workspace, source, iterations):
     print("extent.y : ", grid.extent.y())
     print(" -- h : ", h)
     print(" -- t : ", t)
-    print(" -- p : ", source_grid)    
+    print(" -- p : ", source_grid)
     if ALGORITHM == "crank-nicholson":
         return crank_nicholson_2d(t, h, source_grid, iterations, occupancy)
+        # return crank_nicholson_2d_version_2(
+        # t, h, source_grid, iterations, occupancy)
     else:
         return forward_euler_2d(
             t, h, source_grid, iterations, occupancy)

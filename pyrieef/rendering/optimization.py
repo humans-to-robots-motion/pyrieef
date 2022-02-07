@@ -91,8 +91,8 @@ class TrajectoryOptimizationViewer:
                 self.draw(Trajectory(q_init=self.objective.q_init, x=x))
         return self.objective.objective.hessian(x)
 
-    def draw_configuration(self, q, 
-        color=(1, 0, 0), with_robot=False):
+    def draw_configuration(self, q,
+                           color=(1, 0, 0), with_robot=False):
         if not self._use_3d:
 
             if not self.draw_robot:
@@ -148,8 +148,10 @@ class TrajectoryOptimizationViewer:
             color = (0, 0, 1) if k == 0 else (0, 1, 0)
             color = (1, 0, 0) if k == trajectory.T() else color
             color = (1, 1, 0) if k == 31 else color
+
             self.draw_configuration(q, color, with_robot)
 
             if g_traj is not None:
                 self.viewer.draw_ws_line([q[:2], g_traj.configuration(k)[:2]])
+    
         self.viewer.show()
