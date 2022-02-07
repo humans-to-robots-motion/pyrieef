@@ -139,7 +139,6 @@ def crank_nicholson_2d(dt, h, source_grid, iterations, occupancy):
         print("c : ", c)
     print("fill matrix...")
 
-
     # for p, q in itertools.product(range(dim), range(dim)):
     #     i0, j0 = row_major(p, n)
     #     i1, j1 = row_major(q, n)
@@ -286,13 +285,13 @@ def finite_difference_laplacian_2d(h, u):
 
     TODO
     """
-    d = h ** 2
+    d = 1/(h ** 2)
     v = u.copy()
     for i, j in itertools.product(
             range(1, u.shape[0] - 1), range(1, u.shape[1] - 1)):
         v[i, j] = d * (- 4 * u[i, j] +
-                   u[i + 1, j] + u[i - 1, j] +
-                   u[i, j + 1] + u[i, j - 1])
+                       u[i + 1, j] + u[i - 1, j] +
+                       u[i, j + 1] + u[i, j - 1])
     return v
 
 
