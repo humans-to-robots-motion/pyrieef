@@ -104,6 +104,34 @@ def forward_euler_2d(dt, h, source_grid, iterations, occupancy):
     return U
 
 
+def apply_boundry_conditions_to_vector(u_t, n, occupancy):
+    """
+    Apply the boundry conditions to the heat vector
+
+
+    Parameters
+    ----------
+    u_t : array
+        row major heat vector of the 2d grid
+    occupancy : array
+        2d array of occupancy values
+
+    TODO:
+        - apply the boundry condition dirrectly
+        on the laplacian matrix
+    """
+
+    for j in range(u_t.size):
+        i0, j0 = row_major(j, n)
+        if (i0 == 0 or i0 == n - 1 or j0 == 0 or j0 == n - 1):
+            u_t[j] = 0
+        elif occupancy[i0, j0] == 1.:
+            u_t[j] = 0
+
+    if CONSTANT_SOURCE:
+        u_t[source_grid[0] * n + source_grid[1]] = 1.e4
+
+
 def crank_nicholson_2d(dt, h, source_grid, iterations, occupancy):
     """
     Crank-Nicholson algorithm with matrix inversion
@@ -125,44 +153,18 @@ def crank_nicholson_2d(dt, h, source_grid, iterations, occupancy):
     dim = n ** 2
     M = np.zeros((dim, dim))
 
-    a = 2. * dt * d
-    c = - dt * d
-
     Zero = np.zeros((dim, ))
     u_t = Zero.copy()
     u_0 = Zero.copy()
     u_t[source_grid[0] * n + source_grid[1]] = 1.e4
     # u_0 = np.where(occupancy.T > 0, Zero, u_0)
 
-    if VERBOSE:
-        print("a : ", a)
-        print("c : ", c)
-    print("fill matrix...")
+    print("create matrix...")
 
-    # for p, q in itertools.product(range(dim), range(dim)):
-    #     i0, j0 = row_major(p, n)
-    #     i1, j1 = row_major(q, n)
-    #     if p == q:
-    #         M[p, q] = a
-    #     elif (
-    #             i0 == i1 - 1) and (j0 == j1) or (
-    #             i0 == i1 + 1) and (j0 == j1) or (
-    #             i0 == i1) and (j0 == j1 - 1) or (
-    #             i0 == i1) and (j0 == j1 + 1):
-    #         M[p, q] = c
-    #     if occupancy[i0, j0] == 1. or occupancy[i1, j1] == 1.:
-    #         M[p, q] = 0.
-    # if VERBOSE:
-    #     with np.printoptions(
-    #             formatter={'float': '{: 0.1f}'.format},
-    #             linewidth=200):
-    #         print("M : \n", M)
-    # u_0 = np.zeros((dim))
-    # u_0[source_grid[0] + source_grid[1] * n] = 1.
-    # if VERBOSE:
-    #     print(" - I.shape : ", I.shape)
-    #     print(" - M.shape : ", M.shape)
-    #     print(" - u_0.shape : ", u_0.shape)
+    # with np.printoptions(
+    #         formatter={'float': '{: 0.1f}'.format},
+    #         linewidth=200):
+    #     print("M : \n", M)
 
     M = (-1 / (h ** 2)) * discrete_2d_laplacian(n, n, matrix_form=True)
 
@@ -171,37 +173,19 @@ def crank_nicholson_2d(dt, h, source_grid, iterations, occupancy):
     costs = []
     # u_t = u_0
 
+    print("invert ...")
     A_inv = np.linalg.inv(np.eye(dim) - .003 * M)
-
-    def apply_boundry_condition(u_t, occupancy):
-
-        for j in range(u_t.size):
-            i0, j0 = row_major(j, n)
-            if (i0 == 0 or i0 == n - 1 or j0 == 0 or j0 == n - 1):
-                u_t[j] = 0
-            elif occupancy[i0, j0] == 1.:
-                u_t[j] = 0
-
-        if CONSTANT_SOURCE:
-            u_t[source_grid[0] * n + source_grid[1]] = 1.e4
-
-    apply_boundry_condition(u_t, occupancy)
 
     for i in range(9):
 
+        print("solve {}..".format(i))
+        u_t = A_inv @ u_t
 
-        print("invert {}..".format(i))
-        # L = M @ u_t
-
-        # TODO.....
-        u_t =  A_inv @ u_t
-
-        apply_boundry_condition(u_t, occupancy)
+        apply_boundry_conditions_to_vector(u_t, n, occupancy)
 
         print(u_t.max())
         if (i+1) % 3 == 0:
-            # costs.append(np.reshape(u_t, (-1, n)).copy())
-            costs.append(np.reshape(u_t.copy(), (-1, n)).copy())
+            costs.append(np.reshape(u_t, (n, n)))
 
     print("solved!")
     return costs

@@ -23,6 +23,10 @@ from geometry.heat_diffusion import *
 from geometry.differentiable_geometry import PolynomeTestFunction
 from numpy.testing import assert_allclose
 
+# Externals
+from scipy.linalg import cholesky_banded, solveh_banded
+from numpy import zeros, diag
+
 
 def test_matrix_coordinates():
     DIM = 4
@@ -236,10 +240,55 @@ def test_2d_laplacian():
         v2.reshape((n, n))[1:n-1, 1:n-1])
 
 
+def test_2d_laplacian_solve():
+
+    verbose = True
+
+    n = 5
+    M = discrete_2d_laplacian(n, n, matrix_form=True)
+
+    # convert to banded format
+    N = M.shape[0]                              # num of rows in A
+    D = np.amax(np.nonzero(M[0, :])) + 1        # num of nonzeros in first row
+    ab = np.zeros((D, N))                       # upper triangular structure
+
+    # get all diagonals up to D
+    for i in np.arange(1, D):
+        ab[i, :] = np.concatenate((np.diag(M, k=i), np.zeros(i,)), axis=None)
+
+    # get main diangonal (np.diag(M, k=0))
+    ab[0, :] = np.diagonal(M)
+
+    # todo get the choleski decomposition based on ab
+    # c = cholesky_banded(ab)
+
+    u = np.ones(n ** 2)
+
+    print("solve v1..")
+    v1 = np.linalg.inv(M) @ u
+
+    print("solve v2..")
+    v2 = solveh_banded(ab, u, lower=True)
+
+    print("done.")
+
+    if verbose:
+        with np.printoptions(
+                formatter={'float': '{:6.1f}'.format},
+                linewidth=200):
+            print("M \n {}".format(M))
+            print("ab \n {}".format(ab))
+            print(v1.reshape((n, n)))
+            print(v2.reshape((n, n)))
+
+    assert_allclose(v1, v2)
+
+
 if __name__ == "__main__":
     # test_matrix_coordinates()
     # test_gradient_1d_operator_linear()
     # test_gradient_1d_operator()
     # test_gradient_operator()
     # test_distance_from_gradient()
-    test_2d_laplacian()
+    # test_2d_laplacian()
+    test_2d_laplacian_solve()
