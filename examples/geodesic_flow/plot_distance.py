@@ -28,11 +28,11 @@ import matplotlib
 ROWS = 1
 COLS = 3
 
-hd.NB_POINTS = 30       # 101
+hd.NB_POINTS = 101       # 101
 hd.TIME_FACTOR = 2000
 hd.TIME_STEP = 1e-5
-# hd.ALGORITHM = "crank-nicholson"
-hd.ALGORITHM = "euler"
+hd.ALGORITHM = "crank-nicholson"
+# hd.ALGORITHM = "euler"
 
 matplotlib.rcParams['pdf.fonttype'] = 42
 matplotlib.rcParams['ps.fonttype'] = 42

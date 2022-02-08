@@ -164,18 +164,19 @@ def crank_nicholson_2d(dt, h, source_grid, iterations, occupancy):
     #     print(" - M.shape : ", M.shape)
     #     print(" - u_0.shape : ", u_0.shape)
 
-    M = (-1 * dt / (h ** 2)) * discrete_2d_laplacian(n, n, matrix_form=True)
+    M = (-1 / (h ** 2)) * discrete_2d_laplacian(n, n, matrix_form=True)
 
     print("solve...")
 
     costs = []
     # u_t = u_0
 
-    for i in range(10):
+    A_inv = np.linalg.inv(np.eye(dim) - .003 * M)
+
+    def apply_boundry_condition(u_t, occupancy):
 
         for j in range(u_t.size):
             i0, j0 = row_major(j, n)
-
             if (i0 == 0 or i0 == n - 1 or j0 == 0 or j0 == n - 1):
                 u_t[j] = 0
             elif occupancy[i0, j0] == 1.:
@@ -184,14 +185,23 @@ def crank_nicholson_2d(dt, h, source_grid, iterations, occupancy):
         if CONSTANT_SOURCE:
             u_t[source_grid[0] * n + source_grid[1]] = 1.e4
 
+    apply_boundry_condition(u_t, occupancy)
+
+    for i in range(9):
+
+
         print("invert {}..".format(i))
-        L = M @ u_t
-        u_t = np.linalg.inv(np.eye(dim) - 1e-5 * L) @ u_t
+        # L = M @ u_t
+
+        # TODO.....
+        u_t =  A_inv @ u_t
+
+        apply_boundry_condition(u_t, occupancy)
 
         print(u_t.max())
         if (i+1) % 3 == 0:
             # costs.append(np.reshape(u_t, (-1, n)).copy())
-            costs.append(np.reshape(L, (-1, n)).copy())
+            costs.append(np.reshape(u_t.copy(), (-1, n)).copy())
 
     print("solved!")
     return costs
