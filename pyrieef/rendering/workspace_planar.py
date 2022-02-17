@@ -130,6 +130,11 @@ class WorkspaceDrawer(WorkspaceRender):
             nb of rows in the subplot
         cols : int
             nb of columns in the subplot
+
+        WARNING:
+
+        Calling this twice generates wierd looking plots with
+        the axes not being well aligned.
         """
         assert rows > 0 and cols > 0
         if self._fig is None:
@@ -225,7 +230,7 @@ class WorkspaceDrawer(WorkspaceRender):
         self._ax.plot(X, Y, color=color, linewidth=2.0)
 
     def draw_ws_background(self, phi, nb_points=100,
-                           color_style=plt.cm.magma, interpolate="bilinear"):
+                           color_style=plt.cm.binary, interpolate="bilinear"):
         """
         Draws the background image
 
@@ -243,6 +248,7 @@ class WorkspaceDrawer(WorkspaceRender):
             Z = phi(np.stack([X, Y])).T
         else:
             Z = two_dimension_function_evaluation(X, Y, phi).T
+
         self.draw_ws_img(Z, interpolate, color_style)
 
     def draw_ws_img(self, Z, interpolate="nearest", color_style=plt.cm.magma):
@@ -319,6 +325,10 @@ class WorkspaceDrawer(WorkspaceRender):
         Parameters
         ----------
         point : 2D array
+        color : character
+            examples : ['r', 'g', 'b']
+        shape : character
+            examples : ['x', 'o']
         """
         self._ax.plot(point[0], point[1], shape, c=color)
 

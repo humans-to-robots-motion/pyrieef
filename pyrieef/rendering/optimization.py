@@ -27,6 +27,10 @@ class TrajectoryOptimizationViewer:
     """
     Wrapper around a Trajectory objective function
         that can draw the inner optimization quantities
+
+        Notes:
+            - Includes several modes (Matplotlib, OpenGL, 3D hieghtmaps)
+            - Can also draw planar freeflyer robots
     """
 
     def __init__(self, objective,
@@ -52,23 +56,45 @@ class TrajectoryOptimizationViewer:
             self.robot_verticies = self.objective.robot.shape
 
     def init_viewer(self, workspace, scale=700.):
+        """
+        Initializes the viewer
+
+        Parameters
+        ----------
+        workspace : Workspace
+            holds all obstacles
+        scale : float
+            size of the drawing window
+        """
         from . import workspace_planar as renderer
         if not self._use_3d:
             if self._use_gl:
                 self.viewer = renderer.WorkspaceOpenGl(workspace, scale=scale)
             else:
                 self.viewer = renderer.WorkspaceDrawer(workspace, dynamic=True)
+                self.viewer.background_matrix_eval = False
         else:
             self.viewer = renderer.WorkspaceHeightmap(workspace)
             self._draw_gradient = False
             self._draw_hessian = False
 
     def reset_objective(self):
+        """
+        Sets up the viewer
+        """
         self.viewer.set_workspace(self.objective.workspace)
         self.viewer.draw_ws_background(self.objective.obstacle_potential)
         self.viewer.reset_objects()
 
     def draw_gradient(self, x):
+        """
+        Draws the gradient as an offset vector from the trajectory
+
+        Parameters
+        ----------
+        x : array
+            the trajectory vector
+        """
         g = self.objective.objective.gradient(x)
         q_init = self.objective.q_init
         self.draw(
@@ -76,14 +102,40 @@ class TrajectoryOptimizationViewer:
             Trajectory(q_init=q_init, x=-0.01 * g + x))
 
     def forward(self, x):
+        """
+        Calculates the objective
+
+        Parameters
+        ----------
+        x : array
+            the trajectory vector
+        """
         return self.objective.objective(x)
 
     def gradient(self, x):
+        """
+        Calculates the gradient after drawing the trajectory
+        and draws optionaly the gradient
+
+        Parameters
+        ----------
+        x : array
+            the trajectory vector
+        """
         if self.viewer is not None and self._draw_gradient:
             self.draw_gradient(x)
         return self.objective.objective.gradient(x)
 
     def hessian(self, x):
+        """
+        Calculates the hessian after drawing the trajectory
+        and draws optionaly the gradient
+
+        Parameters
+        ----------
+        x : array
+            the trajectory vector
+        """
         if self.viewer is not None:
             if self._draw_hessian:
                 self.draw_gradient(x)
@@ -91,8 +143,19 @@ class TrajectoryOptimizationViewer:
                 self.draw(Trajectory(q_init=self.objective.q_init, x=x))
         return self.objective.objective.hessian(x)
 
-    def draw_configuration(self, q,
-                           color=(1, 0, 0), with_robot=False):
+    def draw_configuration(self, q, color=(1, 0, 0), with_robot=False):
+        """
+        Draws the configuration along the trajectory
+
+        Parameters
+        ----------
+        q : array
+            positions or joint angles
+        color : tuple of float
+            RGB colors to draw the configurations
+        with_robot : bool
+            whent set to false draws only a circle at keypoint(0)
+        """
         if not self._use_3d:
 
             if not self.draw_robot:
@@ -123,13 +186,25 @@ class TrajectoryOptimizationViewer:
                 q, height=self.viewer.normalize_height(cost))
 
     def draw(self, trajectory, g_traj=None):
+        """
+        Draws the trajectory
+
+        Parameters
+        ----------
+        trajectory : Trajectory
+            positions, stores the configurations
+        g_traj : Trajectory
+            gradient, stores the configuration deltas
+        """
         if self.viewer is None:
             self.init_viewer()
         if self._use_3d:
             self.viewer.reset_spheres()
         else:
             if not self._use_gl:
-                self.viewer.init(1, 1)
+                # WARNING: When using matplotlib this
+                # is already called in the WorkspaceDrawer constructuor
+                # self.viewer.init(1, 1)
                 self.viewer.draw_ws_background(
                     self.objective.obstacle_potential)
                 self.viewer.draw_ws_obstacles()
@@ -154,5 +229,5 @@ class TrajectoryOptimizationViewer:
 
             if g_traj is not None:
                 self.viewer.draw_ws_line([q[:2], g_traj.configuration(k)[:2]])
-    
+
         self.viewer.show()
