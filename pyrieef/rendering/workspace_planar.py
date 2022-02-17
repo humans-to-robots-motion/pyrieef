@@ -17,6 +17,8 @@
 #
 #                                        Jim Mainprice on Sunday June 13 2018
 
+from itertools import product
+from abc import abstractmethod
 from .common_imports import *
 from .gl_planar import *
 from learning import random_environment
@@ -24,6 +26,8 @@ from geometry.workspace import *
 from geometry.utils import *
 from utils import timer
 from utils.misc import *
+
+# External
 import random
 import time
 from textwrap import wrap
@@ -34,13 +38,11 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
 cmap = plt.get_cmap('inferno')
-from abc import abstractmethod
 
 try:
     from . import heightmap as hm
 except ImportError as e:
     print(e)
-from itertools import product
 
 # Red, Green, Blue
 COLORS = [(139, 0, 0), (0, 100, 0), (0, 0, 139)]
@@ -94,7 +96,13 @@ class WorkspaceRender:
 
 
 class WorkspaceDrawer(WorkspaceRender):
-    """ Workspace display based on matplotlib backend """
+    """
+    Workspace display based on matplotlib backend
+
+        Provides functionalities such as drawing obstacles etc
+        Can display multiple workspaces, in which case they are displayed
+        in subplots
+    """
 
     def __init__(self, workspace, wait_for_keyboard=False,
                  rows=1, cols=1, scale=1., dynamic=False):
@@ -112,6 +120,17 @@ class WorkspaceDrawer(WorkspaceRender):
         self.init(rows, cols)
 
     def init(self, rows, cols):
+        """
+        Initializes a axes for subplot
+        Can display multiple workspaces
+
+        Parameters
+        ----------
+        rows : int
+            nb of rows in the subplot
+        cols : int
+            nb of columns in the subplot
+        """
         assert rows > 0 and cols > 0
         if self._fig is None:
             self._fig = plt.figure(figsize=self.size)
@@ -130,6 +149,17 @@ class WorkspaceDrawer(WorkspaceRender):
             self._axes = None
 
     def set_drawing_axis(self, i):
+        """
+        Initializes a axes for subplot
+        Can display multiple workspaces
+
+        Parameters
+        ----------
+        rows : int
+            nb of rows in the subplot
+        cols : int
+            nb of columns in the subplot
+        """
         assert i >= 0
         if self._axes is not None:
             self._ax = self._axes.flatten()[i]
@@ -137,8 +167,18 @@ class WorkspaceDrawer(WorkspaceRender):
             self._ax.axis(self._workspace.box.extent_data())
 
     def draw_ws_obstacles(self):
+        """
+        Draws the obstacles one worjspace
+
+            Notes:
+                - Uses a color map for each obstacles and interates through
+                these each of the colors
+                - Uses the sampled_points() function to get a contour for
+                each of the obstacles
+        """
         colorst = [cm.gist_ncar(i) for i in np.linspace(
-            0, 0.9, len(self._workspace.obstacles))]
+                                    0, 0.9, len(self._workspace.obstacles))]
+
         for i, o in enumerate(self._workspace.obstacles):
             self._ax.plot(o.origin[0], o.origin[1], 'kx')
             points = o.sampled_points()
@@ -147,6 +187,18 @@ class WorkspaceDrawer(WorkspaceRender):
             self._ax.plot(X, Y, color=colorst[i], linewidth=2.0)
 
     def draw_ws_circle(self, radius, origin, color=(0, 1, 0)):
+        """
+        Draws the obstacles one worjspace
+
+        Parameters
+        ----------
+        radius : float
+            radius of the circle
+        origin : array
+            coordinates of the origin in world
+        color : tuple
+            RGB values in [0, 1] range
+        """
         o = Circle(origin=origin, radius=radius)
         self._ax.plot(o.origin[0], o.origin[1], 'kx')
         points = o.sampled_points()
@@ -174,6 +226,18 @@ class WorkspaceDrawer(WorkspaceRender):
 
     def draw_ws_background(self, phi, nb_points=100,
                            color_style=plt.cm.magma, interpolate="bilinear"):
+        """
+        Draws the background image
+
+        Parameters
+        ----------
+        phi : matrix or function
+            field of scalar values
+        nb_points : int
+            discretization in row and colums (assumes a squared workspace)
+        color_style : matplotlib color map
+            RGB values in [0, 1] range
+        """
         X, Y = self._workspace.box.stacked_meshgrid(nb_points)
         if self.background_matrix_eval:
             Z = phi(np.stack([X, Y])).T
@@ -187,9 +251,12 @@ class WorkspaceDrawer(WorkspaceRender):
 
         Parameters
         ----------
-            Z : image numpy array
-            interpolate : ["nearest", "none", "bicubic", "bilinear"]
-            color_style : [viridis, hot, bone, magma]
+        Z :  numpy array
+            image
+        interpolate : string
+            Example ["nearest", "none", "bicubic", "bilinear"]
+        color_style : string
+            [viridis, hot, bone, magma]
 
         Examples of coloring are : [viridis, hot, bone, magma]
             see page :
@@ -207,12 +274,37 @@ class WorkspaceDrawer(WorkspaceRender):
             self._colorbar = self._fig.colorbar(im, fraction=0.05, pad=0.02)
 
     def draw_ws_line(self, line, color='r', color_id=None):
+        """
+        Draws a line element represented as a sequence of 2D points
+
+        Parameters
+        ----------
+        line : list of array
+            list of 2D points composing the line
+        color : string
+            single character, examples = ["r", "g", "b", ...]
+        color_id : int, optional
+            identifier in a sequence of color
+        """
         if color_id is not None:
             color = cm.rainbow(float(color_id % 100) / 20.)
         [self._ax.plot(point[0], point[1], 'o', c=color) for point in line]
 
     def draw_ws_line_fill(self, line, color='r', color_id=None, linewidth=2.0):
-        """ draws a line where points are given as a list """
+        """
+        Draws a line where points are given as a list
+
+        Parameters
+        ----------
+        line : list of array
+            list of 2D points composing the line
+        color : string
+            single character, examples = ["r", "g", "b", ...]
+        color_id : int, optional
+            identifier in a sequence of color
+        linewidth : float
+            width of the line
+        """
         if color_id is not None:
             color = cm.rainbow(float(color_id % 100) / 20.)
         line_x = [point[0] for point in line]
@@ -221,9 +313,19 @@ class WorkspaceDrawer(WorkspaceRender):
                       marker='o', linestyle="-", c=color)
 
     def draw_ws_point(self, point, color='b', shape='x'):
+        """
+        Draws single point
+
+        Parameters
+        ----------
+        point : 2D array
+        """
         self._ax.plot(point[0], point[1], shape, c=color)
 
     def show(self):
+        """
+        Draws the workspace
+        """
         if self._continuously_drawing:
             plt.draw()
             plt.pause(0.001)
@@ -233,6 +335,8 @@ class WorkspaceDrawer(WorkspaceRender):
 
     def show_once(self, t_sleep=0.0001, close_window=True):
         """
+        Draws the workspace once
+
         Notes
             Use close_window=False with viewer._ax.clear()
 
@@ -259,17 +363,30 @@ class WorkspaceDrawer(WorkspaceRender):
             plt.close(self._fig)
 
     def set_title(self, title, fontsize=15):
+        """
+        Adds a title
+        """
         plt.title(
             '\n'.join(
                 wrap(title, int(self.size[0]) * 7)), fontsize=fontsize)
 
     def remove_axis(self):
+        """
+        Remove a workspace
+        """
         if self._axes is not None:
             self._ax.axis('off')
         else:
             plt.axis('off')
 
     def save_figure(self, path):
+        """
+        Save figure to file
+
+        Parameters
+        ----------
+        path : string
+        """
         plt.savefig(path)
 
 
@@ -359,7 +476,7 @@ class WorkspaceOpenGl(WorkspaceRender):
     def draw_ws_obstacles(self):
         ws_o = np.array([self._extent.x_min, self._extent.y_min])
         for i, o in enumerate(self._workspace.obstacles):
-            
+
             if hasattr(o, '_is_circle'):
                 circ = make_circle(self._scale * o.radius, 30, False)
                 center = self._scale * (o.origin - ws_o)
@@ -374,7 +491,8 @@ class WorkspaceOpenGl(WorkspaceRender):
                 self.gl.add_geom(box)
 
             if hasattr(o, '_is_oriented_box'):
-                vertices = [self._scale * (v - o.origin) for v in o.verticies()]
+                vertices = [self._scale * (v - o.origin)
+                            for v in o.verticies()]
                 box = PolyLine(vertices, True)
                 center = self._scale * (o.origin - ws_o)
                 box.add_attr(Transform(translation=center, rotation=o.theta()))

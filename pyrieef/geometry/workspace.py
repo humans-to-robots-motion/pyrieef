@@ -494,7 +494,7 @@ class Box(Shape):
     def sampled_points(self):
         points = []
         v = self.verticies()
-        nb_points_per_edge = max(5, self.nb_points / 4)
+        nb_points_per_edge = int(max(5, self.nb_points / 4))
         points.extend(sample_line(v[0], v[1], nb_points_per_edge))
         points.extend(sample_line(v[1], v[2], nb_points_per_edge))
         points.extend(sample_line(v[2], v[3], nb_points_per_edge))

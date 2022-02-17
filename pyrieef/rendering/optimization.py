@@ -143,11 +143,12 @@ class TrajectoryOptimizationViewer:
 
             q = trajectory.configuration(k)
 
-            # Draw the initial configuration blue
-            # and the goal is red and all the other are green
-            color = (0, 0, 1) if k == 0 else (0, 1, 0)
-            color = (1, 0, 0) if k == trajectory.T() else color
-            color = (1, 1, 0) if k == 31 else color
+            # Draw the initial configuration red
+            # and the goal is blue and all the other are green
+            # RGB (R first, G then, B Goal)
+            color = (1, 0, 0) if k == 0 else (0, 1, 0)
+            color = (0, 0, 1) if k == trajectory.T() else color
+            # color = (1, 1, 0) if k == 31 else color
 
             self.draw_configuration(q, color, with_robot)
 
