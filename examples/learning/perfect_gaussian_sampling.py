@@ -155,8 +155,7 @@ class EmpiricalCovariance(DifferentiableMap):
 
 def cov_own(X):
     """
-    Computes covariance using a simple formular
-    for the two 2D case
+    Computes covariance using a simple formula for the 2D case
     """
     Sigma = np.zeros((X.shape[1], X.shape[1]))
     for x in X:
