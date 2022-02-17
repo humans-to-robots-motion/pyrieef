@@ -129,10 +129,24 @@ class EmpiricalCovariance(DifferentiableMap):
 
     def forward(self, x):
         X = x.reshape(self._m, self._n)
+        print("M0 (2) : ", X)
         covariance = X.T @ X
-        covariance /= float(self._m)
-        print("cov 2 : ", covariance)
+        covariance /= float(self._m - 1)
+        print("M0 shape : ", X.shape)
+        print("covariance shape : ", covariance.shape)
+        print("shape : ", covariance.shape)
         return covariance.flatten()
+
+
+def cov_own(X):
+    """
+    Computes covariance using a simple formula
+    """
+    Sigma = np.zeros((X.shape[1], X.shape[1]))
+    for x in X:
+        Sigma += np.outer(x, x)
+    Sigma /= float(X.shape[0] - 1)
+    return Sigma
 
 
 (Sigma, M) = sample_data()
@@ -150,16 +164,24 @@ y0 = np.mean(y)
 x = x - x0
 y = y - y0
 
-M0 = np.array([x, y])
+M0 = np.array([x, y]).T
 
-cov1 = np.cov(M0)
-cov2 = EmpiricalCovariance(x.size, 2)
+print("M0 shape : ", M0.shape)
+print("M0 (1) : ", M0)
 
-print("cov1 : ", cov1)
+cov1 = np.cov(M0.T, bias=False)
+cov2 = EmpiricalCovariance(x.size, 2)(M0.flatten()).reshape(2, 2)
+cov3 = cov_own(M0)
+
+
 print("mean0 (x) : ", np.mean(M0[0, :]))
 print("mean0 (y) : ", np.mean(M0[1, :]))
 
-assert_allclose(cov1.flatten(), cov2(M0.flatten()))
+print("cov1 : ", cov1)
+print("cov2 : ", cov2)
+print("cov3 : ", cov3)
+
+assert_allclose(cov1.flatten(), cov2.flatten())
 
 
 # ax1.plot(x, y, 'x', c='r')
