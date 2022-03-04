@@ -41,11 +41,17 @@ class TrajectoryOptimizationViewer:
                  scale=700.):
         self.objective = objective
         self.viewer = None
+       
+        # public options
+        self.points_radii = .01
+        self.background_color_style = "magma"   # binary, hot, ...
+
+        # private options
         self._draw_gradient = False
         self._draw_hessian = False
         self._use_3d = use_3d
         self._use_gl = use_gl
-        self.points_radii = .01
+
         if draw:
             self._draw_gradient = draw_gradient
             self._draw_hessian = draw_gradient
@@ -83,7 +89,14 @@ class TrajectoryOptimizationViewer:
         Sets up the viewer
         """
         self.viewer.set_workspace(self.objective.workspace)
-        self.viewer.draw_ws_background(self.objective.obstacle_potential)
+
+        if self.objective.obstacle_potential:
+            self.viewer.draw_ws_background(self.objective.obstacle_potential,
+                                           color_style=self.background_color_style)
+        else:
+            self.viewer.draw_ws_img(np.ones((100, 100)),
+                                    color_style=self.background_color_style)
+
         self.viewer.reset_objects()
 
     def draw_gradient(self, x):

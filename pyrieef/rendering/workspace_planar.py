@@ -420,6 +420,18 @@ class WorkspaceOpenGl(WorkspaceRender):
         # self.draw_ws_obstacles()
 
     def draw_ws_circle(self, radius, origin, color=(0, 1, 0), filled=False):
+        """
+        Draws the obstacles one worjspace
+
+        Parameters
+        ----------
+        radius : float
+            radius of the circle
+        origin : array
+            coordinates of the origin in world
+        color : tuple
+            RGB values in [0, 1] range
+        """
         t = Transform(translation=self._scale * (
             origin - np.array([self._extent.x_min, self._extent.y_min])))
         circ = make_circle(self._scale * radius, 30, filled)
@@ -463,20 +475,54 @@ class WorkspaceOpenGl(WorkspaceRender):
                            nb_points=100,
                            color_style=plt.cm.magma,
                            interpolate="bilinear"):
+        """
+        Draws the background image
+
+        Parameters
+        ----------
+        phi : matrix or function
+            field of scalar values
+        nb_points : int
+            discretization in row and colums (assumes a squared workspace)
+        color_style : matplotlib color map
+            RGB values in [0, 1] range
+        """
         X, Y = self._workspace.box.stacked_meshgrid(nb_points)
         if self.background_matrix_eval:
             Z = phi(np.stack([X, Y]))
         else:
             Z = two_dimension_function_evaluation(X, Y, phi)
-        self.draw_ws_img(Z)
+        self.draw_ws_img(Z, color_style)
 
-    def draw_ws_img(self, Z):
+    def draw_ws_img(self, Z, color_style=plt.cm.magma):
+        """
+        Draws an image in the background
+
+        Parameters
+        ----------
+        Z :  numpy array
+            image
+        interpolate : string
+            Example ["nearest", "none", "bicubic", "bilinear"]
+        color_style : string
+            [viridis, hot, bone, magma]
+
+        Examples of coloring are : [viridis, hot, bone, magma]
+            see page :
+            https://matplotlib.org/examples/color/colormaps_reference.html
+        """
+
         # Z = Z.clip(max=1)
         self._max_z = Z.max()
         self._min_z = Z.min()
-        Z = (Z - self._min_z * np.ones(Z.shape)) / (self._max_z - self._min_z)
-        Z = rgba2rgb(cmap(Z))
-        Z = resize(Z, (self.width, self.height))  # Normalize to [0, 1]
+        # Normalize to [0, 1]
+        if abs(self._max_z - self._min_z) > 1e-10:
+            Z = (Z - self._min_z * np.ones(Z.shape)) / (
+                self._max_z - self._min_z)
+        else:
+            Z /= self._min_z
+        Z = rgba2rgb(plt.get_cmap(color_style)(Z))
+        Z = resize(Z, (self.width, self.height))  
         Z = np.flip(Z, 0)
         image = Image(width=self.width, height=self.height,
                       arr=img_as_ubyte(Z))
