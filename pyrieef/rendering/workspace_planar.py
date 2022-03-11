@@ -408,6 +408,8 @@ class WorkspaceOpenGl(WorkspaceRender):
         WorkspaceRender.__init__(self, workspace)
         self._scale = scale
         print("scale : ",  self._scale)
+        print("extend.x() : ", self._extent.x() )
+        print("extend.y() : ", self._extent.y() )
         self.width = self._scale * (self._extent.x_max - self._extent.x_min)
         self.height = self._scale * (self._extent.y_max - self._extent.y_min)
         self.gl = Viewer(self.width, self.height, display)

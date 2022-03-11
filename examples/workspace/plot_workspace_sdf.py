@@ -21,7 +21,6 @@ import demos_common_imports
 from pyrieef.geometry.workspace import *
 from pyrieef.geometry.pixel_map import sdf
 from pyrieef.rendering.workspace_planar import WorkspaceDrawer
-import cv2
 
 env = EnvBox(dim=np.array([2., 2.]))
 box = Box(origin=np.array([-.2, -.2]))
@@ -31,15 +30,24 @@ workspace = Workspace(env)
 workspace.obstacles.append(box)
 workspace.obstacles.append(segment)
 workspace.obstacles.append(circle)
-viewer = WorkspaceDrawer(workspace, wait_for_keyboard=True)
+
+# Compute Occupancy map and SDF
 nb_points = 20
 occupancy_map = occupancy_map(nb_points, workspace)
 signed_distance_field = sdf(occupancy_map)
+
+# Setup viewer
+viewer = WorkspaceDrawer(workspace, wait_for_keyboard=True)
+viewer.draw_ws_img(signed_distance_field)
 # viewer.draw_ws_img(occupancy_map)
-viewer.draw_ws_img(
-    ndimage.gaussian_filter(
-        cv2.resize(src=signed_distance_field,
-                   dsize=(300, 300),
-                   interpolation=cv2.INTER_NEAREST), sigma=3))
+
+# import cv2
+# Draw blured image
+# viewer.draw_ws_img(
+#     ndimage.gaussian_filter(
+#         cv2.resize(src=signed_distance_field,
+#                    dsize=(300, 300),
+#                    interpolation=cv2.INTER_NEAREST), sigma=3))
+
 viewer.draw_ws_obstacles()
 viewer.show_once()

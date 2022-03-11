@@ -559,6 +559,20 @@ class OrientedBox(Box):
         else:
             raise NotImplementedError('box has to be of dim 2 or 3')
 
+    def dist_from_border(self, p):
+        """  
+        TODO this works but could be better done 
+        (no creation of AAB)
+        """
+        aab = AxisAlignedBox(dim=self.dim)
+        p_offset = (p.T - self.origin).T
+        p_aligned = np.tensordot(self.orientation.T, p_offset, axes=1)
+        return aab.dist_from_border(p_aligned)
+
+    def sampled_points(self):
+        return [(np.dot(self.orientation, p - self.origin) + self.origin)
+            for p in Box.sampled_points(self)]
+
 
 class AxisAlignedBox(Box):
     """
@@ -1243,18 +1257,20 @@ def sample_circle_workspaces(nb_circles, radius_parameter=.15):
 
 def sample_box_workspaces(
         nb_boxes,
-        height=.20,
-        width=.20,
-        oriented=False):
+        boxes_height=.10,
+        boxes_width=.15,
+        oriented=False,
+        workspace_height=1,
+        workspace_width=1):
     """ Samples a workspace randomly composed of nb_boxes
         the height and width parameters specify
         the max fraction of workspace diagonal used for a box. """
-    workspace = Workspace()
+    workspace = Workspace(EnvBox(dim=[workspace_height, workspace_width]))
     diagonal = workspace.box.diag()
-    max_h = diagonal * height
-    min_h = diagonal * height * .5
-    max_w = diagonal * width
-    min_w = diagonal * width * .5
+    max_h = diagonal * boxes_height
+    min_h = diagonal * boxes_height * .5
+    max_w = diagonal * boxes_width
+    min_w = diagonal * boxes_width * .5
     workspace.obstacles = [None] * nb_boxes
     for i in range(nb_boxes):
         origin = workspace.box.sample_uniform()

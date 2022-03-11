@@ -189,7 +189,7 @@ def create_keypoints(nb_keypoints, segments):
     for s in (segments):
         length += s.length()
     keypoints = []
-    dl = length / (nb_keypoints - 1)
+    dl = length / ((nb_keypoints - 1) if nb_keypoints > 1 else 2)
     d_rest = 0
     print(dl)
     for k, s in enumerate(segments):
