@@ -1,5 +1,6 @@
 numpy>=1.12.0
 scipy
+matplotlib
 six
 h5py
 tqdm
@@ -7,4 +8,4 @@ pyyaml
 pytest
 pyglet
 scikit-image
-tensorflow==1.0
+# tensorflow==1.0
