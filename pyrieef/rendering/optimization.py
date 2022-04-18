@@ -20,9 +20,11 @@
 from motion.trajectory import Trajectory
 import time
 import numpy as np
+import math
 
 WHITE_COLORS = [(0.1, 0.0, 0.0), (0.0, 0.1, 0.0), (0.0, 0.0, 0.1)]
 BLACK_COLORS = [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0)]
+
 
 class TrajectoryOptimizationViewer:
 
@@ -43,7 +45,7 @@ class TrajectoryOptimizationViewer:
                  scale=700.):
         self.objective = objective
         self.viewer = None
-       
+
         # public options
         self.points_radii = .01
         self.background_white = True
@@ -95,8 +97,9 @@ class TrajectoryOptimizationViewer:
         self.viewer.set_workspace(self.objective.workspace)
 
         if self.objective.obstacle_potential:
-            self.viewer.draw_ws_background(self.objective.obstacle_potential,
-                                           color_style=self.background_color_style)
+            self.viewer.draw_ws_background(
+                self.objective.obstacle_potential,
+                color_style=self.background_color_style)
         else:
             self.viewer.draw_ws_img(np.ones((100, 100)),
                                     color_style=self.background_color_style)
@@ -193,6 +196,14 @@ class TrajectoryOptimizationViewer:
                         r = self.objective.robot.radii[i]
                         self.viewer.draw_ws_circle(r, p, color)
 
+                    # Draw front wheel for car robot
+                    if hasattr(self.robot, 'wheel'):
+                        c, s = math.cos(q[2]), math.sin(q[2])
+                        L = self.objective.robot.length
+                        vertices = self.objective.robot.wheel
+                        self.viewer.draw_ws_polygon(
+                            vertices, [L * c, L * s], q[3], color)
+
                 else:
                     p = self.objective.robot.keypoint_map(0)(q)
                     self.viewer.draw_ws_circle(self.points_radii, p, color)
@@ -238,7 +249,7 @@ class TrajectoryOptimizationViewer:
             # Draw the initial configuration red
             # and the goal is blue and all the other are green
             # RGB (R first, G then, B Goal)
-            color = self.colors[0] if k == 0 else  self.colors[1]
+            color = self.colors[0] if k == 0 else self.colors[1]
             color = self.colors[2] if k == trajectory.T() else color
             # color = (1, 1, 0) if k == 31 else color
 

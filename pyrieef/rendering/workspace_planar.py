@@ -182,7 +182,7 @@ class WorkspaceDrawer(WorkspaceRender):
                 each of the obstacles
         """
         colorst = [cm.gist_ncar(i) for i in np.linspace(
-                                    0, 0.9, len(self._workspace.obstacles))]
+            0, 0.9, len(self._workspace.obstacles))]
 
         for i, o in enumerate(self._workspace.obstacles):
             self._ax.plot(o.origin[0], o.origin[1], 'kx')
@@ -220,6 +220,7 @@ class WorkspaceDrawer(WorkspaceRender):
                 (clockwise or counter clock wise)
                 as long as they provide a contour
         """
+        origin = np.asarray(origin)
         self._ax.plot(origin[0], origin[1], 'kx')
         R = rotation_matrix_2d_radian(rotation)
         vertices = np.vstack([vertices, vertices[0]])
@@ -408,8 +409,8 @@ class WorkspaceOpenGl(WorkspaceRender):
         WorkspaceRender.__init__(self, workspace)
         self._scale = scale
         print("scale : ",  self._scale)
-        print("extend.x() : ", self._extent.x() )
-        print("extend.y() : ", self._extent.y() )
+        print("extend.x() : ", self._extent.x())
+        print("extend.y() : ", self._extent.y())
         self.width = self._scale * (self._extent.x_max - self._extent.x_min)
         self.height = self._scale * (self._extent.y_max - self._extent.y_min)
         self.gl = Viewer(self.width, self.height, display)
@@ -524,7 +525,7 @@ class WorkspaceOpenGl(WorkspaceRender):
         else:
             Z /= self._min_z
         Z = rgba2rgb(plt.get_cmap(color_style)(Z))
-        Z = resize(Z, (self.width, self.height))  
+        Z = resize(Z, (self.width, self.height))
         Z = np.flip(Z, 0)
         image = Image(width=self.width, height=self.height,
                       arr=img_as_ubyte(Z))
