@@ -21,6 +21,8 @@ from motion.trajectory import Trajectory
 import time
 import numpy as np
 
+WHITE_COLORS = [(0.1, 0.0, 0.0), (0.0, 0.1, 0.0), (0.0, 0.0, 0.1)]
+BLACK_COLORS = [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0)]
 
 class TrajectoryOptimizationViewer:
 
@@ -44,7 +46,9 @@ class TrajectoryOptimizationViewer:
        
         # public options
         self.points_radii = .01
-        self.background_color_style = "magma"   # binary, hot, ...
+        self.background_white = True
+        self.background_color_style = "Greens"   # binary, hot, ...
+        self.colors = WHITE_COLORS if self.background_white else BLACK_COLORS
 
         # private options
         self._draw_gradient = False
@@ -234,8 +238,8 @@ class TrajectoryOptimizationViewer:
             # Draw the initial configuration red
             # and the goal is blue and all the other are green
             # RGB (R first, G then, B Goal)
-            color = (1, 0, 0) if k == 0 else (0, 1, 0)
-            color = (0, 0, 1) if k == trajectory.T() else color
+            color = self.colors[0] if k == 0 else  self.colors[1]
+            color = self.colors[2] if k == trajectory.T() else color
             # color = (1, 1, 0) if k == 31 else color
 
             self.draw_configuration(q, color, with_robot)

@@ -247,3 +247,49 @@ def create_freeflyer_from_segments(
             config["radii"],
             config["scale"] if scale is None else scale)
     return robot
+
+
+def create_car_from_file(
+        filename=assets_data_dir() + "/bicycle_model.json",
+        nb_keypoints=None,
+        scale=None):
+    """
+    Loads a freeflyer description from a json file and creates
+    a freeflyer with segments equally spaced along the line segments
+
+    Parameters
+    ----------
+        nb_keypoints: int
+            how many keypoints are sampled along the segments
+        filename: string
+            json file that should be loaded
+        scale: float
+            how the freeflyer should be scaled
+    """
+    print(filename)
+    with open(filename, "r") as read_file:
+        config = json.loads(read_file.read())
+        nb_keypoints = config[
+            "nb_keypoints"] if nb_keypoints is None else nb_keypoints
+        points = config["segments"]
+        n = 2
+        all_points = sorted(points.items())
+        print(all_points)
+        segments = [Segment(
+            p1=np.array(p[0:n]),
+            p2=np.array(p[n:2 * n])) for k, p in all_points]
+        keypoints = create_keypoints(nb_keypoints, segments)
+        keypoints_dic = {}
+        for i, point in enumerate(keypoints):
+            keypoints_dic["s{:03}".format(i)] = point
+        robot = Freeflyer(
+            config["name"],
+            keypoints_dic,
+            config["contour"],
+            config["radii"],
+            config["scale"] if scale is None else scale)
+
+        # Special car attributes
+        setattr(robot, "length", config["length"])
+        setattr(robot, "wheel", config["wheel"])
+    return robot
