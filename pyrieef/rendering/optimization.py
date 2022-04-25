@@ -192,12 +192,12 @@ class TrajectoryOptimizationViewer:
 
                     # Draw keypoints
                     for i in range(self.objective.robot.nb_keypoints()):
-                        p = self.objective.robot.keypoint_map(i)(q)
+                        p = self.objective.robot.keypoint_map(i)(q[:3])
                         r = self.objective.robot.radii[i]
                         self.viewer.draw_ws_circle(r, p, color)
 
                     # Draw front wheel for car robot
-                    if hasattr(self.robot, 'wheel'):
+                    if hasattr(self.objective.robot, 'wheel'):
                         c, s = math.cos(q[2]), math.sin(q[2])
                         L = self.objective.robot.length
                         vertices = self.objective.robot.wheel
@@ -205,7 +205,7 @@ class TrajectoryOptimizationViewer:
                             vertices, [L * c, L * s], q[3], color)
 
                 else:
-                    p = self.objective.robot.keypoint_map(0)(q)
+                    p = self.objective.robot.keypoint_map(0)(q[:3])
                     self.viewer.draw_ws_circle(self.points_radii, p, color)
 
         else:

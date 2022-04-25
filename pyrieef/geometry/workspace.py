@@ -571,7 +571,7 @@ class OrientedBox(Box):
 
     def sampled_points(self):
         return [(np.dot(self.orientation, p - self.origin) + self.origin)
-            for p in Box.sampled_points(self)]
+                for p in Box.sampled_points(self)]
 
 
 class AxisAlignedBox(Box):
@@ -1227,7 +1227,7 @@ class Workspace:
         primitives = {}
         for i, o in enumerate(self.obstacles):
             primitives['primitive_{}'.format(i)] = o.to_dictionary()
-        
+
         workspace = {**container, **primitives}
         print("workspace : \n\n", workspace)
         return workspace
@@ -1240,11 +1240,14 @@ def sample_circles(nb_circles):
     return list(zip(centers, radii))
 
 
-def sample_circle_workspaces(nb_circles, radius_parameter=.15):
+def sample_circle_workspaces(nb_circles,
+                             radius_parameter=.15,
+                             workspace_height=1,
+                             workspace_width=1):
     """ Samples a workspace randomly composed of nb_circles
         the radius parameter specifies the
         max fraction of workspace diagonal used for a circle radius. """
-    workspace = Workspace()
+    workspace = Workspace(EnvBox(dim=[workspace_height, workspace_width]))
     max_radius = radius_parameter * workspace.box.diag()
     min_radius = .5 * radius_parameter * workspace.box.diag()
     workspace.obstacles = [None] * nb_circles
