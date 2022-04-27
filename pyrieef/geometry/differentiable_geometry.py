@@ -292,10 +292,10 @@ class ProductFunction(DifferentiableMap):
     """Take the product of functions"""
 
     def __init__(self, g, h):
-        """ 
+        """
         f(x) = g(x)h(x)
         n is the input dimension
-        indices are the output 
+        indices are the output
         """
         self._g = g
         self._h = h
@@ -563,6 +563,36 @@ class Norm(DifferentiableMap):
         x_d = self._xd(x)
         d_inv = 1. / np.linalg.norm(x_d)
         return d_inv * np.eye(x.size) - d_inv**3 * np.outer(x_d, x_d)
+
+
+class SoftNorm(DifferentiableMap):
+    """
+        Soft norm f(x; \alpha) = sqrt(x^2 + \alpha^2) - \alpha
+    """
+
+    def __init__(self, x_0=None, alpha=.05):
+        self.x_0 = x_0
+        self._n = 2 if x_0 is None else self.x_0.size
+        self._alpha = alpha
+        self._alpha_sq = self._alpha * self._alpha
+
+    def output_dimension(self):
+        return 1
+
+    def input_dimension(self):
+        return self._n
+
+    def _xd(self, x):
+        return x - self.x_0 if self.x_0 is not None else x
+
+    def _alpha_norm(self, x):
+        return np.sqrt(np.dot(self._xd(x), self._xd(x)) + self._alpha_sq)
+
+    def forward(self, x):
+        return self._alpha_norm(x) - self._alpha
+
+    def gradient(self, x):
+        return self._xd(x) / self._alpha_norm(x)
 
 
 class Normalize(DifferentiableMap):
