@@ -1162,6 +1162,9 @@ class Workspace:
     def __init__(self, box=EnvBox()):
         self.box = box
         self.obstacles = []
+        
+    def nb_obstacles(self):
+        return len(self.obstacles)
 
     def in_collision(self, pt):
         for obst in self.obstacles:
@@ -1264,11 +1267,15 @@ def sample_box_workspaces(
         boxes_width=.15,
         oriented=False,
         workspace_height=1,
-        workspace_width=1):
+        workspace_width=1,
+        workspace_origin_x=0,
+        workspace_origin_y=0):
     """ Samples a workspace randomly composed of nb_boxes
         the height and width parameters specify
         the max fraction of workspace diagonal used for a box. """
-    workspace = Workspace(EnvBox(dim=[workspace_height, workspace_width]))
+    workspace = Workspace(EnvBox(
+        origin=[workspace_origin_x, workspace_origin_y],
+        dim=[workspace_height, workspace_width]))
     diagonal = workspace.box.diag()
     max_h = diagonal * boxes_height
     min_h = diagonal * boxes_height * .5
