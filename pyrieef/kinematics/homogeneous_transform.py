@@ -19,11 +19,14 @@
 
 from geometry.differentiable_geometry import *
 from geometry.rotations import *
+from math import pi, cos, sin, atan2
 
 
 class Rotation2D:
     """
     2D rotation
+
+        Uses multiplication operator to combine operations
 
     Parameters
     ----------
@@ -31,11 +34,17 @@ class Rotation2D:
         rotation in radians
     """
 
-    def __init__(self, theta=None):
+    def __init__(self, rotation=None):
+        if rotation is not None:
 
-        if theta is not None:
-            c, s = np.cos(theta), np.sin(theta)
-            self._matrix = np.array(((c, -s), (s, c)))
+            if isinstance(rotation, float):
+
+                self._matrix = rotation_matrix_2d_radian(rotation)
+
+            elif isinstance(rotation, np.array):
+
+                assert rotation.shape == (2, 2)
+                self._matrix = rotation
         else:
             self._matrix = None
 
@@ -47,6 +56,9 @@ class Rotation2D:
 
     def inverse(self):
         return self._matrix.T
+
+    def angle(self):
+        return angle_modulo_2i(angle_from_matrix_2d(self._matrix))
 
 
 class Isometry:
@@ -133,6 +145,9 @@ class Isometry2D(Isometry):
         T_inv._rotation = self._rotation.T
         T_inv._translation = -np.dot(T_inv._rotation, self._translation)
         return T_inv
+
+    def angle(self):
+        return angle_modulo_2i(angle_from_matrix_2d(self._rotation))
 
 
 class Isometry3D(Isometry):

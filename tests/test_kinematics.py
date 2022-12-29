@@ -85,6 +85,17 @@ def test_freeflyer():
 
 def test_isometries():
 
+    for _ in range(10):
+        theta1 = angle_modulo_2i(np.random.uniform(-100, 100))
+        rotA = Rotation2D(theta1)
+        R1 = rotA.matrix()
+        theta2 = rotA.angle()
+        rotB = Rotation2D(theta2)
+        R2 = rotB.matrix()
+        theta2 = rotB.angle()
+        assert_allclose(R1, R2)
+        assert_allclose(theta1, theta2)
+
     p = np.random.rand(2)
     affine2d = Isometry2D(.4, p)
     assert_allclose(
@@ -151,5 +162,5 @@ if __name__ == "__main__":
     # test_homogeneous_transform()
     # test_homogeneous_jacobian()
     # test_freeflyer()
-    # test_isometries()
-    test_planar_robot_jacobian()
+    test_isometries()
+    # test_planar_robot_jacobian()

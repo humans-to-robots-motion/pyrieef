@@ -18,6 +18,7 @@
 #                                        Jim Mainprice on Sunday June 13 2018
 
 import numpy as np
+from math import pi, cos, sin, atan2
 
 
 def vectors_angle(v1, v2):
@@ -40,6 +41,10 @@ def vectors_angle(v1, v2):
     return np.mod(np.arctan2(np.cross(v1, v2), np.dot(v1, v2)), 2 * np.pi)
 
 
+def angle_modulo_2i(theta):
+    return theta % (2 * pi)
+
+
 def angle_from_matrix_2d(matrix):
     """
     Returns the angle from a 2d matrix
@@ -47,9 +52,10 @@ def angle_from_matrix_2d(matrix):
     Parameters
     ----------
     matrix : np.array
+        Orthogonal matrix
     """
     assert matrix.shape == (2, 2)
-    return np.arctan2(matrix[1, 0], matrix[0, 0])
+    return atan2(matrix[1, 0], matrix[0, 0])
 
 
 def rotation_matrix_2d(degree):
@@ -74,7 +80,7 @@ def rotation_matrix_2d_radian(theta):
     theta : float
         angle of rotation
     """
-    c, s = np.cos(theta), np.sin(theta)
+    c, s = cos(theta), sin(theta)
     return np.array(((c, -s), (s, c)))
 
 
