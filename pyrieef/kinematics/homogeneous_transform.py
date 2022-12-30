@@ -28,25 +28,27 @@ class Rotation2D:
 
         Uses multiplication operator to combine operations
 
+    Members
+    ----------
+    _matrix : array
+        Orthogonal matrix
+
     Parameters
     ----------
-    theta : float
-        rotation in radians
+    rotation : float or array
+        in radians
     """
 
+    _matrix = None
+
     def __init__(self, rotation=None):
+
         if rotation is not None:
-
             if isinstance(rotation, float):
-
                 self._matrix = rotation_matrix_2d_radian(rotation)
-
             elif isinstance(rotation, np.array):
-
                 assert rotation.shape == (2, 2)
                 self._matrix = rotation
-        else:
-            self._matrix = None
 
     def __mul__(self, x):
         return np.dot(self._matrix, x)
@@ -75,9 +77,8 @@ class Isometry:
         vector offset
     """
 
-    def __init__(self):
-        self._rotation = None
-        self._translation = None
+    _rotation = None
+    _translation = None
 
     def __str__(self):
         return str(self.matrix())
@@ -101,28 +102,25 @@ class Isometry2D(Isometry):
 
     Parameters
     ----------
-    theta : float
-        rotation in radians
+    rotation : float or array
+        in radians
 
     translation : array like (2, )
         vector offset
     """
 
-    def __init__(self, theta=None, translation=None):
+    def __init__(self, rotation=None, translation=None):
 
-        if theta is not None:
-            self._rotation = Rotation2D(theta).matrix()
-        else:
-            self._rotation = None
+        if rotation is not None:
+            self._rotation = Rotation2D(rotation).matrix()
 
         if translation is not None:
+            assert len(translation) == 2
             translation = np.asarray(translation)
-            assert(translation.size == 2)
             self._translation = translation
-        else:
-            self._translation = None
 
     def __mul__(self, p):
+
         if isinstance(p, np.ndarray):
             return np.dot(self._rotation, p) + self._translation
         elif isinstance(p, Isometry2D):
@@ -148,6 +146,9 @@ class Isometry2D(Isometry):
 
     def angle(self):
         return angle_modulo_2i(angle_from_matrix_2d(self._rotation))
+
+    def pose(self):
+        return np.hstack([self._translation, self.angle()])
 
 
 class Isometry3D(Isometry):
