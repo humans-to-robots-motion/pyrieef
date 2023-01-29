@@ -324,6 +324,14 @@ def test_workspace_to_occupancy_map():
         assert_allclose(occ[i, j], v)
 
 
+def test_signed_disance_field_function():
+    workspace = sample_circle_workspaces(nb_circles=3)
+    sdf = workspace.signed_distance_field()
+    points = np.random.random((10, 2))
+    for p in points:
+        assert_allclose(sdf(p), workspace.min_dist(p)[0])
+
+
 if __name__ == "__main__":
 
     # test_circle()
@@ -334,10 +342,11 @@ if __name__ == "__main__":
     # test_axis_aligned_box()
     # test_inside_box()
     # test_ellipse()
-    test_polygon()
+    # test_polygon()
     # test_hexagon()
     # test_sdf_derivatives()
     # test_sdf_workspace()
     # test_meshgrid()
     # test_sdf_grid()
     # test_workspace_to_occupancy_map()
+    test_signed_disance_field_function()

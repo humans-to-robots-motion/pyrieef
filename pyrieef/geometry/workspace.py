@@ -1162,7 +1162,7 @@ class Workspace:
     def __init__(self, box=EnvBox()):
         self.box = box
         self.obstacles = []
-        
+
     def nb_obstacles(self):
         return len(self.obstacles)
 
@@ -1171,6 +1171,9 @@ class Workspace:
             if obst.dist_from_border(pt) < 0.:
                 return True
         return False
+
+    def signed_distance_field(self):
+        return lambda p: self.min_dist(p)[0]
 
     def min_dist(self, pt):
         if pt.shape == (2,):
